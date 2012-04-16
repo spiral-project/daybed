@@ -24,7 +24,7 @@ In term of API access, this means something like this::
     > curl -X PUT /events/ -d SCHEMA
     < 200 OK + TOKEN
 
-On the srever, we do the validation with cornice + colander::
+On the server, we do the validation with cornice + colander::
 
     class ModelDefinition(MappingSchema):
         title = SchemaNode(String())
@@ -53,13 +53,14 @@ View in pyramid::
             if token is not request.GET['token']:
                 return request.errors.add('body', 'token', 'the token is not valid')
         else:
+            # Generate a token with uuid
             token = con.put(uri='tokens/{modelname}'.format(request.matchdict), uuid.gen())
 
-        con.put(uri=modelname, data=request.body) # save to couchdb
+        con.put(uri=modelname, data=request.body)  # save to couchdb
         return {'token': token}
 
     
-If yo iuwant to update the schema, you need to add the "token" you received
+If you want to update the schema, you need to add the "token" you received
 during the creation of the model definition::
 
     > curl -X PUT /events/?token=<yourtoken> -d SCHEMA
