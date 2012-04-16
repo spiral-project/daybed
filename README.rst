@@ -25,7 +25,7 @@ In term of API access, this means something like this::
     > curl -X PUT /definition/events/ -d SCHEMA
     < 200 OK + TOKEN
 
-On the srever, we do the validation with cornice + colander::
+On the server, we do the validation with cornice + colander::
 
     class ModelDefinition(MappingSchema):
         title = SchemaNode(String())
