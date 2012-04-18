@@ -1,23 +1,27 @@
+Daybed
+######
 
-The basic need is to send a model definition to an API, and then send data
-which validates against the model definition.
+Daybed is a form validation and data storage API, built on top of couchdb.
 
-In term of API access, this means something like this::
+The basic need is to send model definitions to an API, to then send data
+which validates against the specified model definitions.
+
+In term of API access, it means something like this::
 
     SCHEMA = {
-        "title": "My super event"
-        "description": "",
-        "fields": [
+        title: "My super event"
+        description: "",
+        fields: [
             {
-                "name": "title",
-                "type": "string",
-                "description": "blah",
+                name: "title",
+                type: "string",
+                description: "blah",
             },
             {
-                "name": "category",
-                "type": "enum",
-                "description": "blah",
-                "choices": ('sport', 'culture')
+                name: "category",
+                type: "enum",
+                description: "blah",
+                choices: ('sport', 'culture')
             },
         ],
     }
@@ -25,7 +29,7 @@ In term of API access, this means something like this::
     > curl -X PUT /definition/events/ -d SCHEMA
     < 200 OK + TOKEN
 
-On the server, we do the validation with cornice + colander::
+On the server, we do the validation with colander::
 
     class ModelDefinition(MappingSchema):
         title = SchemaNode(String())
