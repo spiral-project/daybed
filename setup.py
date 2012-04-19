@@ -10,6 +10,7 @@ requires = [
     'pyramid',
     'cornice',
     'colander',
+    'couchdb',
     'pyramid_debugtoolbar',
     'waitress',
     ]

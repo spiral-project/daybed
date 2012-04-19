@@ -45,16 +45,15 @@ def create_model_definition(request):
     (the schema), we check that, on case of an modification, the token is
     present and valid.
     """
-    con = couchdb.get_connection()
     modelname = request.matchdict['modelname']
     token_uri = 'tokens/{modename}'.format(request.matchdict)
-    token = con.get(token_uri)
+    token = request.db.get(token_uri)
     if token and token is not request.GET['token']:
         return request.errors.add('body', 'token',
                                   'the given token is not valid')
     else:
         # Generate a unique token
-        token = con.put(token_uri, token=os.urandom(8).encode('hex'))
+        token = request.db.put(token_uri, token=os.urandom(8).encode('hex'))
 
-    con.put(uri=modelname, data=request.body)  # save to couchdb
+    request.db.put(uri=modelname, data=request.body)  # save to couchdb
     return {'token': token}
