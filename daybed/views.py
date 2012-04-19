@@ -46,7 +46,7 @@ def create_model_definition(request):
     present and valid.
     """
     modelname = request.matchdict['modelname']
-    token_uri = 'tokens/{modename}'.format(request.matchdict)
+    token_uri = 'tokens/{modelname}'.format(**request.matchdict)
     token = request.db.get(token_uri)
     if token and token is not request.GET['token']:
         return request.errors.add('body', 'token',
