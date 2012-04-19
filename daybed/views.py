@@ -4,17 +4,15 @@ from cornice import Service
 from colander import (
     MappingSchema,
     String,
-    ModelField,
     SequenceSchema,
+    TupleSchema,
     SchemaNode,
     OneOf
 )
 
 
-class ModelDefinition(MappingSchema):
-    title = SchemaNode(String())
-    description = SchemaNode(String())
-    fields = SequenceSchema(ModelField())
+class ModelChoices(TupleSchema):
+    choice = String()
 
 
 class ModelField(MappingSchema):
@@ -22,14 +20,24 @@ class ModelField(MappingSchema):
     type = SchemaNode(String(), validator=OneOf(('int', 'string', 'enum')))
     description = SchemaNode(String())
     # TBD in subclassing, a way to have optional fields. Cross Field ?
-    choices = SequenceSchema(String())
+    choices = ModelChoices()
 
 
-model_definition = Service('Model Definition', '/definition/{modelname}')
-model = Service('Model', '/{modelname}')
+class ModelFields(SequenceSchema):
+    field = ModelField()
 
 
-@model_definition.PUT(schema=ModelDefinition())
+class ModelDefinition(MappingSchema):
+    title = SchemaNode(String(), location="body")
+    description = SchemaNode(String(), location="body")
+    fields = ModelFields(location="body")
+
+
+model_definition = Service(name='model_definition', path='/definition/{modelname}', description='Model Definition')
+model = Service(name='model_data', path='/{modelname}', description='Model')
+
+
+@model_definition.put(schema=ModelDefinition)
 def create_model_definition(request):
     """Creates a model definition.
 
