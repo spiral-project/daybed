@@ -33,7 +33,10 @@ class ModelDefinition(MappingSchema):
     fields = ModelFields(location="body")
 
 
-model_definition = Service(name='model_definition', path='/definition/{modelname}', description='Model Definition')
+model_definition = Service(name='model_definition',
+                           path='/definition/{modelname}',
+                           description='Model Definition')
+
 model = Service(name='model_data', path='/{modelname}', description='Model')
 
 

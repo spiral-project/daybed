@@ -17,7 +17,6 @@ def add_couchdb_to_request(event):
 def main(global_config, **settings):
     config = Configurator(settings=settings)
     config.include("cornice")
-    #config.include("couchdb")
     db_server = couchdb.client.Server(settings['couchdb_uri'])
     config.registry.settings['db_server'] = db_server
     config.scan("daybed.views")
