@@ -8,7 +8,8 @@ from colander import (
     SequenceSchema,
     TupleSchema,
     SchemaNode,
-    OneOf
+    OneOf,
+    Length
 )
 
 
@@ -31,7 +32,7 @@ class ModelFields(SequenceSchema):
 class ModelDefinition(MappingSchema):
     title = SchemaNode(String(), location="body")
     description = SchemaNode(String(), location="body")
-    fields = ModelFields(location="body")
+    fields = ModelFields(validator=Length(min=1), location="body")
 
 
 model_definition = Service(name='model_definition', path='/definition/{modelname}', description='Model Definition')
