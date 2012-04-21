@@ -1,12 +1,43 @@
 Daybed
 ######
 
-virtualenv --no-site-packages env
-source env/bin/activate
+Setup
+=====
+
+::
+
+    virtualenv --no-site-packages env
+    source env/bin/activate
+    python setup.py develop
+
+Run tests
+=========
+
+Unit tests :
+
+::
+
+    python setup.py test -q
+
+Functional tests :
+
+* Install Lettuce (should be in ``requires`` ?)
+
+::
+
+    pip install lettuce
+  
+
+* Run !
+
+::
+
+    lettuce daybed/tests/features
 
 
-python setup.py develop
+Run server
+==========
 
-python setup.py test -q
+::
 
-pserve development.ini --reload
+    pserve development.ini --reload
