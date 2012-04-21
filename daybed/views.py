@@ -1,4 +1,5 @@
 import os
+import json
 
 from cornice import Service
 from colander import (
@@ -53,7 +54,9 @@ def create_model_definition(request):
                                   'the given token is not valid')
     else:
         # Generate a unique token
-        token = request.db.put(token_uri, token=os.urandom(8).encode('hex'))
+        token = os.urandom(8).encode('hex')  #TODO: why not uuid?
+        request.db.save({'token': token, 'model': modelname})
 
-    request.db.put(uri=modelname, data=request.body)  # save to couchdb
+    model_def = json.loads(request.body)
+    request.db.save(model_def)  # save to couchdb
     return {'token': token}
