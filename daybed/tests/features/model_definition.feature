@@ -23,7 +23,17 @@ Feature: Model definitions
         Then The error is about "fields" field
         When I define the fields "[{"name": "untyped"}]", the status is 400
         Then The error is about "fields" field
+        When I define the fields "[{"name": "", "type": "string", "description" : ""}]", the status is 400
+        Then The error is about "fields" field
+        And The error is about "fields.name" field
 
     Scenario: A model definition
         When I define the fields "[{"name": "place","type": "string", "description": "Where ?"}]", the status is 200
         Then I obtain a model id token
+        And I retrieve the model definition
+
+        When I want to define a Flower
+        And I define a list of fields
+        And I retrieve the model definition
+        Then the fields order is the same
+
