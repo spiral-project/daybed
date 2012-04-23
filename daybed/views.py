@@ -1,6 +1,7 @@
 import os
 import json
 
+from pyramid.exceptions import NotFound
 from cornice import Service
 from colander import (
     MappingSchema,
@@ -55,6 +56,7 @@ def create_model_definition(request):
     }"""  #TODO: permanent view
     results = request.db.query(model_token)[modelname]
     tokens = [t.value for t in results]
+    
     if len(tokens) > 0:
         token = tokens[0]
         if token is not request.GET.get('token'):
@@ -88,4 +90,4 @@ def retrieve_model_definition(request):
 
     for result in results:
         return result.value
-    raise  # 404 ?
+    raise NotFound("Unknown model %s" % modelname)
