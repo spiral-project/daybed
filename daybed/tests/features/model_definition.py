@@ -10,6 +10,7 @@ def set_browser():
     browser.app.registry.settings['db_server'].create(world.db_name)
     world.browser = browser
 
+
 @after.all
 def destroy_db(step):
     del world.browser.app.registry.settings['db_server'][world.db_name]
@@ -44,6 +45,10 @@ def define_model_and_fields(step, modelaspect, modelname, fieldsaspect):
         world.fields_order = [u'place', u'size', u'datetime']
     
     world.path = '/definition/%s' % str(modelname.lower())
+
+    if hasattr(world, 'token'):
+        world.path += '?token=%s' % str(world.token)
+
     model = modelaspects[modelaspect] % fieldsaspects[fieldsaspect]
     world.response = world.browser.put(world.path, params=model, status='*')
 
@@ -90,3 +95,13 @@ def the_fields_order_is_the_same(step):
 @step(u'obtain a model id token')
 def obtain_token(step):
     assert 'token' in world.response.json, 'No token received : %s' % world.response
+
+
+@step(u'provide (no|bad|same) token')
+def provide_token(step, tokenaspect):
+    tokenaspects = {
+        'no': None,
+        'bad': '12345',
+        'same': world.response.json.get('token')
+    }
+    world.token = tokenaspects[tokenaspect]
