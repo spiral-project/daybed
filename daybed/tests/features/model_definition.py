@@ -1,5 +1,3 @@
-import json
-
 from webtest import TestApp
 from lettuce import before, after, step, world
 
@@ -16,63 +14,79 @@ def set_browser():
 def destroy_db(step):
     del world.browser.app.registry.settings['db_server'][world.db_name]
 
-@step(u'I access with empty model name')
-def access_empty_model_name(step):
-    path = '/definition'
-    world.browser.put(path, status=404)
-    world.browser.post(path, status=404)
-    world.browser.get(path, status=404)
 
-@step(u'I want to define a (.*)')
-def define(step, name):
-    world.name = name
-    world.path = '/definition/%s' % str(name.lower())
+@step(u'define an? (empty|incorrect|incomplete|correct) "([^"]*)" with (no|empty|malformed|incorrect|incomplete|unamed|correct) fields')
+def define_model_and_fields(step, modelaspect, modelname, fieldsaspect):
+    modelaspects = {
+        'empty': "{%s}",
+        'incorrect': '{"X"-: 4 %s}',
+        'incomplete': '{"title": "Mushroom" %s}',
+        'correct': '{"title": "Mushroom", "description": "Mushroom picking areas" %s}',
+    }
+    
+    fieldsaspects = {
+        'no': '',
+        'empty': ', "fields": []',
+        'malformed': ', "fields": [{"na"me": -"untyped"}]',
+        'incorrect': ', "fields": [{"name": "strange", "type": "antigravity", "description" : 3}]',
+        'incomplete': ', "fields": [{"name": "untyped", "description" : "no type"}]',
+        'unamed': ', "fields": [{"name": "", "type": "string", "description" : ""}]',
+        'correct': """, "fields": [
+            {"name": "place", "type": "string", "description": "Where ?"},
+            {"name": "size", "type": "int", "description": "How big ?"},
+            {"name": "datetime", "type": "string", "description": "When ?"}
+        ]
+        """,
+    }
+    
+    world.fields_order = []
+    if fieldsaspect == 'correct':
+        world.fields_order = [u'place', u'size', u'datetime']
+    
+    world.path = '/definition/%s' % str(modelname.lower())
+    model = modelaspects[modelaspect] % fieldsaspects[fieldsaspect]
+    world.response = world.browser.put(world.path, params=model, status='*')
 
-@step(u'I access with a wrong method')
-def access_wrong_method(step):
-    world.browser.post(world.path, status=405)
 
-@step(u'I send "(.*)", the status is (\d+)')
-def sending_and_receive(step, data, status):
-    world.response = world.browser.put(world.path, params=data, status=int(status))
+@step(u'the status is (\d+)')
+def status_is(step, status):
+    expected = world.response.status
+    assert expected.startswith(status), "Unexpected status %s" % expected
 
-@step(u'The error is about "(.*)" field')
-def error_field_is(step, field):
+
+@step(u'post a correct "([^"]*)" with correct fields')
+def post_correct_model(step, modelname):
+    world.path = '/definition/%s' % str(modelname.lower())
+    model = """ {"title": "hey", "description": "ho", "fields": [
+        {"name": "place", "type": "string", "description": "Where ?"}
+    ]
+    }
+    """
+    world.response = world.browser.post(world.path, params=model, status='*')
+
+
+@step(u'the error is about fields? (".+",?)*')
+def error_is_about_fields(step, fields):
     _json = world.response.json
     assert 'error' == _json.get('status'), 'Response has no error status'
-    fields = [f['name'] for f in _json['errors']]
-    assert field in fields, 'Field "%s" has no error' % field
+    errorfields = sorted([f['name'] for f in _json['errors'] if f.get('name')])
+    if fields:
+        fields = fields.replace(' ', '').replace('"', '').split(',')
+        assert errorfields == sorted(fields), 'Unexpected errors %s' % errorfields
 
-@step(u'I define the fields "(.*)", the status is (\d+)')
-def define_fields_and_receive(step, fields, status):
-    data = dict(
-        title=world.name.capitalize(),
-        description=world.name,
-        fields=json.loads(fields),
-    )
-    world.response = world.browser.put(world.path, params=json.dumps(data), status=int(status))
 
-@step(u'I define a list of fields')
-def define_a_list_of_fields(step):
-    fields = """[
-        {"name": "place", "type": "string", "description": "Where ?"},
-        {"name": "size", "type": "int", "description": "How big ?"},
-        {"name": "datetime", "type": "string", "description": "When ?"}
-    ]
-    """
-    world.fields_order = [u'place', u'size', u'datetime']
-    define_fields_and_receive(step, fields, 200)
+@step(u'retrieve the "([^"]*)" definition')
+def retrieve_the_model_definition(step, modelname):
+    world.path = '/definition/%s' % str(modelname.lower())
+    world.response = world.browser.get(world.path, status='*')
 
-@step(u'I obtain a model id token')
-def obtain_token(step):
-    assert 'token' in world.response.json, 'No token received : %s' % world.response
 
-@step(u'I retrieve the model definition')
-def retrieve_the_model_definition(step):
-    world.response = world.browser.get(world.path, status=200)
-
-@step(u'Then the fields order is the same')
-def then_the_fields_order_is_the_same(step):
+@step(u'the fields order is the same')
+def the_fields_order_is_the_same(step):
     fields = [f['name'] for f in world.response.json['fields']]
     assert world.fields_order == fields, '%r != %r' % (world.fields_order, fields)
 
+
+@step(u'obtain a model id token')
+def obtain_token(step):
+    assert 'token' in world.response.json, 'No token received : %s' % world.response
