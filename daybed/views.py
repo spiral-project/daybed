@@ -37,7 +37,10 @@ def create_model_definition(request):
     if len(tokens) > 0:
         token = tokens[0]
         if token != request.GET.get('token'):
-            request.errors.add('query', 'token', 'the given token is invalid')
+            # provided token does not match
+            request.errors.add('query', 'token',
+                               'invalid token for model %s' % modelname)
+            request.errors.status = 403
             return json_error(request.errors)
     else:
         # Generate a unique token
@@ -56,6 +59,8 @@ def create_model_definition(request):
 
 @model_definition.get()
 def get_model_definition(request):
+    """Retrieves a model definition.
+    """
     model_def = """function(doc) {
         if (doc.type == "definition") {
             emit(doc.model, doc.definition);
@@ -69,6 +74,8 @@ def get_model_definition(request):
 
 
 def schema_validator(request):
+    """Validates a request body according to its model definition.
+    """
     definition = get_model_definition(request)  # TODO: appropriate ?
     validator = SchemaValidator(definition)
     try:
@@ -81,6 +88,11 @@ def schema_validator(request):
 
 @model_data.post(validators=schema_validator)
 def post_model_data(request):
+    """Saves a model record.
+    
+    Posted data fields will be matched against its related model
+    definition.
+    """
     modelname = request.matchdict['modelname']
     data_doc = {
         'type': 'data',
@@ -93,6 +105,8 @@ def post_model_data(request):
 
 @model_data.get()
 def get_model_data(request):
+    """Retrieves all model records.
+    """
     modelname = request.matchdict['modelname']
     model_data = """function(doc) {
         if (doc.type == "data") {
