@@ -88,3 +88,16 @@ Or individual records::
     > Accept: application/json
     < 200 OK
     < DATA = {title: 'djangocong', category: 'culture'}
+
+Hacking daybed
+--------------
+
+Daybed comes with a Makefile to simplify your life when developing. To install
+your virtual environment and get started, you need to type::
+
+    make setup_venv
+
+Then, running the test suite is a good way to check that everything is going
+well, and is well installed. You can run them with `make tests`.
+
+Once everything is okay, you can run the server with `make serve`.

@@ -13,6 +13,8 @@ requires = [
     'couchdb',
     ]
 
+test_requires = requires + ['lettuce',]
+
 setup(name='daybed',
       version='0.0',
       description='daybed',
@@ -31,7 +33,7 @@ setup(name='daybed',
       include_package_data=True,
       zip_safe=False,
       install_requires=requires,
-      tests_require=requires,
+      tests_require=test_requires,
       test_suite="daybed",
       entry_points="""\
       [paste.app_factory]
