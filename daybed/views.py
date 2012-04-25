@@ -127,6 +127,11 @@ def get_model_data(request):
     """Retrieves all model records.
     """
     modelname = request.matchdict['modelname']
+    # Check that model is defined
+    exists = db_model_definition(request.db)[modelname]
+    if not exists:
+        raise NotFound("Unknown model %s" % modelname)
+    # Return array of records
     results = db_model_data(request.db)[modelname]
     # TODO: should we transmit uuids or keep them secret for editing
     data = [result.value for result in results]

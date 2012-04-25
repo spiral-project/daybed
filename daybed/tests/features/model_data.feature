@@ -1,6 +1,10 @@
 Feature: Model data posting, simple usage
     Simple use-case to post and retrieve model data
 
+    Scenario: Unknown model
+        If I retrieve the "Schlimblick" records
+        Then the status is 404
+
     Scenario: Nominal use-case
         Given I define a correct "Event" with correct fields
         If I post "Event" records
