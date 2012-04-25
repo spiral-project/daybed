@@ -1,8 +1,9 @@
 import os
 import json
 
-from pyramid.exceptions import NotFound, Forbidden
+from pyramid.exceptions import NotFound
 from cornice import Service
+from cornice.util import json_error
 import colander
 
 from schemas import ModelDefinition, SchemaValidator
@@ -22,8 +23,8 @@ def create_model_definition(request):
     """Creates a model definition.
 
     In addition to checking that the data sent complies with what's expected
-    (the schema), we check that, on case of an modification, the token is
-    present and valid.
+    (the schema), we check on case of a modification that the token is present
+    and valid.
     """
     modelname = request.matchdict['modelname']
     model_token = """function(doc) {
@@ -36,13 +37,11 @@ def create_model_definition(request):
     if len(tokens) > 0:
         token = tokens[0]
         if token != request.GET.get('token'):
-            # TODO : return instead of raise ?
-            #request.errors.add('query', 'token',
-            #                   'the given token is not valid')
-            raise Forbidden("Invalid token for model %s" % modelname)
+            request.errors.add('query', 'token', 'the given token is invalid')
+            return json_error(request.errors)
     else:
         # Generate a unique token
-        token = os.urandom(8).encode('hex')  # TODO: why not uuid?
+        token = os.urandom(8).encode('hex')
         token_doc = {'type': 'token', 'token': token, 'model': modelname}
         request.db.save(token_doc)
 

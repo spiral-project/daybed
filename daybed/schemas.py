@@ -5,7 +5,7 @@ from colander import (
     SequenceSchema,
     TupleSchema,
     String,
-    Int,\
+    Int,
     OneOf,
     Length
 )
