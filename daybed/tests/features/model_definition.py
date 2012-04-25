@@ -1,5 +1,8 @@
 from webtest import TestApp
 from lettuce import before, after, step, world
+from couchdb.design import ViewDefinition
+
+from daybed.views import __design_docs__
 
 
 @before.all
@@ -7,7 +10,8 @@ def set_browser():
     browser = TestApp("config:development.ini",  relative_to=".")
     world.db_name = 'daybed-tests'
     browser.app.registry.settings['db_name'] = world.db_name
-    browser.app.registry.settings['db_server'].create(world.db_name)
+    db = browser.app.registry.settings['db_server'].create(world.db_name)
+    ViewDefinition.sync_many(db, __design_docs__)
     world.browser = browser
 
 

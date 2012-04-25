@@ -3,7 +3,10 @@
 import couchdb
 
 from pyramid.config import Configurator
-from pyramid.events import subscriber, NewRequest
+from pyramid.events import NewRequest
+from couchdb.design import ViewDefinition
+
+from views import __design_docs__
 
 
 def add_couchdb_to_request(event):
@@ -16,8 +19,10 @@ def add_couchdb_to_request(event):
 def main(global_config, **settings):
     config = Configurator(settings=settings)
     config.include("cornice")
+    config.scan("daybed.views")
+    # CouchDB initialization
     db_server = couchdb.client.Server(settings['couchdb_uri'])
     config.registry.settings['db_server'] = db_server
+    ViewDefinition.sync_many(db_server[settings['db_name']], __design_docs__)
     config.add_subscriber(add_couchdb_to_request, NewRequest)
-    config.scan("daybed.views")
     return config.make_wsgi_app()

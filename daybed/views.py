@@ -5,6 +5,7 @@ from pyramid.exceptions import NotFound
 from cornice import Service
 from cornice.util import json_error
 import colander
+from couchdb.design import ViewDefinition
 
 from schemas import ModelDefinition, SchemaValidator
 
@@ -18,6 +19,34 @@ model_data = Service(name='model_data',
                      description='Model')
 
 
+"""  Definition of CouchDB design documents, a.k.a. permanent views. """
+__design_docs__ = []
+
+""" Model definitions, by model name. """
+db_model_definition = ViewDefinition('model', 'definition', """function(doc) {
+        if (doc.type == "definition") {
+            emit(doc.model, doc.definition);
+        }
+}""")
+__design_docs__.append(db_model_definition)
+
+""" Model tokens, by model name. """
+db_model_token = ViewDefinition('model', 'token', """function(doc) {
+    if (doc.type == "token") {
+        emit(doc.model, doc.token);
+    }
+}""")
+__design_docs__.append(db_model_token)
+
+""" Model data, by model name. """
+db_model_data = ViewDefinition('model', 'data', """function(doc) {
+        if (doc.type == "data") {
+            emit(doc.model, doc.data);
+        }
+}""")
+__design_docs__.append(db_model_data)
+
+
 @model_definition.put(schema=ModelDefinition)
 def create_model_definition(request):
     """Creates a model definition.
@@ -27,12 +56,7 @@ def create_model_definition(request):
     and valid.
     """
     modelname = request.matchdict['modelname']
-    model_token = """function(doc) {
-        if (doc.type == "token") {
-            emit(doc.model, doc.token);
-        }
-    }"""  # TODO: permanent view
-    results = request.db.query(model_token)[modelname]
+    results = db_model_token(request.db)[modelname]
     tokens = [t.value for t in results]
     if len(tokens) > 0:
         token = tokens[0]
@@ -61,13 +85,8 @@ def create_model_definition(request):
 def get_model_definition(request):
     """Retrieves a model definition.
     """
-    model_def = """function(doc) {
-        if (doc.type == "definition") {
-            emit(doc.model, doc.definition);
-        }
-    }"""  # TODO: permanent view
     modelname = request.matchdict['modelname']
-    results = request.db.query(model_def)[modelname]
+    results = db_model_definition(request.db)[modelname]
     for result in results:
         return result.value
     raise NotFound("Unknown model %s" % modelname)
@@ -89,7 +108,7 @@ def schema_validator(request):
 @model_data.post(validators=schema_validator)
 def post_model_data(request):
     """Saves a model record.
-    
+
     Posted data fields will be matched against its related model
     definition.
     """
@@ -108,12 +127,7 @@ def get_model_data(request):
     """Retrieves all model records.
     """
     modelname = request.matchdict['modelname']
-    model_data = """function(doc) {
-        if (doc.type == "data") {
-            emit(doc.model, doc.data);
-        }
-    }"""  # TODO: permanent view
-    results = request.db.query(model_data)[modelname]
+    results = db_model_data(request.db)[modelname]
     # TODO: should we transmit uuids or keep them secret for editing
-    data = [result['value'] for result in results]
+    data = [result.value for result in results]
     return {'data': data}
