@@ -9,13 +9,19 @@ which validates against the specified model definitions.
 In term of API access, it means something like this::
 
     SCHEMA = {
-        title: "My super event"
+        name: "My super event",
         description: "",
+        blah: "toto",
         fields: [
             {
-                name: "title",
                 type: "string",
+                name: "title",
                 description: "blah",
+            },
+            {
+                input: false,
+                type: "header",
+                value: "foo",
             },
             {
                 name: "category",
@@ -34,7 +40,10 @@ On the server, we do the validation with colander::
     class ModelDefinition(MappingSchema):
         title = SchemaNode(String())
         description = SchemaNode(String())
-        fields = SequenceSchema(ModelField())
+        fields = SequenceSchema(ModelField() or StaticField())
+
+    class StaticField(MappingSchema):
+        type = OneOf('header', 'upload', 'separator', 'text')
 
     class ModelField(MappingSchema):
         name = SchemaNode(String())
