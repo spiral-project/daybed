@@ -16,6 +16,10 @@ def add_couchdb_to_request(event):
     event.request.db = db
 
 
+def sync_couchdb_views(db):
+    ViewDefinition.sync_many(db, __design_docs__)
+
+
 def main(global_config, **settings):
     config = Configurator(settings=settings)
     config.include("cornice")
@@ -23,6 +27,6 @@ def main(global_config, **settings):
     # CouchDB initialization
     db_server = couchdb.client.Server(settings['couchdb_uri'])
     config.registry.settings['db_server'] = db_server
-    ViewDefinition.sync_many(db_server[settings['db_name']], __design_docs__)
+    sync_couchdb_views(db_server[settings['db_name']])
     config.add_subscriber(add_couchdb_to_request, NewRequest)
     return config.make_wsgi_app()
