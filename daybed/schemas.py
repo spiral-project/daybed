@@ -2,7 +2,7 @@ from colander import (
     SchemaNode,
     MappingSchema,
     Mapping,
-    SequenceSchema,
+    Sequence,
     TupleSchema,
     String,
     Int,
@@ -56,8 +56,8 @@ class TypeField(object):
     
     @classmethod
     def validation(cls, **kwargs):
-        options = dict([(k, v) for k,v in kwargs .items()
-                         if k in ['name', 'description', 'validator']])
+        keys = ['name', 'description', 'validator']
+        options = dict(zip(keys, [kwargs.get(k) for k in keys]))
         return SchemaNode(cls.node(), **options)
 
 
@@ -93,14 +93,12 @@ class ModelField(MappingSchema):
     # choices = ModelChoices()
 
 
-class ModelFields(SequenceSchema):
-    field = ModelField()
-
-
-class ModelDefinition(MappingSchema):
-    title = SchemaNode(String(), location="body")
-    description = SchemaNode(String(), location="body")
-    fields = ModelFields(validator=Length(min=1), location="body")
+class DefinitionValidator(SchemaNode):
+    def __init__(self):
+        super(DefinitionValidator, self).__init__(Mapping())
+        self.add(SchemaNode(String(), name='title'))
+        self.add(SchemaNode(String(), name='description'))
+        self.add(SchemaNode(Sequence(), ModelField(), name='fields', validator=Length(min=1)))
 
 
 class SchemaValidator(SchemaNode):

@@ -7,7 +7,7 @@ from cornice.util import json_error
 import colander
 from couchdb.design import ViewDefinition
 
-from schemas import ModelDefinition, SchemaValidator
+from schemas import DefinitionValidator, SchemaValidator
 
 
 model_definition = Service(name='model_definition',
@@ -47,7 +47,25 @@ db_model_data = ViewDefinition('model', 'data', """function(doc) {
 __design_docs__.append(db_model_data)
 
 
-@model_definition.put(schema=ModelDefinition)
+def validator(request, schema):
+    try:
+        body = request.body
+        dictbody = json.loads(body) if body else {}
+        schema.deserialize(dictbody)
+    except ValueError, e:
+        request.errors.add('body', 'body', str(e))
+    except colander.Invalid, e:
+        for error in e.children:
+            for field, error in error.asdict().items():
+                request.errors.add('body', field, error)
+
+
+def definition_validator(request):
+    """Validates a request body according model definition schema.
+    """
+    return validator(request, DefinitionValidator())
+
+@model_definition.put(validators=definition_validator)
 def create_model_definition(request):
     """Creates a model definition.
 
@@ -96,14 +114,8 @@ def schema_validator(request):
     """Validates a request body according to its model definition.
     """
     definition = get_model_definition(request)  # TODO: appropriate ?
-    validator = SchemaValidator(definition)
-    try:
-        validator.deserialize(json.loads(request.body))
-    except colander.Invalid, e:
-        for error in e.children:
-            for field, error in error.asdict().items():
-                request.errors.add('body', field, error)
-
+    schema = SchemaValidator(definition)
+    return validator(request, schema)
 
 @model_data.post(validators=schema_validator)
 def post_model_data(request):
