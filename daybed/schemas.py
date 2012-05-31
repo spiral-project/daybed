@@ -36,12 +36,12 @@ class TypeRegistry(object):
             raise NotRegisteredError('The model %s is not registered' % name)
         del self._registry[name]
 
-    def schema(self, typename, **options):
+    def validation(self, typename, **options):
         try:
             nodetype = self._registry[typename]
         except KeyError:
             raise UnknownFieldTypeError('Type "%s" is unknown' % typename)
-        return nodetype(**options)
+        return nodetype.validation(**options)
 
     @property
     def names(self):
@@ -51,31 +51,33 @@ class TypeRegistry(object):
 types = TypeRegistry()
 
 
-class TypeField(SchemaNode):
-    def __init__(self, node, **kwargs):
-        options = dict(name='', 
-                       description='',
-                       validator=None)
-        options.update(**kwargs)
-        super(TypeField, self).__init__(node, **options)
+class TypeField(object):
+    node = String
+    
+    @classmethod
+    def validation(cls, **kwargs):
+        options = dict([(k, v) for k,v in kwargs .items()
+                         if k in ['name', 'description', 'validator']])
+        return SchemaNode(cls.node(), **options)
 
 
 class IntField(TypeField):
-    def __init__(self, **kwargs):
-        super(IntField, self).__init__(Int(), **kwargs)
+    node = Int
 types.register('int', IntField)
 
 
 class StringField(TypeField):
-    def __init__(self, **kwargs):
-        super(StringField, self).__init__(String(), **kwargs)
+    node = String
 types.register('string', StringField)
 
 
 class EnumField(TypeField):
-    def __init__(self, **kwargs):
+    node = String
+    
+    @classmethod
+    def validation(cls, **kwargs):
         kwargs['validator'] = OneOf(kwargs['choices'])
-        super(EnumField, self).__init__(String(), **kwargs)
+        super(EnumField, cls).validation(**kwargs)
 types.register('enum', EnumField)
 
 
@@ -105,5 +107,5 @@ class SchemaValidator(SchemaNode):
     def __init__(self, definition):
         super(SchemaValidator, self).__init__(Mapping())
         for field in definition['fields']:
-            fieldtype = field['type']
-            self.add(types.schema(fieldtype, **field))
+            fieldtype = field.pop('type')
+            self.add(types.validation(fieldtype, **field))
