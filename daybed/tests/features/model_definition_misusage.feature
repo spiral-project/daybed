@@ -20,14 +20,16 @@ Feature: Model definition API always behaves nicely
         And the error is about fields <errors>
 
     Examples:
-        | model      | fields     | status | errors                           |
-        | empty      | correct    | 400    | "title", "description", "fields" |
-        | incorrect  | correct    | 400    | ""                               |
-        | incomplete | correct    | 400    | "description"                    |
+        | model      | fields     | status | errors                                  |
+        | empty      | no         | 400    | "description", "title", "fields"        |
+        | empty      | correct    | 400    | "body"                                  |
+        | malformed  | correct    | 400    | "body"                                  |
+        | incorrect  | correct    | 400    | "description", "title"                  |
+        | incomplete | correct    | 400    | "description"                           |
         
-        | correct    | no         | 400    | "fields"                         |
-        | correct    | empty      | 400    | "fields"                         |
-        | correct    | malformed  | 400    | "title", "description", "fields" |
-        | correct    | incorrect  | 400    | "fields"                         |
-        | correct    | incomplete | 400    | "description", "fields"          |
-        | correct    | unamed     | 400    | "fields.name"                    |
+        | correct    | no         | 400    | "fields"                                |
+        | correct    | empty      | 400    | "fields"                                |
+        | correct    | malformed  | 400    | "body"                                  |
+        | correct    | incorrect  | 400    | "fields.0.type"                         |
+        | correct    | incomplete | 400    | "fields.0.type"                         |
+        | correct    | unamed     | 400    | "fields.0.name", "fields.0.description" |
