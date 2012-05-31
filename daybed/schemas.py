@@ -32,7 +32,7 @@ class TypeRegistry(object):
             self._registry[name] = klass
 
     def unregister(self, name):
-        if model not in self._registry:
+        if name not in self._registry:
             raise NotRegisteredError('The model %s is not registered' % name)
         del self._registry[name]
 
@@ -40,7 +40,7 @@ class TypeRegistry(object):
         try:
             nodetype = self._registry[typename]
         except KeyError:
-            raise UnknownFieldTypeError('Type "%s" is unknown' % name)
+            raise UnknownFieldTypeError('Type "%s" is unknown' % typename)
         return nodetype(**options)
 
     @property
@@ -107,4 +107,3 @@ class SchemaValidator(SchemaNode):
         for field in definition['fields']:
             fieldtype = field['type']
             self.add(types.schema(fieldtype, **field))
-
