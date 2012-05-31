@@ -1,21 +1,24 @@
 from colander import (
     SchemaNode,
-    MappingSchema,
     Mapping,
     Sequence,
-    TupleSchema,
+    SchemaType,
+    Tuple,
     String,
     Int,
     OneOf,
-    Length
+    Length,
+    null,
 )
 
 
 class AlreadyRegisteredError(Exception):
     pass
 
+
 class NotRegisteredError(Exception):
     pass
+
 
 class UnknownFieldTypeError(NotRegisteredError):
     """ Raised if schema contains a field with unknown type. """
@@ -27,9 +30,9 @@ class TypeRegistry(object):
         self._registry = {}
 
     def register(self, name, klass):
-            if name in self._registry:
-                raise AlreadyRegisteredError('The type %s is already registered' % name)
-            self._registry[name] = klass
+        if name in self._registry:
+            raise AlreadyRegisteredError('The type %s is already registered' % name)
+        self._registry[name] = klass
 
     def unregister(self, name):
         if name not in self._registry:
@@ -43,17 +46,32 @@ class TypeRegistry(object):
             raise UnknownFieldTypeError('Type "%s" is unknown' % typename)
         return nodetype.validation(**options)
 
+    def definition(self, typename, **options):
+        try:
+            nodetype = self._registry[typename]
+        except KeyError:
+            raise UnknownFieldTypeError('Type "%s" is unknown' % typename)
+        return nodetype.definition(**options)
+
     @property
     def names(self):
         return self._registry.keys()
-
 
 types = TypeRegistry()
 
 
 class TypeField(object):
     node = String
-    
+
+    @classmethod
+    def definition(cls):
+        schema = SchemaNode(Mapping())
+        schema.add(SchemaNode(String(), name='name'))
+        schema.add(SchemaNode(String(), name='description'))
+        schema.add(SchemaNode(String(), name='type',
+                              validator=OneOf(types.names)))
+        return schema
+
     @classmethod
     def validation(cls, **kwargs):
         keys = ['name', 'description', 'validator']
@@ -73,7 +91,13 @@ types.register('string', StringField)
 
 class EnumField(TypeField):
     node = String
-    
+
+    @classmethod
+    def definition(cls):
+        schema = super(EnumField, cls).definition()
+        schema.add(Tuple(), SchemaNode(String()), name='choices')
+        return schema
+
     @classmethod
     def validation(cls, **kwargs):
         kwargs['validator'] = OneOf(kwargs['choices'])
@@ -81,16 +105,12 @@ class EnumField(TypeField):
 types.register('enum', EnumField)
 
 
-class ModelChoices(TupleSchema):
-    choice = String()
 
-
-class ModelField(MappingSchema):
-    name = SchemaNode(String())
-    type = SchemaNode(String(), validator=OneOf(types.names))
-    description = SchemaNode(String())
-    # TODO: TBD in subclassing, a way to have optional fields. Cross Field ?
-    # choices = ModelChoices()
+class TypeFieldNode(SchemaType):
+    def deserialize(self, node, cstruct=null):
+        nodetype = cstruct.get('type')
+        schema = types.definition(nodetype)
+        schema.deserialize(cstruct)
 
 
 class DefinitionValidator(SchemaNode):
@@ -98,7 +118,8 @@ class DefinitionValidator(SchemaNode):
         super(DefinitionValidator, self).__init__(Mapping())
         self.add(SchemaNode(String(), name='title'))
         self.add(SchemaNode(String(), name='description'))
-        self.add(SchemaNode(Sequence(), ModelField(), name='fields', validator=Length(min=1)))
+        self.add(SchemaNode(Sequence(), SchemaNode(TypeFieldNode()), 
+                            name='fields', validator=Length(min=1)))
 
 
 class SchemaValidator(SchemaNode):
