@@ -19,11 +19,12 @@ def destroy_db(step):
     del world.browser.app.registry.settings['db_server'][world.db_name]
 
 
-@step(u'define an? (empty|incorrect|incomplete|correct) "([^"]*)" with (no|empty|malformed|incorrect|incomplete|unamed|correct) fields')
+@step(u'define an? (empty|malformed|incorrect|incomplete|correct) "([^"]*)" with (no|empty|malformed|incorrect|incomplete|unamed|correct) fields')
 def define_model_and_fields(step, modelaspect, modelname, fieldsaspect):
     modelaspects = {
         'empty': "{%s}",
-        'incorrect': '{"X"-: 4 %s}',
+        'malformed': '{"X"-: 4 %s}',
+        'incorrect': '{"X": 4 %s}',
         'incomplete': '{"title": "Mushroom" %s}',
         'correct': '{"title": "Mushroom", "description": "Mushroom picking areas" %s}',
     }
@@ -77,10 +78,13 @@ def post_correct_model(step, modelname):
 def error_is_about_fields(step, fields):
     _json = world.response.json
     assert 'error' == _json.get('status'), 'Response has no error status'
-    errorfields = sorted([f['name'] for f in _json['errors'] if f.get('name')])
+    errorfields = sorted([f.get('name') for f in _json['errors']])
     if fields:
         fields = fields.replace(' ', '').replace('"', '').split(',')
-        assert errorfields == sorted(fields), 'Unexpected errors %s' % errorfields
+        for field in fields:
+            assert field in errorfields, 'Error about "%s" not raised' % field
+        for errorfield in errorfields:
+            assert errorfield in fields, 'Unexpected error about "%s"' % errorfield
 
 
 @step(u'retrieve the "([^"]*)" definition')
