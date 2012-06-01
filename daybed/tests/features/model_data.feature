@@ -7,15 +7,23 @@ Feature: Model data posting, simple usage
 
     Scenario: Nominal use-case
         Given I define a correct "Event" with correct fields
+        Then the status is 200
         If I post "Event" records
-          | size | place     | datetime   |
-          | 14   | Holy wood | 2012-04-25 |
+          | size | place     | datetime   | category |
+          | 14   | Holy wood | 2012-04-25 | beast    |
         Then the status is 200
         And I obtain a record id
-    
+
     Scenario: Retrieve records
         If I retrieve the "Event" records
         Then the status is 200
         And the results are :
-          | size | place     | datetime   |
-          | 14   | Holy wood | 2012-04-25 |
+          | size | place     | datetime   | category |
+          | 14   | Holy wood | 2012-04-25 | beast    |
+
+    Scenario: Malformed posted data
+        If I post "Event" record
+          | size | place     | datetime   | category |
+          | abc  | Holy wood | 2012-04-25 | elf      |
+        Then the status is 400
+        And the error is about fields "size", "category"

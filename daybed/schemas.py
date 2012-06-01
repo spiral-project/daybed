@@ -97,7 +97,8 @@ class EnumField(TypeField):
     @classmethod
     def definition(cls):
         schema = super(EnumField, cls).definition()
-        schema.add(SchemaNode(Tuple(), SchemaNode(String()), name='choices'))
+        schema.add(SchemaNode(Sequence(), SchemaNode(String()), 
+                              name='choices', validator=Length(min=1)))
         return schema
 
     @classmethod

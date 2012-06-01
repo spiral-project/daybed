@@ -2,7 +2,7 @@ import json
 
 from lettuce import step, world
 
-@step(u'post "([^"]*)" records')
+@step(u'post "([^"]*)" records?')
 def post_record(step, modelname):
     world.path = '/%s' % str(modelname.lower())
     for record in step.hashes:

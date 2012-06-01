@@ -19,7 +19,7 @@ def destroy_db(step):
     del world.browser.app.registry.settings['db_server'][world.db_name]
 
 
-@step(u'define an? (empty|malformed|incorrect|incomplete|correct) "([^"]*)" with (no|empty|malformed|incorrect|incomplete|unamed|correct) fields')
+@step(u'define an? (empty|malformed|incorrect|incomplete|correct) "([^"]*)" with (no|empty|malformed|incorrect|incomplete|unamed|correct|nochoice) fields')
 def define_model_and_fields(step, modelaspect, modelname, fieldsaspect):
     modelaspects = {
         'empty': "{%s}",
@@ -35,18 +35,20 @@ def define_model_and_fields(step, modelaspect, modelname, fieldsaspect):
         'malformed': ', "fields": [{"na"me": -"untyped"}]',
         'incorrect': ', "fields": [{"name": "strange", "type": "antigravity", "description" : 3}]',
         'incomplete': ', "fields": [{"name": "untyped", "description" : "no type"}]',
+        'nochoice': ', "fields": [{"name": "choice", "type": "enum", "description" : "no choices"}]',
         'unamed': ', "fields": [{"name": "", "type": "string", "description" : ""}]',
         'correct': """, "fields": [
             {"name": "place", "type": "string", "description": "Where ?"},
             {"name": "size", "type": "int", "description": "How big ?"},
-            {"name": "datetime", "type": "string", "description": "When ?"}
+            {"name": "datetime", "type": "string", "description": "When ?"},
+            {"name": "category", "type": "enum", "description": "What kind ?", "choices": ["beast", "zombie"]}
         ]
         """,
     }
     
     world.fields_order = []
     if fieldsaspect == 'correct':
-        world.fields_order = [u'place', u'size', u'datetime']
+        world.fields_order = [u'place', u'size', u'datetime', 'category']
     
     world.path = '/definition/%s' % str(modelname.lower())
 
@@ -78,13 +80,14 @@ def post_correct_model(step, modelname):
 def error_is_about_fields(step, fields):
     _json = world.response.json
     assert 'error' == _json.get('status'), 'Response has no error status'
-    errorfields = sorted([f.get('name') for f in _json['errors']])
+    errors = dict([(f.get('name'), f.get('description')) for f in _json['errors']])
+    errorfields = sorted(errors.keys())
     if fields:
         fields = fields.replace(' ', '').replace('"', '').split(',')
         for field in fields:
             assert field in errorfields, 'Error about "%s" not raised' % field
         for errorfield in errorfields:
-            assert errorfield in fields, 'Unexpected error about "%s"' % errorfield
+            assert errorfield in fields, 'Unexpected error about "%s" : %s' % (errorfield, errors[errorfield])
 
 
 @step(u'retrieve the "([^"]*)" definition')
