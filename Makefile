@@ -1,15 +1,20 @@
-setup_venv:
+bin/ lib/:
 	virtualenv .
-	bin/pip install -r dev-requirements.txt
+	bin/pip install -r dev-requirements.txt --use-mirrors
 	bin/python setup.py develop
 
-functional_tests: setup_venv
+install: bin/
+
+clean:
+	rm -rf bin/ lib/ local/ include/
+
+functional_tests: bin/
 	bin/lettuce daybed/tests/features
 
-unit_tests: setup_venv
+unit_tests: bin/
 	bin/python setup.py test
 
 tests: functional_tests unit_tests
 
-serve: setup_venv
+serve: bin/
 	bin/pserve development.ini --reload
