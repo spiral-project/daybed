@@ -11,6 +11,7 @@ Feature: Model data posting, simple usage
         If I post "Event" records
           | size | place     | datetime   | category |
           | 14   | Holy wood | 2012-04-25 | beast    |
+          | 110  | 日本語     | 2012-06-01 | beast    |
         Then the status is 200
         And I obtain a record id
 
@@ -20,6 +21,7 @@ Feature: Model data posting, simple usage
         And the results are :
           | size | place     | datetime   | category |
           | 14   | Holy wood | 2012-04-25 | beast    |
+          | 110  | 日本語     | 2012-06-01 | beast    |
 
     Scenario: Malformed posted data
         If I post "Event" record
