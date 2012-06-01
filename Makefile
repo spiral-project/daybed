@@ -8,13 +8,13 @@ install: bin/
 clean:
 	rm -rf bin/ lib/ local/ include/
 
-functional_tests: bin/
+functional_tests:
 	bin/lettuce daybed/tests/features
 
-unit_tests: bin/
+unit_tests:
 	bin/python setup.py test
 
 tests: functional_tests unit_tests
 
-serve: bin/
+serve:
 	bin/pserve development.ini --reload
