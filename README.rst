@@ -19,11 +19,6 @@ In term of API access, it means something like this::
                 description: "blah",
             },
             {
-                input: false,
-                type: "header",
-                value: "foo",
-            },
-            {
                 name: "category",
                 type: "enum",
                 description: "blah",
