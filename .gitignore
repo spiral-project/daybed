@@ -1,2 +1,7 @@
 *.pyc
 /daybed.egg-info
+
+bin/
+lib/
+local/
+include/
