@@ -1,0 +1,9 @@
+language: python
+python:
+  - 2.6
+  - 2.7
+before_script:
+# Create CouchDB database (ref #10)
+  - curl -X PUT localhost:5984/daybed
+install: make install
+script:  make tests
