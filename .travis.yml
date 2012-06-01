@@ -7,3 +7,8 @@ before_script:
   - curl -X PUT localhost:5984/daybed
 install: make install
 script:  make tests
+notifications:
+    irc:
+        channels: 
+            - "irc.freenode.org#spiral-project"
+        on_success: change
