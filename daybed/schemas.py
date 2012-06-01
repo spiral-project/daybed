@@ -9,6 +9,8 @@ from colander import (
     OneOf,
     Length,
     null,
+    Invalid,
+    _
 )
 
 
@@ -95,7 +97,7 @@ class EnumField(TypeField):
     @classmethod
     def definition(cls):
         schema = super(EnumField, cls).definition()
-        schema.add(Tuple(), SchemaNode(String()), name='choices')
+        schema.add(SchemaNode(Tuple(), SchemaNode(String()), name='choices'))
         return schema
 
     @classmethod
@@ -108,8 +110,10 @@ types.register('enum', EnumField)
 
 class TypeFieldNode(SchemaType):
     def deserialize(self, node, cstruct=null):
-        nodetype = cstruct.get('type')
-        schema = types.definition(nodetype)
+        try:
+            schema = types.definition(cstruct.get('type'))
+        except UnknownFieldTypeError:
+            schema = TypeField.definition()
         schema.deserialize(cstruct)
 
 
