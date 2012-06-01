@@ -104,7 +104,7 @@ class EnumField(TypeField):
     @classmethod
     def validation(cls, **kwargs):
         kwargs['validator'] = OneOf(kwargs['choices'])
-        super(EnumField, cls).validation(**kwargs)
+        return super(EnumField, cls).validation(**kwargs)
 types.register('enum', EnumField)
 
 
