@@ -2,6 +2,32 @@ Daybed
 ######
 
 Daybed is a form validation and data storage API, built on top of couchdb.
+In other words, it's a way to create definitions (models), do validation from
+here and filter the results.
+
+Why ?
+=====
+
+Maybe do you know google forms? It let you define a model and generate a form
+from it. Then users without any computer knowledge will use this form to
+submit information which will then be available into a spreadsheet.
+
+That's working out pretty well, but tied you to the Google services. There are
+several issues to this: you can't change the way the google API work to match
+your needs and you need to let google store all this information on their
+server, and accept their terms of service.
+
+As a data geek and librist, I don't think that's a reasonable choice.
+
+**Daybed** tries to solve this by providing a REST API able to do validation
+for you, depending on some rules you defined, and it is a free software, so you
+can modify it if you want / need.
+
+Okay, what does it looks like, then?
+====================================
+
+Daybed is basically a REST interface to create models, edit them and publish
+data that complies to these models.
 
 The basic need is to send model definitions to an API, to then send data
 which validates against the specified model definitions.
