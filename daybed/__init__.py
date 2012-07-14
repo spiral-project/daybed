@@ -6,7 +6,7 @@ from pyramid.config import Configurator
 from pyramid.events import NewRequest
 from couchdb.design import ViewDefinition
 
-from views import __design_docs__
+from designdocs import docs as designdocs
 
 
 def add_couchdb_to_request(event):
@@ -17,7 +17,7 @@ def add_couchdb_to_request(event):
 
 
 def sync_couchdb_views(db):
-    ViewDefinition.sync_many(db, __design_docs__)
+    ViewDefinition.sync_many(db, designdocs)
 
 
 def main(global_config, **settings):

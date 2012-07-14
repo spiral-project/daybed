@@ -2,7 +2,7 @@ from couchdb.design import ViewDefinition
 
 
 """  Definition of CouchDB design documents, a.k.a. permanent views. """
-__design_docs__ = []
+docs = []
 
 """ Model definitions, by model name. """
 db_model_definition = ViewDefinition('model', 'definition', """function(doc) {
@@ -10,7 +10,7 @@ db_model_definition = ViewDefinition('model', 'definition', """function(doc) {
             emit(doc.model, doc.definition);
         }
 }""")
-__design_docs__.append(db_model_definition)
+docs.append(db_model_definition)
 
 """ Model tokens, by model name. """
 db_model_token = ViewDefinition('model', 'token', """function(doc) {
@@ -18,7 +18,7 @@ db_model_token = ViewDefinition('model', 'token', """function(doc) {
         emit(doc.model, doc.token);
     }
 }""")
-__design_docs__.append(db_model_token)
+docs.append(db_model_token)
 
 """ Model data, by model name. """
 db_model_data = ViewDefinition('model', 'data', """function(doc) {
@@ -26,4 +26,4 @@ db_model_data = ViewDefinition('model', 'data', """function(doc) {
             emit(doc.model, doc.data);
         }
 }""")
-__design_docs__.append(db_model_data)
+docs.append(db_model_data)
