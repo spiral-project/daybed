@@ -2,12 +2,12 @@ import os
 import json
 
 from pyramid.exceptions import NotFound
+import colander
 from cornice import Service
 from cornice.util import json_error
-import colander
-from couchdb.design import ViewDefinition
 
 from schemas import DefinitionValidator, SchemaValidator
+from designdocs import db_model_token, db_model_definition, db_model_data
 
 
 model_definition = Service(name='model_definition',
@@ -17,34 +17,6 @@ model_definition = Service(name='model_definition',
 model_data = Service(name='model_data',
                      path='/{modelname}',
                      description='Model')
-
-
-"""  Definition of CouchDB design documents, a.k.a. permanent views. """
-__design_docs__ = []
-
-""" Model definitions, by model name. """
-db_model_definition = ViewDefinition('model', 'definition', """function(doc) {
-        if (doc.type == "definition") {
-            emit(doc.model, doc.definition);
-        }
-}""")
-__design_docs__.append(db_model_definition)
-
-""" Model tokens, by model name. """
-db_model_token = ViewDefinition('model', 'token', """function(doc) {
-    if (doc.type == "token") {
-        emit(doc.model, doc.token);
-    }
-}""")
-__design_docs__.append(db_model_token)
-
-""" Model data, by model name. """
-db_model_data = ViewDefinition('model', 'data', """function(doc) {
-        if (doc.type == "data") {
-            emit(doc.model, doc.data);
-        }
-}""")
-__design_docs__.append(db_model_data)
 
 
 def validator(request, schema):
@@ -64,6 +36,7 @@ def definition_validator(request):
     """Validates a request body according model definition schema.
     """
     return validator(request, DefinitionValidator())
+
 
 @model_definition.put(validators=definition_validator)
 def create_model_definition(request):
@@ -116,6 +89,7 @@ def schema_validator(request):
     definition = get_model_definition(request)  # TODO: appropriate ?
     schema = SchemaValidator(definition)
     return validator(request, schema)
+
 
 @model_data.post(validators=schema_validator)
 def post_model_data(request):
