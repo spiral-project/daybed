@@ -20,6 +20,7 @@ model_data = Service(name='model_data',
 
 
 def validator(request, schema):
+    """Validates the request according the the given schema"""
     try:
         body = request.body
         dictbody = json.loads(body) if body else {}
@@ -28,6 +29,8 @@ def validator(request, schema):
         request.errors.add('body', 'body', str(e))
     except colander.Invalid, e:
         for error in e.children:
+            # here we transform the errors we got from colander into cornice
+            # errors
             for field, error in error.asdict().items():
                 request.errors.add('body', field, error)
 

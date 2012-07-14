@@ -3,14 +3,11 @@ from colander import (
     Mapping,
     Sequence,
     SchemaType,
-    Tuple,
     String,
     Int,
     OneOf,
     Length,
     null,
-    Invalid,
-    _
 )
 
 
@@ -33,7 +30,8 @@ class TypeRegistry(object):
 
     def register(self, name, klass):
         if name in self._registry:
-            raise AlreadyRegisteredError('The type %s is already registered' % name)
+            raise AlreadyRegisteredError('The type %s is already registered' %
+                                         name)
         self._registry[name] = klass
 
     def unregister(self, name):
@@ -97,7 +95,7 @@ class EnumField(TypeField):
     @classmethod
     def definition(cls):
         schema = super(EnumField, cls).definition()
-        schema.add(SchemaNode(Sequence(), SchemaNode(String()), 
+        schema.add(SchemaNode(Sequence(), SchemaNode(String()),
                               name='choices', validator=Length(min=1)))
         return schema
 
@@ -106,7 +104,6 @@ class EnumField(TypeField):
         kwargs['validator'] = OneOf(kwargs['choices'])
         return super(EnumField, cls).validation(**kwargs)
 types.register('enum', EnumField)
-
 
 
 class TypeFieldNode(SchemaType):
@@ -123,7 +120,7 @@ class DefinitionValidator(SchemaNode):
         super(DefinitionValidator, self).__init__(Mapping())
         self.add(SchemaNode(String(), name='title'))
         self.add(SchemaNode(String(), name='description'))
-        self.add(SchemaNode(Sequence(), SchemaNode(TypeFieldNode()), 
+        self.add(SchemaNode(Sequence(), SchemaNode(TypeFieldNode()),
                             name='fields', validator=Length(min=1)))
 
 
