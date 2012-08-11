@@ -1,5 +1,5 @@
 bin/ lib/:
-	virtualenv .
+	virtualenv --python=python2 .
 	bin/pip install -r dev-requirements.txt --use-mirrors
 	bin/python setup.py develop
 
