@@ -1,27 +1,31 @@
 Daybed
 ######
 
-Daybed is a form validation and data storage API, built on top of couchdb.
-In other words, it's a way to create definitions (models), do validation from
-here and filter the results.
+Daybed is a form-validation and data-storage API.
+
+It is a way to create definitions (models) and to do validation on some
+incoming data using these definitions.
 
 Why ?
 =====
 
-Maybe do you know google forms? It let you define a model and generate a form
-from it. Then users without any computer knowledge will use this form to
-submit information which will then be available into a spreadsheet.
+You can do a lot of things with this kind of service, so these use-cases are
+only some of the possibilities we would like to offer.
 
-That's working out pretty well, but tied you to the Google services. There are
-several issues to this: you can't change the way the google API work to match
-your needs and you need to let google store all this information on their
-server, and accept their terms of service.
+Maybe do you know Google forms? That's a service letting you design a form and
+exposing it to end users, so then you can access the results.
 
-As a data geek and librist, I don't think that's a reasonable choice.
+That's working pretty well but nothing there is done in the open. Google now
+has all your data ;) In addition to that, the APIs to access this data are not
+that funny, you can't interact with them without dealing with rows and cells…
+which probably isn't what you want.
 
-**Daybed** tries to solve this by providing a REST API able to do validation
-for you, depending on some rules you defined, and it is a free software, so you
-can modify it if you want / need.
+As a data geek and librist, I don't think that google forms is a reasonable
+choice.
+
+**Daybed** tries to solve this very problem by providing a REST API able to do
+validation for you, depending on some rules you defined. Oh, and of course it
+is a free software, so you can modify it if you want / need.
 
 Okay, what does it looks like, then?
 ====================================
@@ -32,7 +36,8 @@ data that complies to these models.
 The basic need is to send model definitions to an API, to then send data
 which validates against the specified model definitions.
 
-In term of API access, it means something like this::
+In term of API access, it means something like this, let's push a model
+definition to daybed::
 
     SCHEMA = {
         name: "My super event",
@@ -57,7 +62,7 @@ In term of API access, it means something like this::
     < 200 OK + TOKEN
 
 If you want to update the schema, you need to add the "token" you received
-during the creation of the model definition::
+during the creation of the model definition, in a particular header::
 
     > curl -X PUT /events/?token=<yourtoken> -d SCHEMA
     < 200 OK + TOKEN (the same one)
