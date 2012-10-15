@@ -1,5 +1,6 @@
 import os
 import json
+from functools import partial
 
 from pyramid.exceptions import NotFound
 import colander
@@ -20,7 +21,7 @@ model_data = Service(name='model_data',
 
 
 def validator(request, schema):
-    """Validates the request according the the given schema"""
+    """Validates the request according to the given schema"""
     try:
         body = request.body
         dictbody = json.loads(body) if body else {}
@@ -35,19 +36,24 @@ def validator(request, schema):
                 request.errors.add('body', field, error)
 
 
-def definition_validator(request):
-    """Validates a request body according model definition schema.
+#  Validates a request body according model definition schema.
+definition_validator = partial(validator, schema=DefinitionValidator())
+
+
+def schema_validator(request):
+    """Validates a request body according to its model definition.
     """
-    return validator(request, DefinitionValidator())
+    definition = get_model_definition(request)  # TODO: appropriate ?
+    schema = SchemaValidator(definition)
+    return validator(request, schema)
 
 
 @model_definition.put(validators=definition_validator)
 def create_model_definition(request):
-    """Creates a model definition.
+    """Create or update a model definition.
 
-    In addition to checking that the data sent complies with what's expected
-    (the schema), we check on case of a modification that the token is present
-    and valid.
+    Checks that the data is a valid model definition.
+    In the case of a modification, checks that the token is valid and present.
     """
     modelname = request.matchdict['modelname']
     results = db_model_token(request.db)[modelname]
@@ -71,14 +77,13 @@ def create_model_definition(request):
         'model': modelname,
         'definition': json.loads(request.body)
     }
-    request.db.save(model_doc)  # save to couchdb
+    request.db.save(model_doc)
     return {'token': token}
 
 
 @model_definition.get()
 def get_model_definition(request):
-    """Retrieves a model definition.
-    """
+    """Retrieves the model definition."""
     modelname = request.matchdict['modelname']
     results = db_model_definition(request.db)[modelname]
     for result in results:
@@ -86,19 +91,11 @@ def get_model_definition(request):
     raise NotFound("Unknown model %s" % modelname)
 
 
-def schema_validator(request):
-    """Validates a request body according to its model definition.
-    """
-    definition = get_model_definition(request)  # TODO: appropriate ?
-    schema = SchemaValidator(definition)
-    return validator(request, schema)
-
-
 @model_data.post(validators=schema_validator)
 def post_model_data(request):
     """Saves a model record.
 
-    Posted data fields will be matched against its related model
+    Posted data fields will be matched against their related model
     definition.
     """
     modelname = request.matchdict['modelname']
