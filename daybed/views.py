@@ -1,51 +1,20 @@
 import os
 import json
-from functools import partial
 
 from pyramid.exceptions import NotFound
-import colander
 from cornice import Service
 from cornice.util import json_error
 
-from schemas import DefinitionValidator, SchemaValidator
-from designdocs import db_model_token, db_model_definition, db_model_data
+from daybed.validators import definition_validator, schema_validator
 
 
 model_definition = Service(name='model_definition',
-                           path='/definition/{modelname}',
+                           path='/definitions/{modelname}',
                            description='Model Definition')
 
 model_data = Service(name='model_data',
                      path='/{modelname}',
                      description='Model')
-
-
-def validator(request, schema):
-    """Validates the request according to the given schema"""
-    try:
-        body = request.body
-        dictbody = json.loads(body) if body else {}
-        schema.deserialize(dictbody)
-    except ValueError, e:
-        request.errors.add('body', 'body', str(e))
-    except colander.Invalid, e:
-        for error in e.children:
-            # here we transform the errors we got from colander into cornice
-            # errors
-            for field, error in error.asdict().items():
-                request.errors.add('body', field, error)
-
-
-#  Validates a request body according model definition schema.
-definition_validator = partial(validator, schema=DefinitionValidator())
-
-
-def schema_validator(request):
-    """Validates a request body according to its model definition.
-    """
-    definition = get_model_definition(request)  # TODO: appropriate ?
-    schema = SchemaValidator(definition)
-    return validator(request, schema)
 
 
 @model_definition.put(validators=definition_validator)
@@ -56,7 +25,7 @@ def create_model_definition(request):
     In the case of a modification, checks that the token is valid and present.
     """
     modelname = request.matchdict['modelname']
-    results = db_model_token(request.db)[modelname]
+    results = request.db.get_definition_token(modelname)
     tokens = [t.value for t in results]
     if len(tokens) > 0:
         token = tokens[0]
@@ -68,7 +37,7 @@ def create_model_definition(request):
             return json_error(request.errors)
     else:
         # Generate a unique token
-        token = os.urandom(8).encode('hex')
+        token = os.urandom(40).encode('hex')
         token_doc = {'type': 'token', 'token': token, 'model': modelname}
         request.db.save(token_doc)
 
@@ -85,9 +54,9 @@ def create_model_definition(request):
 def get_model_definition(request):
     """Retrieves the model definition."""
     modelname = request.matchdict['modelname']
-    results = db_model_definition(request.db)[modelname]
-    for result in results:
-        return result.value
+    definition = request.db.get_model_definition(modelname)
+    if definition:
+        return definition
     raise NotFound("Unknown model %s" % modelname)
 
 
@@ -114,11 +83,11 @@ def get_model_data(request):
     """
     modelname = request.matchdict['modelname']
     # Check that model is defined
-    exists = db_model_definition(request.db)[modelname]
+    exists = request.db.get_model_definition(modelname)
     if not exists:
         raise NotFound("Unknown model %s" % modelname)
     # Return array of records
-    results = db_model_data(request.db)[modelname]
+    results = request.db.get_model_data(modelname)
     # TODO: should we transmit uuids or keep them secret for editing
     data = [result.value for result in results]
     return {'data': data}

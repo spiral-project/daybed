@@ -50,7 +50,7 @@ def define_model_and_fields(step, modelaspect, modelname, fieldsaspect):
     if fieldsaspect == 'correct':
         world.fields_order = [u'place', u'size', u'datetime', 'category']
     
-    world.path = '/definition/%s' % str(modelname.lower())
+    world.path = '/definitions/%s' % str(modelname.lower())
 
     if hasattr(world, 'token'):
         world.path += '?token=%s' % str(world.token)
@@ -67,7 +67,7 @@ def status_is(step, status):
 
 @step(u'post a correct "([^"]*)" with correct fields')
 def post_correct_model(step, modelname):
-    world.path = '/definition/%s' % str(modelname.lower())
+    world.path = '/definitions/%s' % str(modelname.lower())
     model = """ {"title": "hey", "description": "ho", "fields": [
         {"name": "place", "type": "string", "description": "Where ?"}
     ]
@@ -92,7 +92,7 @@ def error_is_about_fields(step, fields):
 
 @step(u'retrieve the "([^"]*)" definition')
 def retrieve_the_model_definition(step, modelname):
-    world.path = '/definition/%s' % str(modelname.lower())
+    world.path = '/definitions/%s' % str(modelname.lower())
     world.response = world.browser.get(world.path, status='*')
 
 

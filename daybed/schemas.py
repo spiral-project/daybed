@@ -20,11 +20,17 @@ class NotRegisteredError(Exception):
 
 
 class UnknownFieldTypeError(NotRegisteredError):
-    """ Raised if schema contains a field with unknown type. """
+    """Raised if schema contains a field with an unknown type."""
     pass
 
 
 class TypeRegistry(object):
+    """Registry containing all the types.
+
+    This can be extended by third parties, and is always imported from
+    daybed.schemas.
+    """
+
     def __init__(self):
         self._registry = {}
 
@@ -57,7 +63,7 @@ class TypeRegistry(object):
     def names(self):
         return self._registry.keys()
 
-types = TypeRegistry()
+type_registry = TypeRegistry()
 
 
 class TypeField(object):
@@ -69,7 +75,7 @@ class TypeField(object):
         schema.add(SchemaNode(String(), name='name'))
         schema.add(SchemaNode(String(), name='description'))
         schema.add(SchemaNode(String(), name='type',
-                              validator=OneOf(types.names)))
+                              validator=OneOf(type_registry.names)))
         return schema
 
     @classmethod
@@ -81,12 +87,12 @@ class TypeField(object):
 
 class IntField(TypeField):
     node = Int
-types.register('int', IntField)
+type_registry.register('int', IntField)
 
 
 class StringField(TypeField):
     node = String
-types.register('string', StringField)
+type_registry.register('string', StringField)
 
 
 class EnumField(TypeField):
@@ -103,13 +109,13 @@ class EnumField(TypeField):
     def validation(cls, **kwargs):
         kwargs['validator'] = OneOf(kwargs['choices'])
         return super(EnumField, cls).validation(**kwargs)
-types.register('enum', EnumField)
+type_registry.register('enum', EnumField)
 
 
 class TypeFieldNode(SchemaType):
     def deserialize(self, node, cstruct=null):
         try:
-            schema = types.definition(cstruct.get('type'))
+            schema = type_registry.definition(cstruct.get('type'))
         except UnknownFieldTypeError:
             schema = TypeField.definition()
         schema.deserialize(cstruct)
@@ -129,4 +135,4 @@ class SchemaValidator(SchemaNode):
         super(SchemaValidator, self).__init__(Mapping())
         for field in definition['fields']:
             fieldtype = field.pop('type')
-            self.add(types.validation(fieldtype, **field))
+            self.add(type_registry.validation(fieldtype, **field))
