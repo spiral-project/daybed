@@ -35,5 +35,6 @@ def main(global_config, **settings):
     config.registry.settings['db_server'] = db_server
     create_db_if_not_exist(db_server, settings['db_name'])
     sync_couchdb_views(db_server[settings['db_name']])
+
     config.add_subscriber(add_db_to_request, NewRequest)
     return config.make_wsgi_app()
