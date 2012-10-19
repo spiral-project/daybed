@@ -22,8 +22,8 @@ def create_db_if_not_exist(server, db_name):
         server.create(db_name)
         logger.info('CouchDB database "%s" successfully created.' % db_name)
     except PreconditionFailed:
-        logger.info('CouchDB database "%s" already exists.' % db_name)
-        pass
+        logger.info('CouchDB database "%s" already exists. Using it.' % db_name)
+
 
 def main(global_config, **settings):
     config = Configurator(settings=settings)
