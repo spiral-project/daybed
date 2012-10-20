@@ -30,6 +30,9 @@ setup(name='daybed',
       url='',
       keywords='web pyramid pylons',
       packages=find_packages(),
+      dependency_links = [
+        "https://github.com/mozilla-services/cornice/tarball/spore-support#egg=cornice"
+      ],
       include_package_data=True,
       zip_safe=False,
       install_requires=requires,
