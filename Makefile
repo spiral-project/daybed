@@ -7,6 +7,7 @@ VENV_STAMP=venv_installed.stamp
 .PHONY: functional_tests unit_tests tests
 
 all: $(DAYBED_EGG)
+install: all
 
 install-dev: $(DEV_STAMP)
 
