@@ -10,26 +10,8 @@ data = Service(name='data',
                renderer="jsonp")
 
 
-@data.post(validators=schema_validator)
-def post_data(request):
-    """Saves a model record.
-
-    Posted data fields will be matched against their related model
-    definition.
-
-    """
-    model_name = request.matchdict['model_name']
-    data_doc = {
-        'type': 'data',
-        'model_name': model_name,
-        'data': json.loads(request.body)
-    }
-    _id, rev = request.db.save(data_doc)
-    return {'id': _id}
-
-
 @data.get()
-def get_data(request):
+def get(request):
     """Retrieves all model records."""
     model_name = request.matchdict['model_name']
     # Check that model is defined
@@ -45,3 +27,20 @@ def get_data(request):
         data.append(result.value)
     return {'data': data}
 
+
+@data.post(validators=schema_validator)
+def post(request):
+    """Saves a model record.
+
+    Posted data fields will be matched against their related model
+    definition.
+
+    """
+    model_name = request.matchdict['model_name']
+    data_doc = {
+        'type': 'data',
+        'model_name': model_name,
+        'data': json.loads(request.body)
+    }
+    _id, rev = request.db.save(data_doc)
+    return {'id': _id}

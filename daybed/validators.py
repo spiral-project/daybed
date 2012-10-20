@@ -2,6 +2,7 @@ from functools import partial
 import json
 
 from schemas import DefinitionValidator, SchemaValidator
+from cornice.util import json_error
 import colander
 
 
@@ -33,3 +34,15 @@ def schema_validator(request):
     definition = request.db.get_definition(model_name)
     schema = SchemaValidator(definition)
     return validator(request, schema)
+
+def token_validator(request):
+    model_name = request.matchdict['model_name']
+
+    results = request.db.get_definition_token(model_name)
+    tokens = [t.value for t in results]
+    if len(tokens) > 0:
+        token = tokens[0]
+        if token != request.GET.get('token'):
+            request.errors.add('query', 'token',
+                               'invalid token for model %s' % model_name)
+            request.errors.status = 403

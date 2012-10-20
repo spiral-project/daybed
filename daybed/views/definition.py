@@ -5,7 +5,7 @@ from cornice import Service
 from cornice.util import json_error
 from pyramid.exceptions import NotFound
 
-from daybed.validators import definition_validator
+from daybed.validators import definition_validator, token_validator
 
 
 definition = Service(name='definition',
@@ -14,27 +14,28 @@ definition = Service(name='definition',
                            renderer="jsonp")
 
 
-@definition.put(validators=definition_validator)
-def create_definition(request):
+@definition.get()
+def get(request):
+    """Retrieves the model definition."""
+    model_name = request.matchdict['model_name']
+    definition = request.db.get_definition(model_name)
+    if definition:
+        return definition
+    raise NotFound("Unknown model %s" % model_name)
+
+
+@definition.put(validators=(token_validator, definition_validator))
+def put(request):
     """Create or update a model definition.
 
     Checks that the data is a valid model definition.
     In the case of a modification, checks that the token is valid and present.
+
     """
     model_name = request.matchdict['model_name']
-    results = request.db.get_definition_token(model_name)
-    tokens = [t.value for t in results]
-    if len(tokens) > 0:
-        token = tokens[0]
-        if token != request.GET.get('token'):
-            # provided token does not match
-            request.errors.add('query', 'token',
-                               'invalid token for model %s' % model_name)
-            request.errors.status = 403
-            return json_error(request.errors)
-    else:
-        # Generate a unique token
-        token = os.urandom(40).encode('hex')
+
+    # Generate a unique token
+    token = os.urandom(40).encode('hex')
 
     model_doc = {
         'type': 'definition',
@@ -44,15 +45,3 @@ def create_definition(request):
     }
     request.db.save(model_doc)
     return {'token': token}
-
-
-@definition.get()
-def get_definition(request):
-    """Retrieves the model definition."""
-    model_name = request.matchdict['model_name']
-    definition = request.db.get_definition(model_name)
-    if definition:
-        return definition
-    raise NotFound("Unknown model %s" % model_name)
-
-
