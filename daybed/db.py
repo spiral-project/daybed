@@ -1,7 +1,7 @@
 from daybed.designdocs import (
     db_model_token,
-    db_model_definition,
-    db_model_data,
+    db_definition,
+    db_data,
     docs
 )
 from couchdb.design import ViewDefinition
@@ -14,23 +14,23 @@ class DatabaseConnection(object):
         self.db = db
         self.save = db.save
 
-    def get_model_definition(self, model_name):
+    def get_definition(self, model_name):
         """Get the scheme definition from the model_name.
 
         :param model_name: the name of the definition you want to retrieve
 
         """
-        results = db_model_definition(self.db)[model_name]
+        results = db_definition(self.db)[model_name]
         for result in results:
             return result.value
 
-    def get_model_data(self, model_name):
+    def get_data(self, model_name):
         """Get the definition of the model data.
 
         :param model_name: the name of the definition you want to retrieve
 
         """
-        return db_model_data(self.db)[model_name]
+        return db_data(self.db)[model_name]
 
     def get_definition_token(self, model_name):
         """Return the token associated with a definition.

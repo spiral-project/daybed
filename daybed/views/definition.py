@@ -8,14 +8,14 @@ from pyramid.exceptions import NotFound
 from daybed.validators import definition_validator
 
 
-model_definition = Service(name='model_definition',
+definition = Service(name='definition',
                            path='/definitions/{model_name}',
                            description='Model Definition',
                            renderer="jsonp")
 
 
-@model_definition.put(validators=definition_validator)
-def create_model_definition(request):
+@definition.put(validators=definition_validator)
+def create_definition(request):
     """Create or update a model definition.
 
     Checks that the data is a valid model definition.
@@ -46,11 +46,11 @@ def create_model_definition(request):
     return {'token': token}
 
 
-@model_definition.get()
-def get_model_definition(request):
+@definition.get()
+def get_definition(request):
     """Retrieves the model definition."""
     model_name = request.matchdict['model_name']
-    definition = request.db.get_model_definition(model_name)
+    definition = request.db.get_definition(model_name)
     if definition:
         return definition
     raise NotFound("Unknown model %s" % model_name)

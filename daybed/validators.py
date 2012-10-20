@@ -30,6 +30,6 @@ def schema_validator(request):
     """
     model_name = request.matchdict['model_name']
 
-    definition = request.db.get_model_definition(model_name)
+    definition = request.db.get_definition(model_name)
     schema = SchemaValidator(definition)
     return validator(request, schema)
