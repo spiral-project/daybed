@@ -14,31 +14,31 @@ class DatabaseConnection(object):
         self.db = db
         self.save = db.save
 
-    def get_model_definition(self, modelname):
-        """Get the scheme definition from the modelname.
+    def get_model_definition(self, model_name):
+        """Get the scheme definition from the model_name.
 
-        :param modelname: the name of the definition you want to retrieve
+        :param model_name: the name of the definition you want to retrieve
 
         """
-        results = db_model_definition(self.db)[modelname]
+        results = db_model_definition(self.db)[model_name]
         for result in results:
             return result.value
 
-    def get_model_data(self, modelname):
+    def get_model_data(self, model_name):
         """Get the definition of the model data.
 
-        :param modelname: the name of the definition you want to retrieve
+        :param model_name: the name of the definition you want to retrieve
 
         """
-        return db_model_data(self.db)[modelname]
+        return db_model_data(self.db)[model_name]
 
-    def get_definition_token(self, modelname):
+    def get_definition_token(self, model_name):
         """Return the token associated with a definition.
 
-        :param modelname: the name of the definition you want to retrieve
+        :param model_name: the name of the definition you want to retrieve
 
         """
-        return db_model_token(self.db)[modelname]
+        return db_model_token(self.db)[model_name]
 
 
 def sync_couchdb_views(db):

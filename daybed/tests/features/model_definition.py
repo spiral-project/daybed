@@ -20,7 +20,7 @@ def destroy_db(step):
 
 
 @step(u'define an? (empty|malformed|incorrect|incomplete|correct) "([^"]*)" with (no|empty|malformed|incorrect|incomplete|unamed|correct|nochoice) fields')
-def define_model_and_fields(step, modelaspect, modelname, fieldsaspect):
+def define_model_and_fields(step, modelaspect, model_name, fieldsaspect):
     modelaspects = {
         'empty': "{%s}",
         'malformed': '{"X"-: 4 %s}',
@@ -50,7 +50,7 @@ def define_model_and_fields(step, modelaspect, modelname, fieldsaspect):
     if fieldsaspect == 'correct':
         world.fields_order = [u'place', u'size', u'datetime', 'category']
     
-    world.path = '/definitions/%s' % str(modelname.lower())
+    world.path = '/definitions/%s' % str(model_name.lower())
 
     if hasattr(world, 'token'):
         world.path += '?token=%s' % str(world.token)
@@ -66,8 +66,8 @@ def status_is(step, status):
 
 
 @step(u'post a correct "([^"]*)" with correct fields')
-def post_correct_model(step, modelname):
-    world.path = '/definitions/%s' % str(modelname.lower())
+def post_correct_model(step, model_name):
+    world.path = '/definitions/%s' % str(model_name.lower())
     model = """ {"title": "hey", "description": "ho", "fields": [
         {"name": "place", "type": "string", "description": "Where ?"}
     ]
@@ -91,8 +91,8 @@ def error_is_about_fields(step, fields):
 
 
 @step(u'retrieve the "([^"]*)" definition')
-def retrieve_the_model_definition(step, modelname):
-    world.path = '/definitions/%s' % str(modelname.lower())
+def retrieve_the_model_definition(step, model_name):
+    world.path = '/definitions/%s' % str(model_name.lower())
     world.response = world.browser.get(world.path, status='*')
 
 

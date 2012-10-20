@@ -28,8 +28,8 @@ definition_validator = partial(validator, schema=DefinitionValidator())
 def schema_validator(request):
     """Validates a request body according to its model definition.
     """
-    modelname = request.matchdict['modelname']
+    model_name = request.matchdict['model_name']
 
-    definition = request.db.get_model_definition(modelname)
+    definition = request.db.get_model_definition(model_name)
     schema = SchemaValidator(definition)
     return validator(request, schema)

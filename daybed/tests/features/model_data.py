@@ -3,8 +3,8 @@ import json
 from lettuce import step, world
 
 @step(u'post "([^"]*)" records?')
-def post_record(step, modelname):
-    world.path = '/%s' % str(modelname.lower())
+def post_record(step, model_name):
+    world.path = '/%s' % str(model_name.lower())
     for record in step.hashes:
         data = json.dumps(record)
         world.response = world.browser.post(world.path, params=data, status='*')
@@ -16,8 +16,8 @@ def obtain_a_record_id(step):
 
 
 @step(u'retrieve the "([^"]*)" records')
-def retrieve_records(step, modelname):
-    world.path = '/%s' % str(modelname.lower())
+def retrieve_records(step, model_name):
+    world.path = '/%s' % str(model_name.lower())
     world.response = world.browser.get(world.path, status='*')
 
 @step(u'results are :')
