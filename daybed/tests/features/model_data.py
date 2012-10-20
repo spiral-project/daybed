@@ -25,4 +25,5 @@ def results_are(step):
     results = world.response.json['data']
     assert len(results) >= len(step.hashes)
     for i, result in enumerate(results):
+        step.hashes[i]['id'] = result['id'] # We cannot guess it
         assert result == step.hashes[i]
