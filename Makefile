@@ -1,5 +1,7 @@
+PYTHON2 = `which python2 python2.7 python2.6 | head -1`
+
 bin/ lib/:
-	virtualenv --python=python2 .
+	virtualenv --python=$(PYTHON2) .
 	bin/pip install -r dev-requirements.txt --use-mirrors
 	bin/python setup.py develop
 
