@@ -5,3 +5,4 @@ couchdb
 pyramid_debugtoolbar
 waitress
 lettuce
+WebTest
