@@ -2,6 +2,7 @@ from daybed.designdocs import (
     db_model_token,
     db_definition,
     db_data,
+    db_data_item,
     docs
 )
 from couchdb.design import ViewDefinition
@@ -24,6 +25,14 @@ class DatabaseConnection(object):
         for result in results:
             return result.value
 
+    def get_definition_token(self, model_name):
+        """Return the token associated with a definition.
+
+        :param model_name: the name of the definition you want to retrieve
+
+        """
+        return db_model_token(self.db)[model_name]
+
     def get_data(self, model_name):
         """Get the definition of the model data.
 
@@ -32,13 +41,15 @@ class DatabaseConnection(object):
         """
         return db_data(self.db)[model_name]
 
-    def get_definition_token(self, model_name):
-        """Return the token associated with a definition.
-
-        :param model_name: the name of the definition you want to retrieve
-
-        """
-        return db_model_token(self.db)[model_name]
+    def get_data_item(self, model_name, data_item_id):
+        """Get the instance of the data item and validate it is on the right model."""
+        data_items = db_data_item(self.db)[data_item_id]
+        if data_items:
+            data_item = data_items[data_item_id].rows[0]
+            if data_item.value['model_name'] == model_name:
+                data_item.value['id'] = data_item_id
+                return data_item
+        return None
 
 
 def sync_couchdb_views(db):

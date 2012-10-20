@@ -6,7 +6,7 @@ from daybed.validators import schema_validator
 
 data = Service(name='data',
                path='/data/{model_name}',
-               description='Model',
+               description='Model data',
                renderer="jsonp")
 
 
@@ -16,6 +16,7 @@ def post_data(request):
 
     Posted data fields will be matched against their related model
     definition.
+
     """
     model_name = request.matchdict['model_name']
     data_doc = {
@@ -29,8 +30,7 @@ def post_data(request):
 
 @data.get()
 def get_data(request):
-    """Retrieves all model records.
-    """
+    """Retrieves all model records."""
     model_name = request.matchdict['model_name']
     # Check that model is defined
     exists = request.db.get_definition(model_name)

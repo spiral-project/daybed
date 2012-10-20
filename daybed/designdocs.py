@@ -27,3 +27,11 @@ db_data = ViewDefinition('model_name', 'data', """function(doc) {
         }
 }""")
 docs.append(db_data)
+
+""" Data item, by id. """
+db_data_item = ViewDefinition('model_name', '_id', """function(doc) {
+        if (doc.type == "data") {
+            emit(doc._id, doc.data);
+        }
+}""")
+docs.append(db_data_item)
