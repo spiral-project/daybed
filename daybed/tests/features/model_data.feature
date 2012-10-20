@@ -12,7 +12,7 @@ Feature: Model data posting, simple usage
           | size | place     | datetime   | category |
           | 14   | Holy wood | 2012-04-25 | beast    |
           | 110  | 日本語     | 2012-06-01 | beast    |
-        Then the status is 200
+        Then the status is 201
         And I obtain a record id
 
     Scenario: Retrieve records

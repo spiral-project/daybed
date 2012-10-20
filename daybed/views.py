@@ -2,6 +2,7 @@ import os
 import json
 
 from pyramid.exceptions import NotFound
+from pyramid.response import Response
 from cornice import Service
 from cornice.util import json_error
 
@@ -73,7 +74,12 @@ def post_model_data(request):
         'data': json.loads(request.body)
     }
     _id, rev = request.db.save(data_doc)
-    return {'id': _id}
+
+    created = '%s/%s' % (request.application_url, _id)
+    return Response(status="201 Created",
+                    body=json.dumps({'id': _id}),
+                    headers={'location': created,
+                             'Content-Type': 'application/json'})
 
 
 @model_data.get()
