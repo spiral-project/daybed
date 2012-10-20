@@ -1,5 +1,5 @@
 pyramid
-cornice
+https://github.com/mozilla-services/cornice/tarball/spore-support#egg=cornice
 colander
 couchdb
 pyramid_debugtoolbar
