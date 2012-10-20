@@ -1,5 +1,7 @@
 """Main entry point
 """
+VERSION = '0.1'
+
 import logging
 from couchdb.client import Server
 from couchdb.http import PreconditionFailed
