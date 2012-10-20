@@ -96,8 +96,11 @@ def get_model_data(request):
         raise NotFound("Unknown model %s" % model_name)
     # Return array of records
     results = request.db.get_model_data(model_name)
-    # TODO: should we transmit uuids or keep them secret for editing
-    data = [result.value for result in results]
+    # TODO: Maybe we need to keep ids secret for editing
+    data = []
+    for result in results:
+        result.value['id'] = result.id
+        data.append(result.value)
     return {'data': data}
 
 @spore.get()
