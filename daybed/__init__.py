@@ -4,9 +4,10 @@ import logging
 from couchdb.client import Server
 from couchdb.http import PreconditionFailed
 
+from daybed.db import DatabaseConnection, sync_couchdb_views
 from pyramid.config import Configurator
 from pyramid.events import NewRequest
-from daybed.db import DatabaseConnection, sync_couchdb_views
+from pyramid.renderers import JSONP
 
 logger = logging.getLogger('daybed')
 
@@ -37,4 +38,5 @@ def main(global_config, **settings):
     sync_couchdb_views(db_server[settings['db_name']])
 
     config.add_subscriber(add_db_to_request, NewRequest)
+    config.add_renderer('jsonp', JSONP(param_name='callback'))
     return config.make_wsgi_app()

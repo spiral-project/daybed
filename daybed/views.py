@@ -3,18 +3,27 @@ import json
 
 from pyramid.exceptions import NotFound
 from cornice import Service
+from cornice.service import get_services
+from cornice.spore import generate_spore
 from cornice.util import json_error
 
 from daybed.validators import definition_validator, schema_validator
 
 
+spore = Service(name="spore",
+                path='/spore',
+                description="Spore endpoint",
+                renderer="jsonp")
+
 model_definition = Service(name='model_definition',
                            path='/definitions/{model_name}',
-                           description='Model Definition')
+                           description='Model Definition',
+                           renderer="jsonp")
 
 model_data = Service(name='model_data',
-                     path='/{model_name}',
-                     description='Model')
+                     path='/data/{model_name}',
+                     description='Model',
+                     renderer="jsonp")
 
 
 @model_definition.put(validators=definition_validator)
@@ -90,3 +99,7 @@ def get_model_data(request):
     # TODO: should we transmit uuids or keep them secret for editing
     data = [result.value for result in results]
     return {'data': data}
+
+@spore.get()
+def get_spore(request):
+    return generate_spore(get_services(), 'daybed', 'http://localhost', '0.1')
