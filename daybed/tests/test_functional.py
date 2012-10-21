@@ -29,7 +29,7 @@ class FunctionaTest(BaseWebTest):
 
         self.definition_without_title = self.valid_definition.copy()
         self.definition_without_title.pop('title')
-        self.malformed_definition = '{"test":"toto", "titi": "tutu',
+        self.malformed_definition = '{"test":"toto", "titi": "tutu'
         self.headers = {'Content-Type': 'application/json'}
 
     def create_definition(self):
