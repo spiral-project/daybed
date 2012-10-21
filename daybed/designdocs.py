@@ -31,7 +31,7 @@ docs.append(db_data)
 """ Data item, by id. """
 db_data_item = ViewDefinition('model_name', '_id', """function(doc) {
         if (doc.type == "data") {
-            emit(doc._id, doc.data);
+            emit([doc._id, doc.model_name], doc.data);
         }
 }""")
 docs.append(db_data_item)

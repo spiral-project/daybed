@@ -109,13 +109,17 @@ class FunctionaTest(BaseWebTest):
                           headers=self.headers)
         
         # Put data against this definition
+        entry = {'item': 'My task', 'status': 'todo'}
         resp = self.app.post_json('/data/todo',
-                                 {'item': 'My task',
-                                  'status': 'todo'},
+                                 entry,
                                  headers=self.headers)
         self.assertIn('id', resp.body)
 
-        data_item_id = json.loads(resp.body)['id']                
+        data_item_id = json.loads(resp.body)['id']
+        resp = self.app.get('/data/todo/%s' % data_item_id,
+                            headers=self.headers)
+        entry['id'] = data_item_id
+        self.assertEqual(json.loads(resp.body), entry)
 
     def test_data_update(self):
         pass

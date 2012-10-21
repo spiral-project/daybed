@@ -43,12 +43,11 @@ class DatabaseConnection(object):
 
     def get_data_item(self, model_name, data_item_id):
         """Get the instance of the data item and validate it is on the right model."""
-        data_items = db_data_item(self.db)[data_item_id]
+        data_items = db_data_item(self.db)[[str(data_item_id), str(model_name)]]
         if data_items:
-            data_item = data_items[data_item_id].rows[0]
-            if data_item.value['model_name'] == model_name:
-                data_item.value['id'] = data_item_id
-                return data_item
+            data_item = data_items.rows[0]
+            data_item.value['id'] = data_item_id
+            return data_item
         return None
 
 
