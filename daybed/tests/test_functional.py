@@ -30,12 +30,21 @@ class FunctionaTest(BaseWebTest):
         self.definition_without_title = self.valid_definition.copy()
         self.definition_without_title.pop('title')
         self.malformed_definition = '{"test":"toto", "titi": "tutu',
+        self.valid_data = {'item': 'My task', 'status': 'todo'}
         self.headers = {'Content-Type': 'application/json'}
 
-    def create_definition(self):
-        return self.app.put_json('/definitions/todo',
-                    self.valid_definition,
-                    headers=self.headers)
+    def create_definition(self, data=None):
+        if not data:
+            data = self.valid_definition
+
+        return self.app.put_json('/definitions/todo', data,
+                                 headers=self.headers)
+
+    def create_data(self, data=None):
+        if not data:
+            data = self.valid_data
+        return self.app.post_json('/data/todo', data,
+                                  headers=self.headers)
 
     def test_normal_definition_creation(self):
         resp = self.create_definition()
@@ -89,17 +98,15 @@ class FunctionaTest(BaseWebTest):
 
     def test_data_retrieval(self):
         self.create_definition()
+        resp = self.create_data()
 
-        # Put data against this definition
-        entry = {'item': 'My task', 'status': 'todo'}
-        resp = self.app.post_json('/data/todo',
-                                 entry,
-                                 headers=self.headers)
+        # Put valid data against this definition
         self.assertIn('id', resp.body)
 
         data_item_id = json.loads(resp.body)['id']
         resp = self.app.get('/data/todo/%s' % data_item_id,
                             headers=self.headers)
+        entry = self.valid_data.copy()
         entry['id'] = data_item_id
         self.assertEqual(json.loads(resp.body), entry)
 
@@ -126,5 +133,3 @@ class FunctionaTest(BaseWebTest):
     def test_data_deletion(self):
         pass
 
-    def test_data_validation(self):
-        pass
