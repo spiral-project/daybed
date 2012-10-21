@@ -1,8 +1,7 @@
-pyramid
 https://github.com/mozilla-services/cornice/tarball/spore-support#egg=cornice
-colander
-couchdb
 pyramid_debugtoolbar
 waitress
 lettuce
 WebTest
+nose
+nose-cov

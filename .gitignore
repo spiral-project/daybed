@@ -5,3 +5,5 @@ bin/
 lib/
 local/
 include/
+.venv_installed.stamp
+.dev_env_installed.stamp

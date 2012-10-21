@@ -2,6 +2,7 @@ import json
 
 from lettuce import step, world
 
+
 @step(u'post "([^"]*)" records?')
 def post_record(step, model_name):
     world.path = '/data/%s' % str(model_name.lower())
