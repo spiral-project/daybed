@@ -55,6 +55,7 @@ class DatabaseConnection(object):
         """Create a data to a model_name."""
         if data_id:
             data_doc = self.db[data_id]
+            data_id = data_doc.id
         else:
             data_doc = {
                 'type': 'data',
@@ -62,8 +63,12 @@ class DatabaseConnection(object):
             }
         data_doc['data'] = data
 
-        self.db[data_id] = data_doc
-        return self.db[data_id]['_id']
+        if data_id:
+            self.db[data_id] = data_doc        
+        else:
+            data_id, rev = self.db.save(data_doc)
+
+        return data_id
 
 
 def sync_couchdb_views(db):
