@@ -2,6 +2,7 @@ import os
 from uuid import uuid4
 from unittest import TestCase
 import webtest
+from daybed.db import DatabaseConnection
 
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -18,10 +19,12 @@ class BaseWebTest(TestCase):
 
         self.app = webtest.TestApp("config:tests.ini", relative_to=HERE)
         self.db_server = self.app.app.registry.settings['db_server']
+        self.db_base = self.db_server[self.db_name]
+        self.db = DatabaseConnection(self.db_base)
 
     def tearDown(self):
         # Delete Test DB
-        del self.db_server[self.db_name]
+        del self.db_base
 
     def put_valid_definition(self):
         """Create a valid definition named "todo".

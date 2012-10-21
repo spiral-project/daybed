@@ -24,7 +24,7 @@ def get(request):
     if not result:
         raise NotFound("Unknown data_item %s: %s" % (model_name, data_item_id))
 
-    return result.value
+    return result.value['data']
 
 
 @data_item.put(validators=schema_validator)
@@ -40,7 +40,7 @@ def put(request):
     return {'id': data_id}
 
 
-@data_item.delete(validators=schema_validator)
+@data_item.delete()
 def delete(request):
     """Delete the data item.
 
@@ -50,5 +50,5 @@ def delete(request):
     model_name = request.matchdict['model_name']
     data_item_id = request.matchdict['data_item_id']
 
-    result = request.db.get_data_item(data_item_id)
-    request.db.delete(result)
+    result = request.db.get_data_item(model_name, data_item_id).value
+    request.db.db.delete(result)

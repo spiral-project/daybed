@@ -46,6 +46,14 @@ class FunctionaTest(BaseWebTest):
         return self.app.post_json('/data/todo', data,
                                   headers=self.headers)
 
+    def create_data_resp(self, data=None):        
+        if not data:
+            data = self.valid_data
+            
+        return self.app.post_json('/data/todo',
+                                  data,
+                                  headers=self.headers)
+
     def test_normal_definition_creation(self):
         resp = self.create_definition()
         self.assertIn('token', resp.body)
@@ -71,17 +79,12 @@ class FunctionaTest(BaseWebTest):
         resp = self.app.get('/definitions/todo', headers=self.headers)
         self.assertEqual(json.loads(resp.body), self.valid_definition)
 
-    def test_normal_validation(self):
-        # Not Implemented yet
-        pass
-
     def test_normal_data_creation(self):
         self.create_definition()
 
         # Put data against this definition
         resp = self.app.post_json('/data/todo',
-                                 {'item': 'My task',
-                                  'status': 'todo'},
+                                 self.valid_data,
                                  headers=self.headers)
         self.assertIn('id', resp.body)
 
@@ -107,20 +110,14 @@ class FunctionaTest(BaseWebTest):
         resp = self.app.get('/data/todo/%s' % data_item_id,
                             headers=self.headers)
         entry = self.valid_data.copy()
-        entry['id'] = data_item_id
+        # entry['id'] = str(data_item_id
         self.assertEqual(json.loads(resp.body), entry)
 
     def test_data_update(self):
-        # Put a valid definition
-        self.app.put_json('/definitions/todo',
-                          self.valid_definition,
-                          headers=self.headers)
-
+        self.create_definition()
         # Put data against this definition
-        entry = {'item': 'My task', 'status': 'todo'}
-        resp = self.app.post_json('/data/todo',
-                                 entry,
-                                 headers=self.headers)
+        entry = self.valid_data.copy()
+        resp = self.create_data(entry)
         data_item_id = json.loads(resp.body)['id']
 
         # Update this data
@@ -129,10 +126,16 @@ class FunctionaTest(BaseWebTest):
                                  entry,
                                  headers=self.headers)
         self.assertIn('id', resp.body)
+        # Todo : Verify DB
+        queryset = self.db.get_data_item('todo', data_item_id)
 
     def test_data_deletion(self):
-        pass
-
+        self.create_definition()
+        resp = self.create_data()
+        data_item_id = json.loads(resp.body)['id']
+        self.app.delete(str('/data/todo/%s' % data_item_id))
+        # Todo : Verify DB
+        
     def test_data_validation(self):
         self.create_definition()
         headers = self.headers.copy()
