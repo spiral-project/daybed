@@ -128,14 +128,17 @@ class FunctionaTest(BaseWebTest):
                                  headers=self.headers)
         self.assertIn('id', resp.body)
         # Todo : Verify DB
-        queryset = self.db.get_data_item('todo', data_item_id)
+        queryset = self.db.get_data('todo')
+        self.assertEqual(len(queryset), 1)
+        
 
     def test_data_deletion(self):
         self.create_definition()
         resp = self.create_data()
         data_item_id = json.loads(resp.body)['id']
         self.app.delete(str('/data/todo/%s' % data_item_id))
-        # Todo : Verify DB
+        queryset = self.db.get_data_item('todo', data_item_id)
+        self.assertIsNone(queryset)
         
     def test_data_validation(self):
         self.create_definition()
