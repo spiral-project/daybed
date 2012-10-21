@@ -132,3 +132,9 @@ class FunctionaTest(BaseWebTest):
 
     def test_data_deletion(self):
         pass
+
+    def test_data_validation(self):
+        self.create_definition()
+        headers = self.headers.copy()
+        self.app.post_json('/data/todo', self.valid_data,
+                          headers=headers)
