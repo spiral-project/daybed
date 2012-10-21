@@ -4,6 +4,11 @@ VENV_STAMP=.venv_installed.stamp
 
 .IGNORE: clean
 .PHONY: functional_tests unit_tests tests
+.INTERMEDIATE: $(VENV_DIRS) $(DEV_STAMP) $(VENV_STAMP)
+
+OBJECTS = bin/ lib/ local/ include/ man/ .coverage d2to1-0.2.7-py2.7.egg \
+	.coverage daybed.egg-info
+
 
 all: $(DAYBED_EGG)
 install: all
@@ -23,8 +28,7 @@ $(VENV_STAMP):
 	virtualenv .
 	touch $(VENV_STAMP)
 clean:
-	rm -rf bin/ lib/ local/ include/ $(DEV_STAMP) $(VENV_STAMP)
-	rm -rf man/ d2to1-0.2.7-py2.7.egg/ .coverage daybed.egg-info
+	rm -fr $(OBJECTS)
 
 functional_tests: install-dev
 	bin/lettuce daybed/tests/features
