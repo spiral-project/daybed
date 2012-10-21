@@ -15,12 +15,12 @@ class BaseWebTest(TestCase):
     """
 
     def setUp(self):
+
         self.db_name = os.environ['DB_NAME'] = 'daybed-tests-%s' % uuid4()
+        self.app = webtest.TestApp("config:tests.ini", relative_to=HERE)
         self.db_server = self.app.app.registry.settings['db_server']
         self.db_base = self.db_server[self.db_name]
         self.db = DatabaseConnection(self.db_base)
-
-        self.app = webtest.TestApp("config:tests.ini", relative_to=HERE)
 
     def tearDown(self):
         # Delete Test DB
