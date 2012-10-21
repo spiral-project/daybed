@@ -31,6 +31,7 @@ class FunctionaTest(BaseWebTest):
         self.definition_without_title.pop('title')
         self.valid_data = {'item': 'My task', 'status': 'todo'}
         self.malformed_definition = '{"test":"toto", "titi": "tutu'
+        self.invalid_data = {'item': 'Invalid task', 'status': 'yay'}
         self.headers = {'Content-Type': 'application/json'}
 
     def create_definition(self, data=None):
@@ -136,5 +137,12 @@ class FunctionaTest(BaseWebTest):
     def test_data_validation(self):
         self.create_definition()
         headers = self.headers.copy()
+        headers['X-Daybed-Validate-Only'] = 'true'
         self.app.post_json('/data/todo', self.valid_data,
-                          headers=headers)
+                           headers=headers, status=200)
+
+        # no data should be added
+        self.assertEquals(0, len(self.app.get('/data/todo').json['data']))
+        # of course, pushing weird data should tell what's wrong
+        self.app.post_json('/data/todo', self.invalid_data,
+                           headers=headers, status=400)
