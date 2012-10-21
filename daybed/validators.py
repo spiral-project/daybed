@@ -46,3 +46,4 @@ def token_validator(request):
             request.errors.add('query', 'token',
                                'invalid token for model %s' % model_name)
             request.errors.status = 403
+            return request.errors
