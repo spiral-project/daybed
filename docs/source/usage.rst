@@ -10,6 +10,8 @@ a definition under the name "todo".
 Definition of the model
 -----------------------
 
+**PUT /definition/**
+
 We want to push this to daybed, if we run it locally, that would be something
 like this:
 
@@ -47,14 +49,22 @@ it later ;)
 Pushing data
 ------------
 
+**POST /data/{modelname}**
+**PUT /data/{modelname}/{id}**
+
 Now that we defined the schema, we want to push some real data there::
 
     data='{"item": "finish the documentation", "status": "todo"}'
-    curl -XPOST http://localhost:8000/todo -d "$data" -H "Content-Type: application/json"
+    curl -XPOST http://localhost:8000/data/todo -d "$data" -H "Content-Type: application/json"
 
 And we get this in exchange, which is the id of the created document.::
 
     {"id": "37fa47f52ccdf1670747c39c85002cc6"}
+
+.. note::
+    When you push some data, you can also send a special header, named
+    `X-Daybed-Validate-Only`, which will allow you to only validate the
+    resource you are sending, without actually recording it to the database.
 
 Getting data
 ------------
@@ -64,6 +74,8 @@ do so, just issue some GET requests to the right resources.
 
 Get back a definition
 ~~~~~~~~~~~~~~~~~~~~~
+
+**GET /definition/{modelname}**
 
 ::
 
@@ -91,6 +103,8 @@ Get back a definition
 
 Get back all the data you pushed to a model
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+**GET /data/{modelname}**
 
 ::
 

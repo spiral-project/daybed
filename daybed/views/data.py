@@ -1,4 +1,5 @@
 import json
+
 from cornice import Service
 from pyramid.exceptions import NotFound
 from pyramid.response import Response
@@ -37,9 +38,14 @@ def post(request):
     definition.
 
     """
+    # if we are asked only for validation, don't do anything more.
+    if request.headers.get('X-Daybed-Validate-Only', 'false') == 'true':
+        return
+
     model_name = request.matchdict['model_name']
     data_id = request.db.create_data(model_name, json.loads(request.body))
     created = '%s/%s' % (request.application_url, data_id)
+
     return Response(status="201 Created",
                     body=json.dumps({'id': data_id}),
                     headers={'location': created,
