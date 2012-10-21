@@ -7,6 +7,7 @@ from colander import (
     Int,
     OneOf,
     Length,
+    Regex,
     null,
 )
 
@@ -63,7 +64,14 @@ class TypeRegistry(object):
     def names(self):
         return self._registry.keys()
 
-type_registry = TypeRegistry()
+    def add(self, name):
+        """Decorator to register new types"""
+        def decorated(cls):
+            self.register(name, cls)
+            return cls
+        return decorated
+
+registry = TypeRegistry()
 
 
 class TypeField(object):
@@ -75,7 +83,7 @@ class TypeField(object):
         schema.add(SchemaNode(String(), name='name'))
         schema.add(SchemaNode(String(), name='description'))
         schema.add(SchemaNode(String(), name='type',
-                              validator=OneOf(type_registry.names)))
+                              validator=OneOf(registry.names)))
         return schema
 
     @classmethod
@@ -85,16 +93,17 @@ class TypeField(object):
         return SchemaNode(cls.node(), **options)
 
 
+@registry.add('int')
 class IntField(TypeField):
     node = Int
-type_registry.register('int', IntField)
 
 
+@registry.add('string')
 class StringField(TypeField):
     node = String
-type_registry.register('string', StringField)
 
 
+@registry.add('enum')
 class EnumField(TypeField):
     node = String
 
@@ -109,13 +118,29 @@ class EnumField(TypeField):
     def validation(cls, **kwargs):
         kwargs['validator'] = OneOf(kwargs['choices'])
         return super(EnumField, cls).validation(**kwargs)
-type_registry.register('enum', EnumField)
+
+
+@registry.add('regex')
+class RegexField(TypeField):
+    """Allows to validate a field with a python regular expression."""
+    node = String
+
+    @classmethod
+    def definition(cls):
+        schema = super(RegexField, cls).definition()
+        schema.add(SchemaNode(String(), name='regex', validator=Length(min=1)))
+        return schema
+
+    @classmethod
+    def validation(cls, **kwargs):
+        kwargs['validator'] = Regex(kwargs['regex'])
+        return super(RegexField, cls).validation(**kwargs)
 
 
 class TypeFieldNode(SchemaType):
     def deserialize(self, node, cstruct=null):
         try:
-            schema = type_registry.definition(cstruct.get('type'))
+            schema = registry.definition(cstruct.get('type'))
         except UnknownFieldTypeError:
             schema = TypeField.definition()
         schema.deserialize(cstruct)
@@ -135,4 +160,4 @@ class SchemaValidator(SchemaNode):
         super(SchemaValidator, self).__init__(Mapping())
         for field in definition['fields']:
             fieldtype = field.pop('type')
-            self.add(type_registry.validation(fieldtype, **field))
+            self.add(registry.validation(fieldtype, **field))

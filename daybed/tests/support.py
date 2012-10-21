@@ -1,6 +1,10 @@
 import os
 from uuid import uuid4
-from unittest import TestCase
+try:
+    import unittest2 as unittest
+except ImportError:
+    import unittest  # NOQA
+
 import webtest
 from daybed.db import DatabaseConnection
 
@@ -8,7 +12,7 @@ from daybed.db import DatabaseConnection
 HERE = os.path.dirname(os.path.abspath(__file__))
 
 
-class BaseWebTest(TestCase):
+class BaseWebTest(unittest.TestCase):
     """Base Web Test to test your cornice service.
 
     It setups the database before each test and delete it after.
