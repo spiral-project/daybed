@@ -24,7 +24,7 @@ def get(request):
     return result.value
 
 
-@data_item.put(validators=(schema_validator)
+@data_item.put(validators=schema_validator)
 def put(request):
     """Update a data item.
 
@@ -44,7 +44,7 @@ def put(request):
     return {'id': _id}
 
 
-@data_item.put(validators=(schema_validator)
+@data_item.delete(validators=schema_validator)
 def delete(request):
     """Delete the data item.
 
