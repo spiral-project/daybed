@@ -29,8 +29,8 @@ class FunctionaTest(BaseWebTest):
 
         self.definition_without_title = self.valid_definition.copy()
         self.definition_without_title.pop('title')
-        self.malformed_definition = '{"test":"toto", "titi": "tutu',
         self.valid_data = {'item': 'My task', 'status': 'todo'}
+        self.malformed_definition = '{"test":"toto", "titi": "tutu'
         self.headers = {'Content-Type': 'application/json'}
 
     def create_definition(self, data=None):
@@ -115,7 +115,7 @@ class FunctionaTest(BaseWebTest):
         self.app.put_json('/definitions/todo',
                           self.valid_definition,
                           headers=self.headers)
-        
+
         # Put data against this definition
         entry = {'item': 'My task', 'status': 'todo'}
         resp = self.app.post_json('/data/todo',
@@ -132,4 +132,3 @@ class FunctionaTest(BaseWebTest):
 
     def test_data_deletion(self):
         pass
-
