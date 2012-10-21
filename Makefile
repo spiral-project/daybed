@@ -1,10 +1,14 @@
-PYTHON2 = `which python2 python2.7 python2.6 | head -1`
-DAYBED_EGG=lib/$(PYTHON2)/site-packages/daybed.egg-link
+DAYBED_EGG=$(wildcard lib/python*/site-packages/daybed.egg-link)
 DEV_STAMP=.dev_env_installed.stamp
 VENV_STAMP=.venv_installed.stamp
 
 .IGNORE: clean
 .PHONY: functional_tests unit_tests tests
+.INTERMEDIATE: $(VENV_DIRS) $(DEV_STAMP) $(VENV_STAMP)
+
+OBJECTS = bin/ lib/ local/ include/ man/ .coverage d2to1-0.2.7-py2.7.egg \
+	.coverage daybed.egg-info
+
 
 all: $(DAYBED_EGG)
 install: all
@@ -21,11 +25,10 @@ $(DEV_STAMP): $(VENV_STAMP) dev-requirements.txt
 	touch $(DEV_STAMP)
 
 $(VENV_STAMP):
-	virtualenv --python=$(PYTHON2) .
+	virtualenv .
 	touch $(VENV_STAMP)
 clean:
-	rm -rf bin/ lib/ local/ include/ $(DEV_STAMP) $(VENV_STAMP) 
-	rm -rf man/ d2to1-0.2.7-py2.7.egg/ .coverage daybed.egg-info
+	rm -fr $(OBJECTS)
 
 functional_tests: install-dev
 	bin/lettuce daybed/tests/features
