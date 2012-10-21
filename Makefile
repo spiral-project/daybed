@@ -1,4 +1,4 @@
-DAYBED_EGG=lib/python/site-packages/daybed.egg-link
+DAYBED_EGG=$(wildcard lib/python*/site-packages/daybed.egg-link)
 DEV_STAMP=.dev_env_installed.stamp
 VENV_STAMP=.venv_installed.stamp
 
