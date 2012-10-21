@@ -1,13 +1,6 @@
-import os
 import json
 
-import unittest
-import webtest
-
-from daybed.tests import BaseWebTest
-
-
-HERE = os.path.dirname(os.path.abspath(__file__))
+from daybed.tests.support import BaseWebTest
 
 
 class FunctionaTest(BaseWebTest):
@@ -36,13 +29,17 @@ class FunctionaTest(BaseWebTest):
 
         self.definition_without_title = self.valid_definition.copy()
         self.definition_without_title.pop('title')
+        self.malformed_definition = '{"test":"toto", "titi": "tutu',
         self.headers = {'Content-Type': 'application/json'}
 
-    def test_normal_definition_creation(self):
-        resp = self.app.put_json('/definitions/todo',
+    def create_definition(self):
+        return self.app.put_json('/definitions/todo',
                     self.valid_definition,
                     headers=self.headers)
-        self.assertIn('token', resp.body)        
+
+    def test_normal_definition_creation(self):
+        resp = self.create_definition()
+        self.assertIn('token', resp.body)
 
     def test_malformed_definition_creation(self):
         resp = self.app.put_json('/definitions/todo',
@@ -53,33 +50,25 @@ class FunctionaTest(BaseWebTest):
 
     def test_definition_creation_rejects_malformed_data(self):
         resp = self.app.put('/definitions/todo',
-                    '{"test":"toto", "titi": "tutu',
+                    self.malformed_definition,
                     headers=self.headers,
                     status=400)
         self.assertIn('"status": "error"', resp.body)
 
     def test_definition_retrieval(self):
-        # Put a valid JSON
-        resp = self.app.put_json('/definitions/todo',
-                    self.valid_definition,
-                    headers=self.headers)
+        self.create_definition()
 
         # Verify that the schema is the same
-        resp = self.app.get('/definitions/todo',
-                    headers=self.headers)
+        resp = self.app.get('/definitions/todo', headers=self.headers)
         self.assertEqual(json.loads(resp.body), self.valid_definition)
-        
 
     def test_normal_validation(self):
         # Not Implemented yet
         pass
 
     def test_normal_data_creation(self):
-        # Put a valid definition
-        self.app.put_json('/definitions/todo',
-                          self.valid_definition,
-                          headers=self.headers)
-        
+        self.create_definition()
+
         # Put data against this definition
         resp = self.app.post_json('/data/todo',
                                  {'item': 'My task',
@@ -88,11 +77,8 @@ class FunctionaTest(BaseWebTest):
         self.assertIn('id', resp.body)
 
     def test_invalid_data_validation(self):
-        # Put a valid definition
-        self.app.put_json('/definitions/todo',
-                          self.valid_definition,
-                          headers=self.headers)
-        
+        self.create_definition()
+
         # Try to put invalid data to this definition
         resp = self.app.post_json('/data/todo',
                                  {'item': 'My task',
@@ -100,14 +86,10 @@ class FunctionaTest(BaseWebTest):
                                  headers=self.headers,
                                  status=400)
         self.assertIn('"status": "error"', resp.body)
-        
 
     def test_data_retrieval(self):
-        # Put a valid definition
-        self.app.put_json('/definitions/todo',
-                          self.valid_definition,
-                          headers=self.headers)
-        
+        self.create_definition()
+
         # Put data against this definition
         entry = {'item': 'My task', 'status': 'todo'}
         resp = self.app.post_json('/data/todo',
@@ -142,4 +124,7 @@ class FunctionaTest(BaseWebTest):
         self.assertIn('id', resp.body)
 
     def test_data_deletion(self):
+        pass
+
+    def test_data_validation(self):
         pass
