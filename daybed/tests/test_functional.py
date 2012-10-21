@@ -47,7 +47,6 @@ class FunctionaTest(unittest.TestCase):
         resp = self.app.put_json('/definitions/todo',
                     self.valid_definition,
                     headers=self.headers)
-        from pdb import set_trace; set_trace()
 
 
     def test_malformed_definition_creation(self):
