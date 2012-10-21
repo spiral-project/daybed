@@ -39,6 +39,7 @@ def main(global_config, **settings):
     db_server = Server(settings['couchdb_uri'])
     config.registry.settings['db_server'] = db_server
     db_name = os.environ.get('DB_NAME', settings['db_name'])
+    config.registry.settings['db_name'] = db_name
     create_db_if_not_exist(db_server, db_name)
     sync_couchdb_views(db_server[db_name])
 

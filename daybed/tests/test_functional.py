@@ -3,14 +3,15 @@ import os
 import unittest
 import webtest
 
+from daybed.tests import BaseWebTest
+
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 
 
-class FunctionaTest(unittest.TestCase):
+class FunctionaTest(BaseWebTest):
 
     def __init__(self, *args, **kwargs):
-
         super(FunctionaTest, self).__init__(*args, **kwargs)
         self.valid_definition = {
             "title": "todo",
@@ -34,14 +35,6 @@ class FunctionaTest(unittest.TestCase):
 
         self.definition_without_title = self.valid_definition.copy()
         self.definition_without_title.pop('title')
-        self.headers = {'Content-Type': 'application/json'}
-
-    def setUp(self):
-        # delete the db
-        self.app = webtest.TestApp("config:tests.ini",  relative_to=HERE)
-
-    def tearDown(self):
-        pass
 
     def test_normal_definition_creation(self):
         resp = self.app.put_json('/definitions/todo',
