@@ -1,13 +1,6 @@
-import os
 import json
 
-import unittest
-import webtest
-
-from daybed.tests import BaseWebTest
-
-
-HERE = os.path.dirname(os.path.abspath(__file__))
+from daybed.tests.support import BaseWebTest
 
 
 class FunctionaTest(BaseWebTest):
@@ -42,7 +35,7 @@ class FunctionaTest(BaseWebTest):
         resp = self.app.put_json('/definitions/todo',
                     self.valid_definition,
                     headers=self.headers)
-        self.assertIn('token', resp.body)        
+        self.assertIn('token', resp.body)
 
     def test_malformed_definition_creation(self):
         resp = self.app.put_json('/definitions/todo',
@@ -68,7 +61,6 @@ class FunctionaTest(BaseWebTest):
         resp = self.app.get('/definitions/todo',
                     headers=self.headers)
         self.assertEqual(json.loads(resp.body), self.valid_definition)
-        
 
     def test_normal_validation(self):
         # Not Implemented yet
@@ -79,7 +71,7 @@ class FunctionaTest(BaseWebTest):
         self.app.put_json('/definitions/todo',
                           self.valid_definition,
                           headers=self.headers)
-        
+
         # Put data against this definition
         resp = self.app.post_json('/data/todo',
                                  {'item': 'My task',
@@ -92,7 +84,7 @@ class FunctionaTest(BaseWebTest):
         self.app.put_json('/definitions/todo',
                           self.valid_definition,
                           headers=self.headers)
-        
+
         # Try to put invalid data to this definition
         resp = self.app.post_json('/data/todo',
                                  {'item': 'My task',
@@ -100,14 +92,13 @@ class FunctionaTest(BaseWebTest):
                                  headers=self.headers,
                                  status=400)
         self.assertIn('"status": "error"', resp.body)
-        
 
     def test_data_retrieval(self):
         # Put a valid definition
         self.app.put_json('/definitions/todo',
                           self.valid_definition,
                           headers=self.headers)
-        
+
         # Put data against this definition
         entry = {'item': 'My task', 'status': 'todo'}
         resp = self.app.post_json('/data/todo',
