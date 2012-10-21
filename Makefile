@@ -12,6 +12,8 @@ install: all
 install-dev: $(DEV_STAMP)
 
 $(DAYBED_EGG): $(VENV_STAMP)
+	# Monkey patch since distutils2
+	bin/pip install https://github.com/mozilla-services/cornice/tarball/spore-support#egg=cornice
 	bin/python setup.py develop
 
 $(DEV_STAMP): $(VENV_STAMP) dev-requirements.txt
@@ -22,7 +24,8 @@ $(VENV_STAMP):
 	virtualenv --python=$(PYTHON2) .
 	touch $(VENV_STAMP)
 clean:
-	rm -rf bin/ lib/ local/ include/ $(DEV_STAMP) $(VENV_STAMP)
+	rm -rf bin/ lib/ local/ include/ $(DEV_STAMP) $(VENV_STAMP) 
+	rm -rf man/ d2to1-0.2.7-py2.7.egg/ .coverage daybed.egg-info
 
 functional_tests: install-dev
 	bin/lettuce daybed/tests/features

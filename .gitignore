@@ -10,3 +10,4 @@ include/
 .coverage
 d2to1-0.2.7-py2.7.egg/
 man/
+build/
