@@ -7,6 +7,7 @@ local/
 include/
 .venv_installed.stamp
 .dev_env_installed.stamp
+.install.stamp
 .coverage
 d2to1-0.2.7-py2.7.egg/
 man/
