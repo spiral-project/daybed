@@ -10,5 +10,5 @@ script:  make tests
 notifications:
     irc:
         channels:
-            - "irc.freenode.org#spiral-project"
+            - "irc.freenode.org#daybed"
         on_success: change
