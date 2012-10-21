@@ -1,3 +1,6 @@
+import json
+import uuid
+
 from cornice import Service
 from pyramid.exceptions import NotFound
 
@@ -33,15 +36,8 @@ def put(request):
     """
     model_name = request.matchdict['model_name']
     data_item_id = request.matchdict['data_item_id']
-
-    data_doc = {
-        '_id': data_item_id,
-        'type': 'data',
-        'model_name': model_name,
-        'data': json.loads(request.body)
-    }
-    _id, rev = request.db.save(data_doc)
-    return {'id': _id}
+    data_id = request.db.create_data(model_name, json.loads(request.body), data_item_id)
+    return {'id': data_id}
 
 
 @data_item.delete(validators=schema_validator)

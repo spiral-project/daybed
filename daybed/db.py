@@ -1,3 +1,6 @@
+import json
+import uuid
+from couchdb.design import ViewDefinition
 from daybed.designdocs import (
     db_model_token,
     db_definition,
@@ -5,7 +8,6 @@ from daybed.designdocs import (
     db_data_item,
     docs
 )
-from couchdb.design import ViewDefinition
 
 
 class DatabaseConnection(object):
@@ -49,6 +51,18 @@ class DatabaseConnection(object):
             data_item.value['id'] = data_item_id
             return data_item
         return None
+
+    def create_data(self, model_name, data, data_id=None):
+        """Create a data to a model_name."""
+        data_id = data_id or str(uuid.uuid1()).replace('-', '')
+        data_doc = {
+            'id': data_id,
+            'type': 'data',
+            'model_name': model_name,
+            'data': data
+            }
+        self.save(data_doc)
+        return data_id
 
 
 def sync_couchdb_views(db):

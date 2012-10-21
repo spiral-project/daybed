@@ -122,7 +122,24 @@ class FunctionaTest(BaseWebTest):
         self.assertEqual(json.loads(resp.body), entry)
 
     def test_data_update(self):
-        pass
+        # Put a valid definition
+        self.app.put_json('/definitions/todo',
+                          self.valid_definition,
+                          headers=self.headers)
+        
+        # Put data against this definition
+        entry = {'item': 'My task', 'status': 'todo'}
+        resp = self.app.post_json('/data/todo',
+                                 entry,
+                                 headers=self.headers)
+        data_item_id = json.loads(resp.body)['id']
+
+        # Update this data
+        entry['status'] = 'done'
+        resp = self.app.put_json(str('/data/todo/%s' % data_item_id),
+                                 entry,
+                                 headers=self.headers)
+        self.assertIn('id', resp.body)
 
     def test_data_deletion(self):
         pass

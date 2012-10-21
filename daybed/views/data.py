@@ -38,14 +38,9 @@ def post(request):
 
     """
     model_name = request.matchdict['model_name']
-    data_doc = {
-        'type': 'data',
-        'model_name': model_name,
-        'data': json.loads(request.body)
-    }
-    _id, rev = request.db.save(data_doc)
-    created = '%s/%s' % (request.application_url, _id)
+    data_id = request.db.create_data(model_name, json.loads(request.body))
+    created = '%s/%s' % (request.application_url, data_id)
     return Response(status="201 Created",
-                    body=json.dumps({'id': _id}),
+                    body=json.dumps({'id': data_id}),
                     headers={'location': created,
                              'Content-Type': 'application/json'})
