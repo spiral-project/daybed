@@ -44,7 +44,7 @@ def post(request):
 
     model_name = request.matchdict['model_name']
     data_id = request.db.create_data(model_name, json.loads(request.body))
-    created = '%s/%s' % (request.application_url, data_id)
+    created = '%s/data/%s' % (request.application_url, data_id)
 
     return Response(status="201 Created",
                     body=json.dumps({'id': data_id}),
