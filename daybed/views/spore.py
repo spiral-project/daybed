@@ -9,6 +9,8 @@ spore = Service(name="spore",
                 description="Spore endpoint",
                 renderer="jsonp")
 
+
 @spore.get()
 def get_spore(request):
-    return generate_spore(get_services(), 'daybed', request.application_url, VERSION)
+    return generate_spore_description(get_services(), 'daybed',
+              request.application_url, VERSION)
