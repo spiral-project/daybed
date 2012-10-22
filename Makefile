@@ -14,8 +14,6 @@ install: $(INSTALL_STAMP)
 install-dev: $(DEV_STAMP)
 
 $(INSTALL_STAMP): $(VENV_STAMP)
-	# Monkey patch since distutils2
-	bin/pip install https://github.com/mozilla-services/cornice/tarball/spore-support#egg=cornice
 	bin/python setup.py develop
 	touch $(INSTALL_STAMP)
 
