@@ -1,5 +1,5 @@
 from cornice import Service
-from cornice.spore import generate_spore
+from cornice.ext.spore import generate_spore_description
 from cornice.service import get_services
 
 from daybed import VERSION
