@@ -3,5 +3,4 @@ lettuce
 nose
 nose-cov
 pyramid_debugtoolbar
-rxjson
 waitress
