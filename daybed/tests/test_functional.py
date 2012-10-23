@@ -55,6 +55,14 @@ class FunctionalTest(BaseWebTest):
                                   data,
                                   headers=self.headers)
 
+    def test_spore(self):
+        rx = Rx.Factory({ "register_core_types": True })
+        with open(os.path.join(HERE, 'spore_validation.rx')) as f:
+            spore_json_schema = json.loads(f.read())
+            spore_schema = rx.make_schema(spore_json_schema)
+            resp = self.app.get('/spore', headers=self.headers)
+            self.assertTrue(spore_schema.check(resp.json))
+
     def test_normal_definition_creation(self):
         resp = self.create_definition()
         self.assertIn('token', resp.body)
