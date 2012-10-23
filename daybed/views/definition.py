@@ -20,7 +20,6 @@ def get(request):
     model_name = request.matchdict['model_name']
     definition = request.db.get_definition(model_name)
     if definition:
-        print definition
         return definition['definition']
     raise NotFound("Unknown model %s" % model_name)
 
@@ -47,6 +46,7 @@ def put(request):
     request.db.save(model_doc)
     return {'token': token}
 
+
 @definition.delete(validators=token_validator)
 def delete(request):
     """Create or update a model definition.
@@ -56,5 +56,10 @@ def delete(request):
 
     """
     model_name = request.matchdict['model_name']
+
+    results = request.db.get_data(model_name)
+    for result in results:
+        request.db.db.delete(doc)
+
     result = request.db.get_definition(model_name)
     request.db.db.delete(result)

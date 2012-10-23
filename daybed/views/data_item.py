@@ -50,5 +50,8 @@ def delete(request):
     model_name = request.matchdict['model_name']
     data_item_id = request.matchdict['data_item_id']
 
-    result = request.db.get_data_item(model_name, data_item_id).value
-    request.db.db.delete(result)
+    result = request.db.get_data_item(model_name, data_item_id)
+    if result:
+        request.db.db.delete(result.value)
+    else:
+        raise NotFound("Unknown data_item %s: %s" % (model_name, data_item_id))

@@ -1,6 +1,7 @@
-pyramid_debugtoolbar
-waitress
-lettuce
 WebTest
+lettuce
 nose
 nose-cov
+pyramid_debugtoolbar
+rxjson
+waitress

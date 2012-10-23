@@ -1,8 +1,9 @@
-import os
 import json
-from urllib import urlencode
+import os
 from rxjson import Rx
+from urllib import urlencode
 from daybed.tests.support import BaseWebTest, HERE 
+
 
 class FunctionalTest(BaseWebTest):
 
@@ -87,7 +88,18 @@ class FunctionalTest(BaseWebTest):
 
         # Verify that the schema is the same
         resp = self.app.get('/definitions/todo', headers=self.headers)
-        self.assertEqual(json.loads(resp.body), self.valid_definition)
+        self.assertEqual(resp.json, self.valid_definition)
+
+    def test_definition_deletion(self):
+        resp = self.create_definition()
+        token = resp.json['token']
+        resp = self.create_data()
+        data_item_id = resp.json['id']
+        self.app.delete(str('/definitions/todo?token=%s' % token))
+        queryset = self.db.get_data_item('todo', data_item_id)
+        self.assertIsNone(queryset)
+        queryset = self.db.get_definition('todo')
+        self.assertIsNone(queryset)
 
     def test_normal_data_creation(self):
         self.create_definition()
@@ -116,19 +128,19 @@ class FunctionalTest(BaseWebTest):
         # Put valid data against this definition
         self.assertIn('id', resp.body)
 
-        data_item_id = json.loads(resp.body)['id']
+        data_item_id = resp.json['id']
         resp = self.app.get('/data/todo/%s' % data_item_id,
                             headers=self.headers)
         entry = self.valid_data.copy()
         # entry['id'] = str(data_item_id
-        self.assertEqual(json.loads(resp.body), entry)
+        self.assertEqual(resp.json, entry)
 
     def test_data_update(self):
         self.create_definition()
         # Put data against this definition
         entry = self.valid_data.copy()
         resp = self.create_data(entry)
-        data_item_id = json.loads(resp.body)['id']
+        data_item_id = resp.json['id']
 
         # Update this data
         entry['status'] = 'done'
@@ -139,12 +151,11 @@ class FunctionalTest(BaseWebTest):
         # Todo : Verify DB
         queryset = self.db.get_data('todo')
         self.assertEqual(len(queryset), 1)
-        
 
     def test_data_deletion(self):
         self.create_definition()
         resp = self.create_data()
-        data_item_id = json.loads(resp.body)['id']
+        data_item_id = resp.json['id']
         self.app.delete(str('/data/todo/%s' % data_item_id))
         queryset = self.db.get_data_item('todo', data_item_id)
         self.assertIsNone(queryset)
