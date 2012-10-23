@@ -7,7 +7,7 @@ docs = []
 """ Model definitions, by model name. """
 db_definition = ViewDefinition('name', 'definition', """function(doc) {
         if (doc.type == "definition") {
-            emit(doc.name, doc.definition);
+            emit(doc.name, doc);
         }
 }""")
 docs.append(db_definition)
@@ -29,7 +29,7 @@ db_data = ViewDefinition('model_name', 'data', """function(doc) {
 docs.append(db_data)
 
 """ Data item, by id. """
-db_data_item = ViewDefinition('model_name', '_id', """function(doc) {
+db_data_item = ViewDefinition('model_name', 'data_item', """function(doc) {
         if (doc.type == "data") {
             emit([doc._id, doc.model_name], doc);
         }

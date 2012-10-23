@@ -1,12 +1,12 @@
 import json
-
+from urllib import urlencode
 from daybed.tests.support import BaseWebTest
 
 
-class FunctionaTest(BaseWebTest):
+class FunctionalTest(BaseWebTest):
 
     def __init__(self, *args, **kwargs):
-        super(FunctionaTest, self).__init__(*args, **kwargs)
+        super(FunctionalTest, self).__init__(*args, **kwargs)
         self.valid_definition = {
             "title": "todo",
             "description": "A list of my stuff to do",
@@ -139,6 +139,7 @@ class FunctionaTest(BaseWebTest):
         self.app.delete(str('/data/todo/%s' % data_item_id))
         queryset = self.db.get_data_item('todo', data_item_id)
         self.assertIsNone(queryset)
+
         
     def test_data_validation(self):
         self.create_definition()
@@ -152,3 +153,10 @@ class FunctionaTest(BaseWebTest):
         # of course, pushing weird data should tell what's wrong
         self.app.post_json('/data/todo', self.invalid_data,
                            headers=headers, status=400)
+        
+
+    def test_data_deletion(self):
+        resp = self.create_definition()
+        self.app.delete('/definitions/todo?%s' % urlencode(resp.json))
+        queryset = self.db.get_definition('todo')
+        self.assertIsNone(queryset)
