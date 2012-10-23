@@ -1,7 +1,8 @@
+import os
 import json
 from urllib import urlencode
-from daybed.tests.support import BaseWebTest
-
+from rxjson import Rx
+from daybed.tests.support import BaseWebTest, HERE 
 
 class FunctionalTest(BaseWebTest):
 
@@ -163,7 +164,7 @@ class FunctionalTest(BaseWebTest):
                            headers=headers, status=400)
         
 
-    def test_data_deletion(self):
+    def test_definition_deletion(self):
         resp = self.create_definition()
         self.app.delete('/definitions/todo?%s' % urlencode(resp.json))
         queryset = self.db.get_definition('todo')
