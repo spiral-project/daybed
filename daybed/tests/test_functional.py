@@ -159,7 +159,6 @@ class FunctionalTest(BaseWebTest):
         self.app.delete(str('/data/todo/%s' % data_item_id))
         queryset = self.db.get_data_item('todo', data_item_id)
         self.assertIsNone(queryset)
-
         
     def test_data_validation(self):
         self.create_definition()
@@ -172,8 +171,7 @@ class FunctionalTest(BaseWebTest):
         self.assertEquals(0, len(self.app.get('/data/todo').json['data']))
         # of course, pushing weird data should tell what's wrong
         self.app.post_json('/data/todo', self.invalid_data,
-                           headers=headers, status=400)
-        
+                           headers=headers, status=400)        
 
     def test_definition_deletion(self):
         resp = self.create_definition()
