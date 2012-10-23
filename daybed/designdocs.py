@@ -23,7 +23,7 @@ docs.append(db_model_token)
 """ Model data, by model name. """
 db_data = ViewDefinition('model_name', 'data', """function(doc) {
         if (doc.type == "data") {
-            emit(doc.model_name, doc.data);
+            emit(doc.model_name, doc);
         }
 }""")
 docs.append(db_data)

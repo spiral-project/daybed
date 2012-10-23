@@ -59,7 +59,7 @@ def delete(request):
 
     results = request.db.get_data(model_name)
     for result in results:
-        request.db.db.delete(doc)
+        request.db.db.delete(result.value)
 
     result = request.db.get_definition(model_name)
     request.db.db.delete(result)

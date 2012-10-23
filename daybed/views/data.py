@@ -25,8 +25,8 @@ def get(request):
     # TODO: Maybe we need to keep ids secret for editing
     data = []
     for result in results:
-        result.value['id'] = result.id
-        data.append(result.value)
+        result.value['data']['id'] = result.id
+        data.append(result.value['data'])
     return {'data': data}
 
 
