@@ -2,7 +2,6 @@ import json
 
 from cornice import Service
 from pyramid.exceptions import NotFound
-from pyramid.response import Response
 
 from daybed.validators import schema_validator
 
@@ -45,8 +44,6 @@ def post(request):
     model_name = request.matchdict['model_name']
     data_id = request.db.create_data(model_name, json.loads(request.body))
     created = '%s/data/%s' % (request.application_url, data_id)
-
-    return Response(status="201 Created",
-                    body=json.dumps({'id': data_id}),
-                    headers={'location': created,
-                             'Content-Type': 'application/json'})
+    request.response.status = "201 Created"
+    request.response.headers['location'] = created
+    return {'id': data_id}
