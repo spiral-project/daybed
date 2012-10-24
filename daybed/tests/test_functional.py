@@ -87,7 +87,6 @@ class FunctionalTest(BaseWebTest):
         resp = self.create_data()
         data_item_id = resp.json['id']
         self.app.delete(str('/definitions/todo?token=%s' % token))
-        print self.db.get_data('todo')
         queryset = self.db.get_data_item('todo', data_item_id)
         self.assertIsNone(queryset)
         queryset = self.db.get_definition('todo')
