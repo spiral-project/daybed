@@ -1,10 +1,9 @@
 import json
-import uuid
 
 from cornice import Service
 from pyramid.exceptions import NotFound
 
-from daybed.validators import schema_validator, token_validator
+from daybed.validators import schema_validator
 
 
 data_item = Service(name='data_item',

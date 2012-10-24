@@ -2,7 +2,6 @@ import os
 import json
 
 from cornice import Service
-from cornice.util import json_error
 from pyramid.exceptions import NotFound
 
 from daybed.validators import definition_validator, token_validator

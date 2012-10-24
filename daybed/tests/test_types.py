@@ -1,4 +1,3 @@
-
 import pyramid.testing
 import colander
 

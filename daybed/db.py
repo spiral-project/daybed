@@ -1,5 +1,3 @@
-import json
-import uuid
 from couchdb.design import ViewDefinition
 from daybed.designdocs import (
     db_model_token,

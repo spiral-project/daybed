@@ -1,7 +1,4 @@
-import json
-import os
-from urllib import urlencode
-from daybed.tests.support import BaseWebTest, HERE 
+from daybed.tests.support import BaseWebTest
 
 
 class FunctionalTest(BaseWebTest):
