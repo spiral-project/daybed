@@ -54,10 +54,10 @@ class FunctionalTest(BaseWebTest):
         return self.app.post_json('/data/todo', data,
                                   headers=self.headers)
 
-    def create_data_resp(self, data=None):        
+    def create_data_resp(self, data=None):
         if not data:
             data = self.valid_data
-            
+
         return self.app.post_json('/data/todo',
                                   data,
                                   headers=self.headers)
@@ -156,7 +156,7 @@ class FunctionalTest(BaseWebTest):
         self.app.delete(str('/data/todo/%s' % data_item_id))
         queryset = self.db.get_data_item('todo', data_item_id)
         self.assertIsNone(queryset)
-        
+
     def test_data_validation(self):
         self.create_definition()
         headers = self.headers.copy()

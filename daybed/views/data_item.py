@@ -35,7 +35,8 @@ def put(request):
     """
     model_name = request.matchdict['model_name']
     data_item_id = request.matchdict['data_item_id']
-    data_id = request.db.create_data(model_name, json.loads(request.body), data_item_id)
+    data_id = request.db.create_data(model_name, json.loads(request.body),
+                                     data_item_id)
     return {'id': data_id}
 
 

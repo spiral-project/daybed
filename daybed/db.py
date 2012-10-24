@@ -42,8 +42,9 @@ class DatabaseConnection(object):
         return db_data(self.db)[model_name]
 
     def get_data_item(self, model_name, data_item_id):
-        """Get the instance of the data item and validate it is on the right model."""
-        data_items = db_data_item(self.db)[[str(data_item_id), str(model_name)]]
+        """Get a data-item and checks it behaves to the requested model"""
+        key = [str(data_item_id), str(model_name)]
+        data_items = db_data_item(self.db)[key]
         if len(data_items):
             data_item = data_items.rows[0]
             return data_item
@@ -62,7 +63,7 @@ class DatabaseConnection(object):
         data_doc['data'] = data
 
         if data_id:
-            self.db[data_id] = data_doc        
+            self.db[data_id] = data_doc
         else:
             data_id, rev = self.db.save(data_doc)
 
