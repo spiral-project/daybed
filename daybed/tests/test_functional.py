@@ -5,6 +5,15 @@ from daybed.tests.support import BaseWebTest, HERE
 
 
 class FunctionalTest(BaseWebTest):
+    """These are the functional tests for daybed.
+
+    The goal is to have them reproduce every possible scenario that we want to
+    support in the application.
+
+    The test suite is created in a way that each test is a different scenario.
+    We reset the database each time we start a new test to avoid sharing
+    context between tests.
+    """
 
     def __init__(self, *args, **kwargs):
         super(FunctionalTest, self).__init__(*args, **kwargs)
