@@ -15,18 +15,21 @@ class TypeRegistryTests(unittest.TestCase):
 
     def test_register(self):
         # Register a type
-        self.assertEqual([], self.types.names)
         self.types.register('foo', None)
         self.assertEqual(['foo'], self.types.names)
+
+    def test_unregister_unknown(self):
         # Unregister unknown
         self.assertRaises(schemas.NotRegisteredError,
-                          self.types.unregister, 'bar')
-        # Unregister the type
-        self.types.unregister('foo')
-        self.assertEqual([], self.types.names)
-        # Unregister again
-        self.assertRaises(schemas.NotRegisteredError,
                           self.types.unregister, 'foo')
+
+    def test_unregister(self):
+        self.assertEqual([], self.types.names)
+
+    def test_register_again(self):
+        self.types.register('foo', None)
+        self.assertRaises(schemas.AlreadyRegisteredError,
+                          self.types.register, 'foo', None)
 
     def test_regex(self):
         schema = schemas.RegexField.definition()
