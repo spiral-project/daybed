@@ -5,6 +5,7 @@ from colander import (
     SchemaType,
     String,
     Int,
+    Float,
     OneOf,
     Length,
     Regex,
@@ -135,6 +136,45 @@ class RegexField(TypeField):
     def validation(cls, **kwargs):
         kwargs['validator'] = Regex(kwargs['regex'])
         return super(RegexField, cls).validation(**kwargs)
+
+
+class PointNode(SchemaNode):
+    """Represents a position (x, y, z, ...)"""
+    def __init__(self, *args, **kwargs):
+        defaults = dict(validator=Length(min=2))
+        defaults.update(**kwargs)
+        super(PointNode, self).__init__(Sequence(), SchemaNode(Float()), **defaults)
+
+
+class GeometryField(TypeField):
+    """Base field for geometry values: basically a list of PointNode."""
+    node = Sequence
+    dimension = None
+
+    @classmethod
+    def validation(cls, **kwargs):
+        kwargs['validator'] = Length(min=cls.dimension + 1)
+        validation = super(GeometryField, cls).validation(**kwargs)
+        validation.children = [PointNode()]
+        return validation
+
+
+@registry.add('point')
+class PointField(GeometryField):
+    """A single position"""
+    dimension = 0
+
+
+@registry.add('line')
+class LineField(GeometryField):
+    """At least two positions"""
+    dimension = 1
+
+
+@registry.add('polygon')
+class PolygonField(GeometryField):
+    """At least three positions"""
+    dimension = 2
 
 
 class TypeFieldNode(SchemaType):
