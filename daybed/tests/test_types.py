@@ -49,6 +49,15 @@ class TypeRegistryTests(unittest.TestCase):
         self.assertRaises(colander.Invalid, schema.deserialize, '"0.4, 45.0"')
         self.assertRaises(colander.Invalid, schema.deserialize, ["a", "b"])
 
+    def test_coordinate_node(self):
+        schema = schemas.PointNode(coordinate=False)
+        self.assertEquals([181.0, 91.0], schema.deserialize([181.0, 91.0]))
+        schema = schemas.PointNode()
+        self.assertRaises(colander.Invalid, schema.deserialize, [181.0, 91.0])
+        self.assertRaises(colander.Invalid, schema.deserialize, [-181.0, -91.0])
+        self.assertRaises(colander.Invalid, schema.deserialize, [120.0, -91.0])
+        self.assertEquals([0.4, 45.0, 181], schema.deserialize([0.4, 45.0, 181]))
+
     def test_point(self):
         schema = schemas.PointField.definition()
         definition = schema.deserialize(

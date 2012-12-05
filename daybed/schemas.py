@@ -7,9 +7,11 @@ from colander import (
     Int,
     Float,
     OneOf,
+    Range,
     Length,
     Regex,
     null,
+    Invalid,
 )
 
 
@@ -140,22 +142,33 @@ class RegexField(TypeField):
 
 class PointNode(SchemaNode):
     """Represents a position (x, y, z, ...)"""
+    coordinate = True
+
     def __init__(self, *args, **kwargs):
         defaults = dict(validator=Length(min=2))
         defaults.update(**kwargs)
         super(PointNode, self).__init__(Sequence(), SchemaNode(Float()), **defaults)
 
+    def deserialize(self, cstruct=null):
+        deserialized = super(PointNode, self).deserialize(cstruct)
+        if self.coordinate and not -180.0 <= deserialized[0] <= 180.0:
+            raise Invalid(self, "Invalid longitude", cstruct)
+        if self.coordinate and not -90.0 <= deserialized[1] <= 90.0:
+            raise Invalid(self, "Invalid latitude", cstruct)
+        return deserialized
+
 
 class GeometryField(TypeField):
     """Base field for geometry values: basically a list of PointNode."""
     node = Sequence
+    subnode = PointNode
     dimension = None
 
     @classmethod
     def validation(cls, **kwargs):
         kwargs['validator'] = Length(min=cls.dimension + 1)
         validation = super(GeometryField, cls).validation(**kwargs)
-        validation.children = [PointNode()]
+        validation.add(cls.subnode())
         return validation
 
 
@@ -201,3 +214,4 @@ class SchemaValidator(SchemaNode):
         for field in definition['fields']:
             fieldtype = field.pop('type')
             self.add(registry.validation(fieldtype, **field))
+ 
