@@ -50,7 +50,7 @@ class TypeRegistryTests(unittest.TestCase):
         self.assertRaises(colander.Invalid, schema.deserialize, ["a", "b"])
 
     def test_coordinate_node(self):
-        schema = schemas.PointNode(coordinate=False)
+        schema = schemas.PointNode(gps=False)
         self.assertEquals([181.0, 91.0], schema.deserialize([181.0, 91.0]))
         schema = schemas.PointNode()
         self.assertRaises(colander.Invalid, schema.deserialize, [181.0, 91.0])
@@ -67,8 +67,18 @@ class TypeRegistryTests(unittest.TestCase):
 
         validator = schemas.PointField.validation(**definition)
         self.assertEquals([[0.4, 45.0]], validator.deserialize([[0.4, 45.0]]))
+        self.assertRaises(colander.Invalid, schema.deserialize, [[181.0, 91.0]])
         self.assertRaises(colander.Invalid, schema.deserialize, [[0.4, 45.0],
                                                                  [0.6, 65.0]])
+    def test_point_euclidean(self):
+        schema = schemas.PointField.definition()
+        definition = schema.deserialize(
+            {'description': 'Go',
+             'name': 'location',
+             'type': 'point',
+             'gps': False})
+        validator = schemas.PointField.validation(**definition)
+        self.assertEquals([[181.0, 91.0]], validator.deserialize([[181.0, 91.0]]))
 
     def test_line(self):
         schema = schemas.LineField.definition()

@@ -4,6 +4,7 @@ from colander import (
     Sequence,
     SchemaType,
     String,
+    Boolean,
     Int,
     Float,
     OneOf,
@@ -142,7 +143,7 @@ class RegexField(TypeField):
 
 class PointNode(SchemaNode):
     """Represents a position (x, y, z, ...)"""
-    coordinate = True
+    gps = True
 
     def __init__(self, *args, **kwargs):
         defaults = dict(validator=Length(min=2))
@@ -151,9 +152,9 @@ class PointNode(SchemaNode):
 
     def deserialize(self, cstruct=null):
         deserialized = super(PointNode, self).deserialize(cstruct)
-        if self.coordinate and not -180.0 <= deserialized[0] <= 180.0:
+        if self.gps and not -180.0 <= deserialized[0] <= 180.0:
             raise Invalid(self, "Invalid longitude", cstruct)
-        if self.coordinate and not -90.0 <= deserialized[1] <= 90.0:
+        if self.gps and not -90.0 <= deserialized[1] <= 90.0:
             raise Invalid(self, "Invalid latitude", cstruct)
         return deserialized
 
@@ -165,10 +166,16 @@ class GeometryField(TypeField):
     dimension = None
 
     @classmethod
+    def definition(cls):
+        schema = super(GeometryField, cls).definition()
+        schema.add(SchemaNode(Boolean(), name='gps', missing=True))
+        return schema
+
+    @classmethod
     def validation(cls, **kwargs):
         kwargs['validator'] = Length(min=cls.dimension + 1)
         validation = super(GeometryField, cls).validation(**kwargs)
-        validation.add(cls.subnode())
+        validation.add(cls.subnode(gps=kwargs['gps']))
         return validation
 
 
