@@ -152,10 +152,11 @@ class PointNode(SchemaNode):
 
     def deserialize(self, cstruct=null):
         deserialized = super(PointNode, self).deserialize(cstruct)
-        if self.gps and not -180.0 <= deserialized[0] <= 180.0:
-            raise Invalid(self, "Invalid longitude", cstruct)
-        if self.gps and not -90.0 <= deserialized[1] <= 90.0:
-            raise Invalid(self, "Invalid latitude", cstruct)
+        longitude = Range(min=-180.0, max=180.0)
+        latitude  = Range(min=-90.0, max=90.0)
+        if self.gps:
+            longitude(self, deserialized[0])
+            latitude(self, deserialized[1])
         return deserialized
 
 
