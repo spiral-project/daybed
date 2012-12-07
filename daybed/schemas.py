@@ -160,6 +160,15 @@ class PointNode(SchemaNode):
         return deserialized
 
 
+class PointType(SchemaType):
+    gps = True
+
+    def deserialize(self, node, cstruct=null):
+        if cstruct is null:
+            return null
+        return PointNode(gps=self.gps).deserialize(cstruct)
+
+
 class LinearRingNode(SchemaNode):
     gps = True
 
@@ -181,7 +190,7 @@ class LinearRingNode(SchemaNode):
 class GeometryField(TypeField):
     """Base field for geometry values: basically a list of PointNode."""
     node = Sequence
-    dimension = None
+    subnode = PointNode
 
     @classmethod
     def definition(cls):
@@ -191,34 +200,39 @@ class GeometryField(TypeField):
 
     @classmethod
     def validation(cls, **kwargs):
-        kwargs['validator'] = Length(min=cls.dimension + 1)
         validation = super(GeometryField, cls).validation(**kwargs)
-        validation.add(PointNode(gps=kwargs['gps']))
+        validation.add(cls.subnode(gps=kwargs['gps']))
         return validation
 
 
 @registry.add('point')
 class PointField(GeometryField):
     """A single position"""
-    dimension = 0
+    node = PointType
+
+    @classmethod
+    def validation(cls, **kwargs):
+        validation = super(GeometryField, cls).validation(**kwargs)
+        # Configure PointType from field definition
+        validation.typ.gps = kwargs['gps']
+        return validation
 
 
 @registry.add('line')
 class LineField(GeometryField):
     """At least two positions"""
-    dimension = 1
+
+    @classmethod
+    def validation(cls, **kwargs):
+        kwargs['validator'] = Length(min=2)
+        validation = super(LineField, cls).validation(**kwargs)
+        return validation
 
 
 @registry.add('polygon')
 class PolygonField(GeometryField):
     """At least three positions"""
-
-    @classmethod
-    def validation(cls, **kwargs):
-        kwargs['validator'] = Length(min=1)
-        validation = super(GeometryField, cls).validation(**kwargs)
-        validation.add(LinearRingNode(gps=kwargs['gps']))
-        return validation
+    subnode = LinearRingNode
 
 
 class TypeFieldNode(SchemaType):
