@@ -160,10 +160,27 @@ class PointNode(SchemaNode):
         return deserialized
 
 
+class LinearRingNode(SchemaNode):
+    gps = True
+
+    def __init__(self, *args, **kwargs):
+        defaults = dict(validator=Length(min=3))
+        defaults.update(**kwargs)
+        super(LinearRingNode, self).__init__(Sequence(), PointNode(gps=self.gps), **defaults)
+
+    def deserialize(self, cstruct=null):
+        deserialized = super(LinearRingNode, self).deserialize(cstruct)
+        n = len(deserialized)
+        # Add closing coordinates if not provided
+        if n == 3 or deserialized[0][0] != deserialized[-1][0] or \
+                     deserialized[0][1] != deserialized[-1][1]:
+            deserialized.append(deserialized[0])
+        return deserialized
+
+
 class GeometryField(TypeField):
     """Base field for geometry values: basically a list of PointNode."""
     node = Sequence
-    subnode = PointNode
     dimension = None
 
     @classmethod
@@ -176,7 +193,7 @@ class GeometryField(TypeField):
     def validation(cls, **kwargs):
         kwargs['validator'] = Length(min=cls.dimension + 1)
         validation = super(GeometryField, cls).validation(**kwargs)
-        validation.add(cls.subnode(gps=kwargs['gps']))
+        validation.add(PointNode(gps=kwargs['gps']))
         return validation
 
 
@@ -195,7 +212,13 @@ class LineField(GeometryField):
 @registry.add('polygon')
 class PolygonField(GeometryField):
     """At least three positions"""
-    dimension = 2
+
+    @classmethod
+    def validation(cls, **kwargs):
+        kwargs['validator'] = Length(min=1)
+        validation = super(GeometryField, cls).validation(**kwargs)
+        validation.add(LinearRingNode(gps=kwargs['gps']))
+        return validation
 
 
 class TypeFieldNode(SchemaType):
