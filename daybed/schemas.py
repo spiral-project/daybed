@@ -142,7 +142,7 @@ class RegexField(TypeField):
 
 
 class PointNode(SchemaNode):
-    """Represents a position (x, y, z, ...)"""
+    """A node representing a position (x, y, z, ...)"""
     gps = True
 
     def __init__(self, *args, **kwargs):
@@ -161,6 +161,7 @@ class PointNode(SchemaNode):
 
 
 class PointType(SchemaType):
+    """A schema type dedicated to ``PointNode``"""
     gps = True
 
     def deserialize(self, node, cstruct=null):
@@ -170,25 +171,43 @@ class PointType(SchemaType):
 
 
 class LinearRingNode(SchemaNode):
+    """A node representing a linear-ring.
+
+    A ring is defined from at least three ``PointNode``. If the ring
+    is not closed (i.e. last point differs from first) an additionnal
+    point will added during serialization.
+    """
     gps = True
 
     def __init__(self, *args, **kwargs):
         defaults = dict(validator=Length(min=3))
         defaults.update(**kwargs)
-        super(LinearRingNode, self).__init__(Sequence(), PointNode(gps=self.gps), **defaults)
+        super(LinearRingNode, self).__init__(
+            Sequence(), PointNode(gps=self.gps), **defaults)
 
     def deserialize(self, cstruct=null):
         deserialized = super(LinearRingNode, self).deserialize(cstruct)
         n = len(deserialized)
         # Add closing coordinates if not provided
-        if n == 3 or deserialized[0][0] != deserialized[-1][0] or \
-                     deserialized[0][1] != deserialized[-1][1]:
+        if n == 3 or deserialized[0] != deserialized[-1]:
             deserialized.append(deserialized[0])
         return deserialized
 
 
 class GeometryField(TypeField):
-    """Base field for geometry values: basically a list of PointNode."""
+    """A field type representing geometries: basically a list of positions.
+    
+    Positions are coordinates following *x, y, z* order (or *longitude, latitude,
+    altitude*) for geographic coordinates). A minimum of two dimensions is required,
+    but any number of additional elements are allowed.
+
+    This field definition accepts one optional parameter:
+
+    ``gps``
+       If ``True``, coordinates must be in the range of GPS coordinates
+       system (WGS84), basically ``x`` in [-180, +180] and ``y`` in
+       [-90, +90].
+    """
     node = Sequence
     subnode = PointNode
 
@@ -207,7 +226,9 @@ class GeometryField(TypeField):
 
 @registry.add('point')
 class PointField(GeometryField):
-    """A single position"""
+    """A field representing a single position
+    :ref:`GeometryField`
+    """
     node = PointType
 
     @classmethod
@@ -220,7 +241,9 @@ class PointField(GeometryField):
 
 @registry.add('line')
 class LineField(GeometryField):
-    """At least two positions"""
+    """A field representing a line, of at least two positions.
+    :ref:`GeometryField`
+    """
 
     @classmethod
     def validation(cls, **kwargs):
@@ -231,7 +254,16 @@ class LineField(GeometryField):
 
 @registry.add('polygon')
 class PolygonField(GeometryField):
-    """At least three positions"""
+    """A field representing a polygon and its optional holes.
+
+    A polygon is a list of linear rings. The first represents the
+    envelop (exterior), and the following one (optional) its holes.
+
+    A linear-ring is a closed line : basically a list of positions, 
+    where the first and last items are equal.
+
+    :ref:`GeometryField`
+    """
     subnode = LinearRingNode
 
 
