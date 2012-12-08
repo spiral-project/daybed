@@ -2,13 +2,14 @@ import pyramid.testing
 import colander
 
 from daybed import schemas
+from daybed.schemas.base import TypeRegistry, NotRegisteredError
 from daybed.tests.support import unittest
 
 
 class TypeRegistryTests(unittest.TestCase):
     def setUp(self):
         self.config = pyramid.testing.setUp()
-        self.types = schemas.TypeRegistry()
+        self.types = TypeRegistry()
 
     def tearDown(self):
         pyramid.testing.tearDown()
@@ -19,13 +20,13 @@ class TypeRegistryTests(unittest.TestCase):
         self.types.register('foo', None)
         self.assertEqual(['foo'], self.types.names)
         # Unregister unknown
-        self.assertRaises(schemas.NotRegisteredError,
+        self.assertRaises(NotRegisteredError,
                           self.types.unregister, 'bar')
         # Unregister the type
         self.types.unregister('foo')
         self.assertEqual([], self.types.names)
         # Unregister again
-        self.assertRaises(schemas.NotRegisteredError,
+        self.assertRaises(NotRegisteredError,
                           self.types.unregister, 'foo')
 
     def test_regex(self):
