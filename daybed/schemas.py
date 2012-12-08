@@ -1,3 +1,4 @@
+import json
 from colander import (
     SchemaNode,
     Mapping,
@@ -141,6 +142,18 @@ class RegexField(TypeField):
         return super(RegexField, cls).validation(**kwargs)
 
 
+class JSONSequence(Sequence):
+    """A sequence of items in JSON-like format"""
+    def deserialize(self, node, cstruct, **kwargs):
+        if cstruct is null:
+            return cstruct
+        try:
+            appstruct = json.loads(cstruct)
+        except ValueError, e:
+            raise Invalid(self, e, cstruct)
+        return super(JSONSequence, self).deserialize(node, appstruct, **kwargs)
+
+
 class PointNode(SchemaNode):
     """A node representing a position (x, y, z, ...)"""
     gps = True
@@ -161,13 +174,17 @@ class PointNode(SchemaNode):
 
 
 class PointType(SchemaType):
-    """A schema type dedicated to ``PointNode``"""
+    """A schema type dedicated to ``PointNode`` in JSON-like format"""
     gps = True
 
     def deserialize(self, node, cstruct=null):
         if cstruct is null:
             return null
-        return PointNode(gps=self.gps).deserialize(cstruct)
+        try:
+            appstruct = json.loads(cstruct)
+        except ValueError, e:
+            raise Invalid(self, e, cstruct)
+        return PointNode(gps=self.gps).deserialize(appstruct)
 
 
 class LinearRingNode(SchemaNode):
@@ -183,7 +200,7 @@ class LinearRingNode(SchemaNode):
         defaults = dict(validator=Length(min=3))
         defaults.update(**kwargs)
         super(LinearRingNode, self).__init__(
-            Sequence(), PointNode(gps=self.gps), **defaults)
+              Sequence(), PointNode(gps=self.gps), **defaults)
 
     def deserialize(self, cstruct=null):
         deserialized = super(LinearRingNode, self).deserialize(cstruct)
@@ -208,7 +225,7 @@ class GeometryField(TypeField):
        system (WGS84), basically ``x`` in [-180, +180] and ``y`` in
        [-90, +90].
     """
-    node = Sequence
+    node = JSONSequence
     subnode = PointNode
 
     @classmethod
