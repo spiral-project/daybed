@@ -213,3 +213,38 @@ class TodoModelTest(FunctionalTest, BaseWebTest):
         entry['status'] = 'done'
 
 
+class MushroomsModelTest(FunctionalTest, BaseWebTest):
+
+    model_name = 'mushroom_spots'
+
+    @property
+    def valid_definition(self):
+        return {
+            "title": "Mushroom Spots",
+            "description": "Where are they ?",
+            "fields": [
+                {
+                    "name": "mushroom",
+                    "type": "string",
+                    "description": "Species"
+                },
+                {
+                    "name": "location",
+                    "type": "polygon",
+                    "description": "Area spotted"
+                }
+            ]
+        }
+
+    @property
+    def valid_data(self):
+        return {'mushroom': 'Boletus',
+                'location': '[[[0, 0], [0, 1], [1, 1]]]'}
+
+    @property
+    def invalid_data(self):
+        return {'mushroom': 'Boletus',
+                'location': '[[0, 0], [0, 1]]'}
+
+    def update_data(self, entry):
+        entry['location'] = '[[[0, 0], [0, 2], [2, 2]], [[0.5, 0.5], [0.5, 1], [1, 1]]]'

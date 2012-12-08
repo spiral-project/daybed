@@ -1,4 +1,5 @@
 import json
+
 from colander import (
     SchemaNode,
     Mapping,
@@ -225,19 +226,21 @@ class GeometryField(TypeField):
        system (WGS84), basically ``x`` in [-180, +180] and ``y`` in
        [-90, +90].
     """
+    gps = True
+
     node = JSONSequence
     subnode = PointNode
 
     @classmethod
     def definition(cls):
         schema = super(GeometryField, cls).definition()
-        schema.add(SchemaNode(Boolean(), name='gps', missing=True))
+        schema.add(SchemaNode(Boolean(), name='gps', missing=cls.gps))
         return schema
 
     @classmethod
     def validation(cls, **kwargs):
         validation = super(GeometryField, cls).validation(**kwargs)
-        validation.add(cls.subnode(gps=kwargs['gps']))
+        validation.add(cls.subnode(gps=kwargs.get('gps', cls.gps)))
         return validation
 
 
