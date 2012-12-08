@@ -1,7 +1,7 @@
 from daybed.tests.support import BaseWebTest
 
 
-class FunctionalTest(BaseWebTest):
+class FunctionalTest(object):
     """These are the functional tests for daybed.
 
     The goal is to have them reproduce every possible scenario that we want to
@@ -12,35 +12,26 @@ class FunctionalTest(BaseWebTest):
     context between tests.
     """
 
+    model_name = None
+
     def __init__(self, *args, **kwargs):
         super(FunctionalTest, self).__init__(*args, **kwargs)
-        self.model_name = 'todo'
-        self.valid_definition = {
-            "title": "todo",
-            "description": "A list of my stuff to do",
-            "fields": [
-                {
-                    "name": "item",
-                    "type": "string",
-                    "description": "The item"
-                },
-                {
-                    "name": "status",
-                    "type": "enum",
-                    "choices": [
-                        "done",
-                        "todo"
-                    ],
-                    "description": "is it done or not"
-                }
-            ]}
-
         self.definition_without_title = self.valid_definition.copy()
         self.definition_without_title.pop('title')
-        self.valid_data = {'item': 'My task', 'status': 'todo'}
         self.malformed_definition = '{"test":"toto", "titi": "tutu'
-        self.invalid_data = {'item': 'Invalid task', 'status': 'yay'}
         self.headers = {'Content-Type': 'application/json'}
+
+    @property
+    def valid_definition(self):
+        raise NotImplementedError
+
+    @property
+    def valid_data(self):
+        raise NotImplementedError
+
+    @property
+    def invalid_data(self):
+        raise NotImplementedError
 
     def create_definition(self, data=None):
         if not data:
@@ -145,7 +136,7 @@ class FunctionalTest(BaseWebTest):
         data_item_id = resp.json['id']
 
         # Update this data
-        entry['status'] = 'done'
+        self.update_data(entry)
         resp = self.app.put_json(str('/data/%s/%s' % (
                                      self.model_name,
                                      data_item_id)),
@@ -181,3 +172,44 @@ class FunctionalTest(BaseWebTest):
         self.app.post_json('/data/%s' % self.model_name,
                            self.invalid_data,
                            headers=headers, status=400)
+
+
+class TodoModelTest(FunctionalTest, BaseWebTest):
+
+    model_name = 'todo'
+
+    @property
+    def valid_definition(self):
+        return {
+            "title": "todo",
+            "description": "A list of my stuff to do",
+            "fields": [
+                {
+                    "name": "item",
+                    "type": "string",
+                    "description": "The item"
+                },
+                {
+                    "name": "status",
+                    "type": "enum",
+                    "choices": [
+                        "done",
+                        "todo"
+                    ],
+                    "description": "is it done or not"
+                }
+            ]
+        }
+
+    @property
+    def valid_data(self):
+        return {'item': 'My task', 'status': 'todo'}
+
+    @property
+    def invalid_data(self):
+        return {'item': 'Invalid task', 'status': 'yay'}
+
+    def update_data(self, entry):
+        entry['status'] = 'done'
+
+
