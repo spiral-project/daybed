@@ -8,7 +8,7 @@ from daybed.validators import schema_validator
 data = Service(name='data',
                path='/data/{model_name}',
                description='Model data',
-               renderer="jsonp")
+               renderer='jsonp')
 
 
 @data.get()
