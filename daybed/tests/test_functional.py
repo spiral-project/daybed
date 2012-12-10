@@ -1,4 +1,5 @@
 from daybed.tests.support import BaseWebTest
+from daybed.schemas import registry
 
 
 class FunctionalTest(object):
@@ -173,6 +174,10 @@ class FunctionalTest(object):
                            self.invalid_data,
                            headers=headers, status=400)
 
+    def test_fields_are_listed(self):
+        response = self.app.get('/fields')
+        self.assertEquals(response.json, registry.names)
+
 
 class TodoModelTest(FunctionalTest, BaseWebTest):
 
@@ -211,5 +216,3 @@ class TodoModelTest(FunctionalTest, BaseWebTest):
 
     def update_data(self, entry):
         entry['status'] = 'done'
-
-
