@@ -2,7 +2,8 @@ import pyramid.testing
 import colander
 
 from daybed import schemas
-from daybed.schemas.base import TypeRegistry, NotRegisteredError
+from daybed.schemas.base import (TypeRegistry, NotRegisteredError,
+                                 AlreadyRegisteredError)
 from daybed.tests.support import unittest
 
 
