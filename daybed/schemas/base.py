@@ -1,15 +1,20 @@
 from colander import (
     SchemaNode,
     Mapping,
-    Sequence,
-    SchemaType,
     String,
-    Int,
     OneOf,
+    Sequence,
     Length,
-    Regex,
+    SchemaType,
     null,
+    Int,
+    Regex,
 )
+
+
+__all__ = ['registry', 'TypeField',
+           'DefinitionValidator', 'SchemaValidator',
+           'IntField', 'StringField', 'RegexField']
 
 
 class AlreadyRegisteredError(Exception):
@@ -93,6 +98,32 @@ class TypeField(object):
         return SchemaNode(cls.node(), **options)
 
 
+class TypeFieldNode(SchemaType):
+    def deserialize(self, node, cstruct=null):
+        try:
+            schema = registry.definition(cstruct.get('type'))
+        except UnknownFieldTypeError:
+            schema = TypeField.definition()
+        schema.deserialize(cstruct)
+
+
+class DefinitionValidator(SchemaNode):
+    def __init__(self):
+        super(DefinitionValidator, self).__init__(Mapping())
+        self.add(SchemaNode(String(), name='title'))
+        self.add(SchemaNode(String(), name='description'))
+        self.add(SchemaNode(Sequence(), SchemaNode(TypeFieldNode()),
+                            name='fields', validator=Length(min=1)))
+
+
+class SchemaValidator(SchemaNode):
+    def __init__(self, definition):
+        super(SchemaValidator, self).__init__(Mapping())
+        for field in definition['fields']:
+            fieldtype = field.pop('type')
+            self.add(registry.validation(fieldtype, **field))
+
+
 @registry.add('int')
 class IntField(TypeField):
     node = Int
@@ -135,29 +166,3 @@ class RegexField(TypeField):
     def validation(cls, **kwargs):
         kwargs['validator'] = Regex(kwargs['regex'])
         return super(RegexField, cls).validation(**kwargs)
-
-
-class TypeFieldNode(SchemaType):
-    def deserialize(self, node, cstruct=null):
-        try:
-            schema = registry.definition(cstruct.get('type'))
-        except UnknownFieldTypeError:
-            schema = TypeField.definition()
-        schema.deserialize(cstruct)
-
-
-class DefinitionValidator(SchemaNode):
-    def __init__(self):
-        super(DefinitionValidator, self).__init__(Mapping())
-        self.add(SchemaNode(String(), name='title'))
-        self.add(SchemaNode(String(), name='description'))
-        self.add(SchemaNode(Sequence(), SchemaNode(TypeFieldNode()),
-                            name='fields', validator=Length(min=1)))
-
-
-class SchemaValidator(SchemaNode):
-    def __init__(self, definition):
-        super(SchemaValidator, self).__init__(Mapping())
-        for field in definition['fields']:
-            fieldtype = field.pop('type')
-            self.add(registry.validation(fieldtype, **field))
