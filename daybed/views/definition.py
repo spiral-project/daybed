@@ -8,9 +8,9 @@ from daybed.validators import definition_validator, token_validator
 
 
 definition = Service(name='definition',
-                           path='/definitions/{model_name}',
-                           description='Model Definition',
-                           renderer="jsonp")
+                     path='/definitions/{model_name}',
+                     description='Model Definition',
+                     renderer="jsonp")
 
 
 @definition.get()

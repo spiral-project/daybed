@@ -1,4 +1,5 @@
 from daybed.tests.support import BaseWebTest
+from daybed.schemas import registry
 
 
 class FunctionalTest(object):
@@ -172,6 +173,10 @@ class FunctionalTest(object):
         self.app.post_json('/data/%s' % self.model_name,
                            self.invalid_data,
                            headers=headers, status=400)
+
+    def test_fields_are_listed(self):
+        response = self.app.get('/fields')
+        self.assertEquals(response.json, registry.names)
 
 
 class TodoModelTest(FunctionalTest, BaseWebTest):

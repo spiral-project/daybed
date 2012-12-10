@@ -28,11 +28,7 @@ def get(request):
 
 @data_item.put(validators=schema_validator)
 def put(request):
-    """Update a data item.
-
-    Checks that the data is a valid data item.
-
-    """
+    """Update or create a data item."""
     model_name = request.matchdict['model_name']
     data_item_id = request.matchdict['data_item_id']
     data_id = request.db.create_data(model_name, json.loads(request.body),
@@ -42,11 +38,7 @@ def put(request):
 
 @data_item.delete()
 def delete(request):
-    """Delete the data item.
-
-    Checks that the data is a valid data item.
-
-    """
+    """Delete the data item."""
     model_name = request.matchdict['model_name']
     data_item_id = request.matchdict['data_item_id']
 

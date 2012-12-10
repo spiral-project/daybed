@@ -70,7 +70,7 @@ class TypeRegistry(object):
         return self._registry.keys()
 
     def add(self, name):
-        """Decorator to register new types"""
+        """Class decorator, to register new types"""
         def decorated(cls):
             self.register(name, cls)
             return cls
