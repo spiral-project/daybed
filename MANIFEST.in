@@ -1,2 +1,6 @@
-include *.txt *.ini *.cfg *.rst
-recursive-include daybed *.ico *.png *.css *.gif *.jpg *.pt *.txt *.mak *.mako *.js *.html *.xml
+include *.txt *.ini *.cfg *.rst *.py
+include LICENSE
+
+recursive-include daybed *
+global-include *.py
+global-exclude *.pyc
