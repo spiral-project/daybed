@@ -28,7 +28,7 @@ class JSONSequence(Sequence):
             if isinstance(cstruct, basestring):
                 appstruct = json.loads(cstruct)
         except ValueError, e:
-            raise Invalid(self, e, cstruct)
+            raise Invalid(self, str(e), cstruct)
         return super(JSONSequence, self).deserialize(node, appstruct, **kwargs)
 
 
@@ -63,7 +63,7 @@ class PointType(SchemaType):
             if isinstance(cstruct, basestring):
                 appstruct = json.loads(cstruct)
         except ValueError, e:
-            raise Invalid(self, e, cstruct)
+            raise Invalid(self, str(e), cstruct)
         return PointNode(gps=self.gps).deserialize(appstruct)
 
 
