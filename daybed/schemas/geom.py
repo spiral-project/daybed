@@ -63,7 +63,7 @@ class PointType(SchemaType):
             if isinstance(cstruct, basestring):
                 appstruct = json.loads(cstruct)
         except ValueError, e:
-            raise Invalid(self, str(e), cstruct)
+            raise Invalid(node, str(e), cstruct)
         return PointNode(gps=self.gps).deserialize(appstruct)
 
 
