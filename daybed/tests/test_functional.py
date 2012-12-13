@@ -253,3 +253,70 @@ class MushroomsModelTest(FunctionalTest, BaseWebTest):
 
     def update_data(self, entry):
         entry['location'] = [[[0, 0], [0, 2], [2, 2]], [[0.5, 0.5], [0.5, 1], [1, 1]]]
+
+
+class CityModelTest(FunctionalTest, BaseWebTest):
+
+    model_name = 'city'
+
+    @property
+    def valid_definition(self):
+        return {
+            "title": "capitals",
+            "description": "in the world",
+            "fields": [
+                {
+                    "name": "name",
+                    "type": "string",
+                    "description": "Administrative"
+                },
+                {
+                    "name": "location",
+                    "type": "point",
+                    "description": "(x,y,z)"
+                }
+            ]
+        }
+
+    @property
+    def valid_data(self):
+        return {'name': 'La Paz', 'location': [-16.5, -68.15, 3500]}
+
+    @property
+    def invalid_data(self):
+        return {'name': 'La Paz', 'location': [2012, 12, 21]}
+
+    def update_data(self, entry):
+        entry['name'] = 'Sucre'
+        entry['location'] = [-19.0, -65.2, 500]
+
+
+class EuclideModelTest(FunctionalTest, BaseWebTest):
+
+    model_name = 'position'
+
+    @property
+    def valid_definition(self):
+        return {
+            "title": "positions",
+            "description": "euclidean",
+            "fields": [
+                {
+                    "name": "location",
+                    "type": "point",
+                    "description": "(x,y)",
+                    "gps": False
+                }
+            ]
+        }
+
+    @property
+    def valid_data(self):
+        return {'location': [2012, 3042]}
+
+    @property
+    def invalid_data(self):
+        return {'location': [0]}
+
+    def update_data(self, entry):
+        entry['location'] = [21, 12, 2012]

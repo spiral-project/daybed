@@ -134,7 +134,7 @@ class PointField(GeometryField):
     def validation(cls, **kwargs):
         validation = super(GeometryField, cls).validation(**kwargs)
         # Configure PointType from field definition
-        validation.typ.gps = kwargs['gps']
+        validation.typ.gps = kwargs.get('gps', cls.node.gps)
         return validation
 
 
