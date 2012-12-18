@@ -58,6 +58,18 @@ class TypeRegistryTests(unittest.TestCase):
         self.assertEquals('u+i@you.org', validator.deserialize('u+i@you.org'))
         self.assertRaises(colander.Invalid, validator.deserialize, 'u i@you.org')
 
+    def test_url(self):
+        schema = schemas.URLField.definition()
+        definition = schema.deserialize(
+            {'description': 'Some field',
+             'name': 'homepage',
+             'type': 'url'})
+
+        validator = schemas.URLField.validation(**definition)
+        self.assertEquals('http://daybed.lolnet.org',
+                          validator.deserialize('http://daybed.lolnet.org'))
+        self.assertRaises(colander.Invalid, validator.deserialize, 'http://lolnet/org')
+
     def test_point(self):
         schema = schemas.PointField.definition()
         definition = schema.deserialize(
