@@ -10,6 +10,8 @@ from colander import (
     SchemaType,
     null,
     Int,
+    Decimal,
+    Boolean,
     Regex,
     Email,
 )
@@ -18,7 +20,8 @@ from colander import (
 __all__ = ['registry', 'TypeField',
            'DefinitionValidator', 'SchemaValidator',
            'IntField', 'StringField', 'RangeField', 
-           'RegexField', 'EmailField', 'URLField',]
+           'RegexField', 'EmailField', 'URLField',
+           'DecimalField']
 
 
 class AlreadyRegisteredError(Exception):
@@ -136,6 +139,16 @@ class IntField(TypeField):
 @registry.add('string')
 class StringField(TypeField):
     node = String
+
+
+@registry.add('decimal')
+class DecimalField(TypeField):
+    node = Decimal
+
+
+@registry.add('boolean')
+class BooleanField(TypeField):
+    node = Boolean
 
 
 @registry.add('enum')
