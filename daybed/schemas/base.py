@@ -9,12 +9,14 @@ from colander import (
     null,
     Int,
     Regex,
+    Email,
 )
 
 
 __all__ = ['registry', 'TypeField',
            'DefinitionValidator', 'SchemaValidator',
-           'IntField', 'StringField', 'RegexField']
+           'IntField', 'StringField', 'RegexField',
+           'EmailField']
 
 
 class AlreadyRegisteredError(Exception):
@@ -166,3 +168,14 @@ class RegexField(TypeField):
     def validation(cls, **kwargs):
         kwargs['validator'] = Regex(kwargs['regex'])
         return super(RegexField, cls).validation(**kwargs)
+
+
+@registry.add('email')
+class EmailField(TypeField):
+    """An email address field."""
+    node = String
+
+    @classmethod
+    def validation(cls, **kwargs):
+        kwargs['validator'] = Email()
+        return super(EmailField, cls).validation(**kwargs)

@@ -46,6 +46,18 @@ class TypeRegistryTests(unittest.TestCase):
         self.assertEquals(1, int(validator.deserialize('1')))
         self.assertRaises(colander.Invalid, validator.deserialize, 'a')
 
+    def test_email(self):
+        schema = schemas.EmailField.definition()
+        definition = schema.deserialize(
+            {'description': 'Some field',
+             'name': 'address',
+             'type': 'email'})
+
+        validator = schemas.EmailField.validation(**definition)
+        self.assertEquals('u@you.org', validator.deserialize('u@you.org'))
+        self.assertEquals('u+i@you.org', validator.deserialize('u+i@you.org'))
+        self.assertRaises(colander.Invalid, validator.deserialize, 'u i@you.org')
+
     def test_point(self):
         schema = schemas.PointField.definition()
         definition = schema.deserialize(
