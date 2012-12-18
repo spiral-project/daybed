@@ -34,6 +34,19 @@ class TypeRegistryTests(unittest.TestCase):
         self.assertRaises(AlreadyRegisteredError,
                           self.types.register, 'foo', None)
 
+    def test_range(self):
+        schema = schemas.RangeField.definition()
+        definition = schema.deserialize(
+            {'description': 'Some field',
+             'name': 'age',
+             'type': 'range',
+             'min': 0, 'max': 100,})
+
+        validator = schemas.RangeField.validation(**definition)
+        self.assertEquals(30, validator.deserialize(30))
+        self.assertRaises(colander.Invalid, validator.deserialize, -5)
+        self.assertRaises(colander.Invalid, validator.deserialize, 120)
+
     def test_regex(self):
         schema = schemas.RegexField.definition()
         definition = schema.deserialize(

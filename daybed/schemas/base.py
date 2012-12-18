@@ -4,6 +4,7 @@ from colander import (
     Mapping,
     String,
     OneOf,
+    Range,
     Sequence,
     Length,
     SchemaType,
@@ -16,8 +17,8 @@ from colander import (
 
 __all__ = ['registry', 'TypeField',
            'DefinitionValidator', 'SchemaValidator',
-           'IntField', 'StringField', 'RegexField',
-           'EmailField', 'URLField']
+           'IntField', 'StringField', 'RangeField', 
+           'RegexField', 'EmailField', 'URLField',]
 
 
 class AlreadyRegisteredError(Exception):
@@ -152,6 +153,24 @@ class EnumField(TypeField):
     def validation(cls, **kwargs):
         kwargs['validator'] = OneOf(kwargs['choices'])
         return super(EnumField, cls).validation(**kwargs)
+
+
+@registry.add('range')
+class RangeField(TypeField):
+    node = Int
+
+    @classmethod
+    def definition(cls):
+        schema = super(RangeField, cls).definition()
+        schema.add(SchemaNode(Int(), name='min'))
+        schema.add(SchemaNode(Int(), name='max'))
+        return schema
+
+    @classmethod
+    def validation(cls, **kwargs):
+        kwargs['validator'] = Range(min=kwargs.get('min'),
+                                    max=kwargs.get('max'))
+        return super(RangeField, cls).validation(**kwargs)
 
 
 @registry.add('regex')
