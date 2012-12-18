@@ -64,7 +64,7 @@ class PointType(SchemaType):
                 appstruct = json.loads(cstruct)
         except ValueError, e:
             raise Invalid(node, str(e), cstruct)
-        return PointNode(gps=self.gps).deserialize(appstruct)
+        return PointNode(name=node.name, gps=self.gps).deserialize(appstruct)
 
 
 class LinearRingNode(SchemaNode):

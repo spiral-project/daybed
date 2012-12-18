@@ -170,9 +170,15 @@ class FunctionalTest(object):
         response = self.app.get('/data/%s' % self.model_name)
         self.assertEquals(0, len(response.json['data']))
         # of course, pushing weird data should tell what's wrong
-        self.app.post_json('/data/%s' % self.model_name,
-                           self.invalid_data,
-                           headers=headers, status=400)
+        response = self.app.post_json('/data/%s' % self.model_name,
+                                      self.invalid_data,
+                                      headers=headers, status=400)
+        # make sure the field name in cause is provided
+        self.assertIn('errors', response.json)
+        errors = response.json['errors']
+        self.assertTrue(len(errors) > 0)
+        self.assertIn('name', errors[0])
+        self.assertNotEquals('', errors[0]['name'])
 
     def test_fields_are_listed(self):
         response = self.app.get('/fields')
