@@ -4,13 +4,14 @@ VERSION = '0.1'
 
 import os
 import logging
+
 from couchdb.client import Server
 from couchdb.http import PreconditionFailed
-
-from daybed.db import DatabaseConnection, sync_couchdb_views
 from pyramid.config import Configurator
 from pyramid.events import NewRequest
 from pyramid.renderers import JSONP
+
+from daybed.db import DatabaseConnection, sync_couchdb_views
 
 logger = logging.getLogger('daybed')
 
