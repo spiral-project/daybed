@@ -1,8 +1,9 @@
 from functools import partial
 import json
 
-from schemas import DefinitionValidator, SchemaValidator
 import colander
+from pyramid.httpexceptions import HTTPNotFound
+from schemas import DefinitionValidator, SchemaValidator
 
 
 def validator(request, schema):
@@ -31,6 +32,8 @@ def schema_validator(request):
     model_name = request.matchdict['model_name']
 
     definition = request.db.get_definition(model_name)
+    if not definition:
+        raise HTTPNotFound()
     schema = SchemaValidator(definition['definition'])
     return validator(request, schema)
 
