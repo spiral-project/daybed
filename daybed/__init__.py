@@ -7,6 +7,7 @@ import logging
 
 from couchdb.client import Server
 from couchdb.http import PreconditionFailed
+from cornice import Service
 from pyramid.config import Configurator
 from pyramid.events import NewRequest
 from pyramid.renderers import JSONP
@@ -32,6 +33,8 @@ def create_db_if_not_exist(server, db_name):
 
 
 def main(global_config, **settings):
+    Service.cors_origins = ('*',)
+
     config = Configurator(settings=settings)
     config.include("cornice")
     config.scan("daybed.views")
