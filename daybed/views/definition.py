@@ -2,7 +2,7 @@ import os
 import json
 
 from cornice import Service
-from pyramid.exceptions import NotFound
+from pyramid.httpexceptions import HTTPNotFound
 
 from daybed.validators import definition_validator, token_validator
 
@@ -20,7 +20,7 @@ def get(request):
     definition = request.db.get_definition(model_name)
     if definition:
         return definition['definition']
-    raise NotFound("Unknown model %s" % model_name)
+    return HTTPNotFound(detail="Unknown model %s" % model_name)
 
 
 @definition.put(validators=(token_validator, definition_validator))

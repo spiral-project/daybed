@@ -2,7 +2,6 @@ from functools import partial
 import json
 
 import colander
-from pyramid.httpexceptions import HTTPNotFound
 from schemas import DefinitionValidator, SchemaValidator
 
 
@@ -32,10 +31,11 @@ def schema_validator(request):
     model_name = request.matchdict['model_name']
 
     definition = request.db.get_definition(model_name)
-    if not definition:
-        raise HTTPNotFound()
-    schema = SchemaValidator(definition['definition'])
-    return validator(request, schema)
+    if definition:
+        schema = SchemaValidator(definition['definition'])
+        validator(request, schema)
+    else:
+        request.errors.status = 404
 
 
 def token_validator(request):
@@ -49,4 +49,3 @@ def token_validator(request):
             request.errors.add('query', 'token',
                                'invalid token for model %s' % model_name)
             request.errors.status = 403
-            return request.errors
