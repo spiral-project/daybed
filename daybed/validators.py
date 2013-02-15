@@ -35,6 +35,8 @@ def schema_validator(request):
         schema = SchemaValidator(definition['definition'])
         validator(request, schema)
     else:
+        request.errors.add('path', 'modelname',
+                           'Unknown model %s' % model_name)
         request.errors.status = 404
 
 
