@@ -1,22 +1,18 @@
 from webtest import TestApp
 from lettuce import before, after, step, world
 
-from daybed import sync_couchdb_views
-
 
 @before.all
 def set_browser():
     browser = TestApp("config:development.ini",  relative_to=".")
     world.db_name = 'daybed-tests'
     browser.app.registry.settings['db_name'] = world.db_name
-    db = browser.app.registry.settings['db_server'].create(world.db_name)
-    sync_couchdb_views(db)
     world.browser = browser
 
 
 @after.all
 def destroy_db(step):
-    del world.browser.app.registry.settings['db_server'][world.db_name]
+    del world.browser.app.registry.backend
 
 
 @step(u'define an? (empty|malformed|incorrect|incomplete|correct) "([^"]*)" with (no|empty|malformed|incorrect|incomplete|unamed|correct|nochoice) fields')
@@ -28,7 +24,7 @@ def define_model_and_fields(step, modelaspect, model_name, fieldsaspect):
         'incomplete': '{"title": "Mushroom" %s}',
         'correct': '{"title": "Mushroom", "description": "Mushroom picking areas" %s}',
     }
-    
+
     fieldsaspects = {
         'no': '',
         'empty': ', "fields": []',
@@ -45,11 +41,11 @@ def define_model_and_fields(step, modelaspect, model_name, fieldsaspect):
         ]
         """,
     }
-    
+
     world.fields_order = []
     if fieldsaspect == 'correct':
         world.fields_order = [u'place', u'size', u'datetime', 'category']
-    
+
     world.path = '/definitions/%s' % str(model_name.lower())
 
     if hasattr(world, 'token'):

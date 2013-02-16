@@ -1,14 +1,12 @@
-from couchdb.design import ViewDefinition
-from daybed.designdocs import (
+from .designdocs import (
     db_model_token,
     db_definition,
     db_data,
     db_data_item,
-    docs
 )
 
 
-class DatabaseConnection(object):
+class Database(object):
     """Object handling all the connections to the couchdb server."""
 
     def __init__(self, db):
@@ -68,8 +66,3 @@ class DatabaseConnection(object):
             data_id, rev = self.db.save(data_doc)
 
         return data_id
-
-
-def sync_couchdb_views(db):
-    """Sync the couchdb documents from python to the server"""
-    ViewDefinition.sync_many(db, docs)
