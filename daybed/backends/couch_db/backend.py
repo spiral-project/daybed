@@ -30,8 +30,8 @@ class Backend(object):
         self.sync_views()
         self.config.add_subscriber(self.add_db_to_request, NewRequest)
 
-    def __delete__(self):
-        del self.db
+    def delete_db(self):
+        del self.server[self.db_name]
 
     def create_db_if_not_exist(self):
         try:

@@ -10,7 +10,7 @@ def set_browser():
 
 @after.all
 def destroy_db(step):
-    del world.browser.app.registry.backend
+    world.browser.app.registry.backend.delete_db()
 
 
 @step(u'define an? (empty|malformed|incorrect|incomplete|correct) "([^"]*)" with (no|empty|malformed|incorrect|incomplete|unamed|correct|nochoice) fields')
