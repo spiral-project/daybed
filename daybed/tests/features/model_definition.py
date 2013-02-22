@@ -4,9 +4,7 @@ from lettuce import before, after, step, world
 
 @before.all
 def set_browser():
-    browser = TestApp("config:development.ini",  relative_to=".")
-    world.db_name = 'daybed-tests'
-    browser.app.registry.settings['db_name'] = world.db_name
+    browser = TestApp("config:tests.ini",  relative_to=".")
     world.browser = browser
 
 
