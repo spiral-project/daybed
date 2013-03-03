@@ -23,8 +23,8 @@ class CouchDBBackend(object):
         settings = config.registry.settings
 
         self.config = config
-        self.server = Server(settings['couchdb_uri'])
-        self.db_name = os.environ.get('DB_NAME', settings['db_name'])
+        self.server = Server(settings['backend.db_host'])
+        self.db_name = os.environ.get('DB_NAME', settings['backend.db_name'])
 
         self.create_db_if_not_exist()
         self.sync_views()
