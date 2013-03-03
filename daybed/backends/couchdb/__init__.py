@@ -1,5 +1,5 @@
-from .backend import Backend
+from .backend import CouchDBBackend
 
 __all__ = [
-    'Backend'
+    'CouchDBBackend'
 ]

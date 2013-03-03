@@ -14,7 +14,7 @@ from .database import Database
 logger = logging.getLogger(__name__)
 
 
-class Backend(object):
+class CouchDBBackend(object):
     @property
     def db(self):
         return self.server[self.db_name]
