@@ -5,7 +5,7 @@ except ImportError:
 
 import webtest
 
-from daybed.backends.couch_db.database import Database
+from daybed.backends.couchdb.database import Database
 
 
 class BaseWebTest(unittest.TestCase):
