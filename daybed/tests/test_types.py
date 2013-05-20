@@ -3,7 +3,7 @@ import colander
 
 from daybed import schemas
 from daybed.schemas.base import (TypeRegistry, NotRegisteredError,
-                                 AlreadyRegisteredError)
+                                 AlreadyRegisteredError, UnknownFieldTypeError)
 from daybed.tests.support import unittest
 
 
@@ -27,7 +27,14 @@ class TypeRegistryTests(unittest.TestCase):
                           self.types.unregister, 'foo')
 
     def test_unregister(self):
+        self.types.register('bar', None)
+        self.assertEqual(['bar'], self.types.names)
+        self.types.unregister('bar')
         self.assertEqual([], self.types.names)
+        self.assertRaises(UnknownFieldTypeError,
+                          self.types.definition, 'bar')
+        self.assertRaises(UnknownFieldTypeError,
+                          self.types.validation, 'bar')
 
     def test_register_again(self):
         self.types.register('foo', None)
