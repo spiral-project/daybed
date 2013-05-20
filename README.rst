@@ -31,3 +31,9 @@ Let's go!
 =========
 
 Go on http://daybed.rtfd.org for more documentation.
+
+.. image:: https://travis-ci.org/spiral-project/daybed.png
+    :target: https://travis-ci.org/spiral-project/daybed
+
+.. image:: https://coveralls.io/repos/spiral-project/daybed/badge.png
+    :target: https://coveralls.io/r/spiral-project/daybed
