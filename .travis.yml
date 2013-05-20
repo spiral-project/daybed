@@ -7,6 +7,10 @@ services:
     - couchdb
 install: make install
 script:  make tests
+after_success:
+  # Report coverage results to coveralls.io
+  - pip install coveralls
+  - coveralls
 notifications:
     irc:
         channels:
