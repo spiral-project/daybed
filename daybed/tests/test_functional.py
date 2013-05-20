@@ -114,6 +114,12 @@ class FunctionalTest(object):
                                   status=400)
         self.assertIn('"status": "error"', resp.body)
 
+    def test_unknown_model_data_creation(self):
+        resp = self.app.post_json('/data/daybed', {},
+                                  headers=self.headers,
+                                  status=404)
+        self.assertIn('"status": "error"', resp.body)
+
     def test_data_retrieval(self):
         self.create_definition()
         resp = self.create_data()
