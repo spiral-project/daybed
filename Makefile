@@ -28,12 +28,12 @@ clean:
 	rm -fr $(OBJECTS) $(DEV_STAMP) $(VENV_STAMP) $(INSTALL_STAMP)
 
 functional_tests: install-dev
-	bin/lettuce daybed/tests/features
+	bin/coverage run --append bin/lettuce daybed/tests/features
 
 unit_tests: install-dev
 	bin/nosetests --with-coverage --cover-package=daybed
 
-tests: $(INSTALL_STAMP) functional_tests unit_tests
+tests: $(INSTALL_STAMP) unit_tests functional_tests
 
 serve: install-dev
 	bin/pserve development.ini --reload
