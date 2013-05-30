@@ -2,6 +2,34 @@ from daybed.tests.support import BaseWebTest
 from daybed.schemas import registry
 
 
+class DaybedViewsTest(BaseWebTest):
+    """Daybed views tests.
+
+    WIP #31 Migrate Lettuce tests to conventional unit tests
+    """
+    def test_fields_are_listed(self):
+        response = self.app.get('/fields')
+        fields = response.json
+        names = [f.get('name') for f in fields]
+        self.assertItemsEqual(names, registry.names)
+
+        stringfield = [f for f in fields if f.get('name') == 'string'][0]
+        self.assertIsNone(stringfield.get('parameters'))
+
+        pointfield = [f for f in fields if f.get('name') == 'point'][0]
+        self.assertItemsEqual(pointfield['parameters'],
+                              [dict(name="gps",
+                                    default=True,
+                                    type="boolean",
+                                    description="Gps")])
+
+    def test_unknown_model_data_creation(self):
+        resp = self.app.post_json('/data/daybed', {},
+                                  headers=self.headers,
+                                  status=404)
+        self.assertIn('"status": "error"', resp.body)
+
+
 class FunctionalTest(object):
     """These are the functional tests for daybed.
 
@@ -114,12 +142,6 @@ class FunctionalTest(object):
                                   status=400)
         self.assertIn('"status": "error"', resp.body)
 
-    def test_unknown_model_data_creation(self):
-        resp = self.app.post_json('/data/daybed', {},
-                                  headers=self.headers,
-                                  status=404)
-        self.assertIn('"status": "error"', resp.body)
-
     def test_data_retrieval(self):
         self.create_definition()
         resp = self.create_data()
@@ -186,21 +208,6 @@ class FunctionalTest(object):
         self.assertIn('name', errors[0])
         self.assertNotEquals('', errors[0]['name'])
 
-    def test_fields_are_listed(self):
-        response = self.app.get('/fields')
-        fields = response.json
-        names = [f.get('name') for f in fields]
-        self.assertItemsEqual(names, registry.names)
-
-        stringfield = [f for f in fields if f.get('name') == 'string'][0]
-        self.assertIsNone(stringfield.get('parameters'))
-
-        pointfield = [f for f in fields if f.get('name') == 'point'][0]
-        self.assertItemsEqual(pointfield['parameters'],
-                              [dict(name="gps",
-                                    default=True,
-                                    type="boolean",
-                                    description="Gps")])
 
 
 class TodoModelTest(FunctionalTest, BaseWebTest):
