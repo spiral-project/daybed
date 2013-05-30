@@ -25,7 +25,7 @@ class DaybedViewsTest(BaseWebTest):
 
     def test_unknown_model_data_creation(self):
         resp = self.app.post_json('/data/daybed', {},
-                                  headers=self.headers,
+                                  headers={'Content-Type': 'application/json'},
                                   status=404)
         self.assertIn('"status": "error"', resp.body)
 
