@@ -1,3 +1,5 @@
+import datetime
+
 import pyramid.testing
 import colander
 
@@ -89,6 +91,21 @@ class TypeRegistryTests(unittest.TestCase):
         self.assertEquals('http://daybed.lolnet.org',
                           validator.deserialize('http://daybed.lolnet.org'))
         self.assertRaises(colander.Invalid, validator.deserialize, 'http://lolnet/org')
+
+    def test_date(self):
+        schema = schemas.DateField.definition()
+        definition = schema.deserialize(
+            {'description': 'First commit',
+             'name': 'creation',
+             'type': 'date'})
+
+        validator = schemas.DateField.validation(**definition)
+        self.assertEquals(datetime.date(2012, 4, 15),
+                          validator.deserialize('2012-04-15'))
+        self.assertRaises(colander.Invalid, validator.deserialize, '2012/04/15')
+        self.assertRaises(colander.Invalid, validator.deserialize, '2012-13-01')
+        self.assertRaises(colander.Invalid, validator.deserialize, '2012-04-31')
+        self.assertRaises(colander.Invalid, validator.deserialize, '2012-04-30T13:37Z')
 
     def test_point(self):
         schema = schemas.PointField.definition()

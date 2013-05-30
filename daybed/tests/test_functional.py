@@ -230,6 +230,36 @@ class TodoModelTest(FunctionalTest, BaseWebTest):
         entry['status'] = 'done'
 
 
+class TimestampedModelTest(FunctionalTest, BaseWebTest):
+
+    model_name = 'timestamped'
+
+    @property
+    def valid_definition(self):
+        return {
+            "title": "timestamped",
+            "description": "Playing with date fields",
+            "fields": [
+                {
+                    "name": "creation",
+                    "type": "date",
+                    "description": "created on"
+                }
+            ]
+        }
+
+    @property
+    def valid_data(self):
+        return {'creation': '2012-04-15'}
+
+    @property
+    def invalid_data(self):
+        return {'creation': '15-04-2012'}
+
+    def update_data(self, entry):
+        entry['creation'] = '2013-05-30'
+
+
 class MushroomsModelTest(FunctionalTest, BaseWebTest):
 
     model_name = 'mushroom_spots'

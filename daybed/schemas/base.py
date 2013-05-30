@@ -14,6 +14,7 @@ from colander import (
     Boolean,
     Regex,
     Email,
+    Date
 )
 
 
@@ -21,7 +22,7 @@ __all__ = ['registry', 'TypeField',
            'DefinitionValidator', 'SchemaValidator',
            'IntField', 'StringField', 'RangeField', 
            'RegexField', 'EmailField', 'URLField',
-           'DecimalField']
+           'DecimalField', 'DateField']
 
 
 class AlreadyRegisteredError(Exception):
@@ -233,3 +234,9 @@ class URLField(TypeField):
             r'(?:/?|[/?]\S+)$', re.IGNORECASE)
         kwargs['validator'] = Regex(urlpattern, msg="Invalid URL")
         return super(URLField, cls).validation(**kwargs)
+
+
+@registry.add('date')
+class DateField(TypeField):
+    """A date field (ISO_8601, yyyy-mm-dd)."""
+    node = Date
