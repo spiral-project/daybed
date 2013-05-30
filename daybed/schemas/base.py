@@ -14,7 +14,8 @@ from colander import (
     Boolean,
     Regex,
     Email,
-    Date
+    Date,
+    DateTime
 )
 
 
@@ -22,7 +23,7 @@ __all__ = ['registry', 'TypeField',
            'DefinitionValidator', 'SchemaValidator',
            'IntField', 'StringField', 'RangeField', 
            'RegexField', 'EmailField', 'URLField',
-           'DecimalField', 'DateField']
+           'DecimalField', 'DateField', 'DateTimeField']
 
 
 class AlreadyRegisteredError(Exception):
@@ -240,3 +241,9 @@ class URLField(TypeField):
 class DateField(TypeField):
     """A date field (ISO_8601, yyyy-mm-dd)."""
     node = Date
+
+
+@registry.add('datetime')
+class DateTimeField(TypeField):
+    """A date time field (ISO_8601, yyyy-mm-ddTHH:MMZ)."""
+    node = DateTime

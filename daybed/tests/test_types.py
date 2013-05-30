@@ -107,6 +107,25 @@ class TypeRegistryTests(unittest.TestCase):
         self.assertRaises(colander.Invalid, validator.deserialize, '2012-04-31')
         self.assertRaises(colander.Invalid, validator.deserialize, '2012-04-30T13:37Z')
 
+    def test_datetime(self):
+        schema = schemas.DateField.definition()
+        definition = schema.deserialize(
+            {'description': 'First branch',
+             'name': 'branch',
+             'type': 'datetime'})
+
+        validator = schemas.DateTimeField.validation(**definition)
+        self.assertEquals(datetime.datetime(2012, 4, 16, 13, 45, 12, 0, colander.iso8601.UTC),
+                          validator.deserialize('2012-04-16T13:45:12'))
+        self.assertEquals(datetime.datetime(2012, 4, 16, 13, 45, 12, 0, colander.iso8601.UTC),
+                          validator.deserialize('2012-04-16T13:45:12Z'))
+        # Without time
+        self.assertEquals(datetime.datetime(2012, 4, 16, 0, 0, 0, 0, colander.iso8601.UTC),
+                          validator.deserialize('2012-04-16'))
+        self.assertRaises(colander.Invalid, validator.deserialize, '2012/04/16 13H45')
+        self.assertRaises(colander.Invalid, validator.deserialize, '2012-04-30T25:37Z')
+        self.assertRaises(colander.Invalid, validator.deserialize, '2012-04-30T13:60Z')
+
     def test_point(self):
         schema = schemas.PointField.definition()
         definition = schema.deserialize(
