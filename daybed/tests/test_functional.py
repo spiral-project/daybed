@@ -188,7 +188,19 @@ class FunctionalTest(object):
 
     def test_fields_are_listed(self):
         response = self.app.get('/fields')
-        self.assertEquals(response.json, registry.names)
+        fields = response.json
+        names = [f.get('name') for f in fields]
+        self.assertItemsEqual(names, registry.names)
+
+        stringfield = [f for f in fields if f.get('name') == 'string'][0]
+        self.assertIsNone(stringfield.get('parameters'))
+
+        pointfield = [f for f in fields if f.get('name') == 'point'][0]
+        self.assertItemsEqual(pointfield['parameters'],
+                              [dict(name="gps",
+                                    default=True,
+                                    type="boolean",
+                                    description="Gps")])
 
 
 class TodoModelTest(FunctionalTest, BaseWebTest):
