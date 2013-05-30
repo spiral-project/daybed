@@ -43,6 +43,8 @@ class TypeRegistryTests(unittest.TestCase):
         self.assertRaises(AlreadyRegisteredError,
                           self.types.register, 'foo', None)
 
+
+class FieldTypeTests(unittest.TestCase):
     def test_range(self):
         schema = schemas.RangeField.definition()
         definition = schema.deserialize(
@@ -108,7 +110,7 @@ class TypeRegistryTests(unittest.TestCase):
         self.assertRaises(colander.Invalid, validator.deserialize, '2012-04-30T13:37Z')
 
     def test_datetime(self):
-        schema = schemas.DateField.definition()
+        schema = schemas.DateTimeField.definition()
         definition = schema.deserialize(
             {'description': 'First branch',
              'name': 'branch',
@@ -125,6 +127,20 @@ class TypeRegistryTests(unittest.TestCase):
         self.assertRaises(colander.Invalid, validator.deserialize, '2012/04/16 13H45')
         self.assertRaises(colander.Invalid, validator.deserialize, '2012-04-30T25:37Z')
         self.assertRaises(colander.Invalid, validator.deserialize, '2012-04-30T13:60Z')
+
+    def test_datetime_auto_now(self):
+        schema = schemas.DateTimeField.definition()
+        definition = schema.deserialize(
+            {'description': 'First branch',
+             'name': 'branch',
+             'type': 'datetime',
+             'auto_now': True})
+        validator = schemas.DateTimeField.validation(**definition)
+        defaulted = validator.deserialize(None)
+        self.assertTrue((datetime.datetime.now() - defaulted).seconds < 1)
+        defaulted = validator.deserialize('')
+        self.assertTrue((datetime.datetime.now() - defaulted).seconds < 1)
+
 
     def test_point(self):
         schema = schemas.PointField.definition()

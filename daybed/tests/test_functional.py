@@ -244,20 +244,27 @@ class TimestampedModelTest(FunctionalTest, BaseWebTest):
                     "name": "creation",
                     "type": "date",
                     "description": "created on"
-                }
+                },
+                {
+                    "name": "modified",
+                    "type": "datetime",
+                    "description": "modified on",
+                    "auto_now": True
+                },
             ]
         }
 
     @property
     def valid_data(self):
-        return {'creation': '2012-04-15'}
+        return {'creation': '2012-04-15', 'modified': ''}
 
     @property
     def invalid_data(self):
-        return {'creation': '15-04-2012'}
+        return {'creation': '15-04-2012', 'modified': ''}
 
     def update_data(self, entry):
         entry['creation'] = '2013-05-30'
+        entry['modified'] = ''
 
 
 class MushroomsModelTest(FunctionalTest, BaseWebTest):

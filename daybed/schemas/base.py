@@ -1,5 +1,8 @@
 import re
+import datetime
+
 from colander import (
+    deferred,
     SchemaNode,
     Mapping,
     String,
@@ -238,13 +241,40 @@ class URLField(TypeField):
         return super(URLField, cls).validation(**kwargs)
 
 
+class AutoNowMixin(object):
+    """Mixin to share ``auto_now`` mechanism for both date and datetime fields.
+    """
+    auto_now = False
+
+    @classmethod
+    def definition(cls):
+        schema = super(AutoNowMixin, cls).definition()
+        schema.add(SchemaNode(Boolean(), name='auto_now', missing=cls.auto_now))
+        return schema
+
+    @classmethod
+    def validation(cls, **kwargs):
+        auto_now = kwargs.get('auto_now', cls.auto_now)
+        if auto_now:
+            kwargs['missing'] = cls.default_value
+        return super(AutoNowMixin, cls).validation(**kwargs).bind()
+
+
 @registry.add('date')
-class DateField(TypeField):
+class DateField(AutoNowMixin, TypeField):
     """A date field (ISO_8601, yyyy-mm-dd)."""
     node = Date
 
+    @deferred
+    def default_value(node, kw):
+        return datetime.date.today()
+
 
 @registry.add('datetime')
-class DateTimeField(TypeField):
+class DateTimeField(AutoNowMixin, TypeField):
     """A date time field (ISO_8601, yyyy-mm-ddTHH:MMZ)."""
     node = DateTime
+
+    @deferred
+    def default_value(node, kw):
+        return datetime.datetime.now()
