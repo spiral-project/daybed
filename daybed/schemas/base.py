@@ -102,8 +102,9 @@ class TypeField(object):
 
     @classmethod
     def validation(cls, **kwargs):
-        keys = ['name', 'description', 'validator']
-        options = dict(zip(keys, [kwargs.get(k) for k in keys]))
+        keys = ['name', 'description', 'validator', 'missing']
+        specified = [key for key in keys if key in kwargs.keys()]
+        options = dict(zip(specified, [kwargs.get(k) for k in specified]))
         return SchemaNode(cls.node(), **options)
 
 
