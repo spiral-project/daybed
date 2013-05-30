@@ -19,9 +19,15 @@ def list_fields(request):
         # Describe field parameters using Colander children
         for parameter in registry.definition(name).children:
             if parameter.name not in ['name', 'type', 'description']:
+                fieldtype = parameter.typ.__class__.__name__.lower()
                 extras = dict(name=parameter.name,
                               description=parameter.title,
-                              type=parameter.typ.__class__.__name__.lower())
+                              type=fieldtype)
+                # Special case for sequence
+                if fieldtype == 'sequence':
+                    itemtype = parameter.children[0].typ.__class__.__name__.lower()
+                    extras['type'] = 'array'
+                    extras['items'] = dict(type=itemtype)
                 # Show default only if present
                 if parameter.missing != required:
                     extras['default'] = parameter.missing

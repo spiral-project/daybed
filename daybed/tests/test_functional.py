@@ -12,10 +12,13 @@ class DaybedViewsTest(BaseWebTest):
         fields = response.json
         names = [f.get('name') for f in fields]
         self.assertItemsEqual(names, registry.names)
-
+        # String field has no parameters
         stringfield = [f for f in fields if f.get('name') == 'string'][0]
         self.assertIsNone(stringfield.get('parameters'))
-
+        # Enum field describes list items type
+        enumfield = [f for f in fields if f.get('name') == 'enum'][0]
+        self.assertEqual('string', enumfield['parameters'][0].get('items', {}).get('type'))
+        # Point field describes GPS with default True
         pointfield = [f for f in fields if f.get('name') == 'point'][0]
         self.assertItemsEqual(pointfield['parameters'],
                               [dict(name="gps",
