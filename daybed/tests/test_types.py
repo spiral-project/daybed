@@ -58,6 +58,22 @@ class FieldTypeTests(unittest.TestCase):
              'type': 'string'})
         self.assertEquals(definition.get('description'), '')
 
+    def test_optional_field(self):
+        schema = schemas.IntField.definition()
+        definition = schema.deserialize(
+            {'name': 'address',
+             'type': 'int'})
+        validator = schemas.IntField.validation(**definition)
+        self.assertRaises(colander.Invalid, validator.deserialize, '')
+
+        definition = schema.deserialize(
+            {'name': 'address',
+             'type': 'int',
+             'required': False})
+        validator = schemas.IntField.validation(**definition)
+        self.assertEquals(colander.null, validator.deserialize(''))
+        self.assertRaises(colander.Invalid, validator.deserialize, 'abc')
+
     def test_range(self):
         schema = schemas.RangeField.definition()
         definition = schema.deserialize(

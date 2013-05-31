@@ -18,7 +18,7 @@ def list_fields(request):
         field = dict(name=name)
         # Describe field parameters using Colander children
         for parameter in registry.definition(name).children:
-            if parameter.name not in ['name', 'type', 'description']:
+            if parameter.name not in ['name', 'type', 'description', 'required']:
                 fieldtype = parameter.typ.__class__.__name__.lower()
                 extras = dict(name=parameter.name,
                               description=parameter.title,
