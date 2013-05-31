@@ -139,8 +139,7 @@ class FunctionalTest(object):
 
         # Try to put invalid data to this definition
         resp = self.app.post_json('/data/%s' % self.model_name,
-                                  {'item': 'My task',
-                                   'status': 'false'},
+                                  self.invalid_data,
                                   headers=self.headers,
                                   status=400)
         self.assertIn('"status": "error"', resp.body)
