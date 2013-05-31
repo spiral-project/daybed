@@ -98,7 +98,7 @@ class TypeField(object):
     def definition(cls):
         schema = SchemaNode(Mapping())
         schema.add(SchemaNode(String(), name='name'))
-        schema.add(SchemaNode(String(), name='description'))
+        schema.add(SchemaNode(String(), name='description', missing=''))
         schema.add(SchemaNode(String(), name='type',
                               validator=OneOf(registry.names)))
         return schema

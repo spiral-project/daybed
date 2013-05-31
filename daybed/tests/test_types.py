@@ -45,6 +45,19 @@ class TypeRegistryTests(unittest.TestCase):
 
 
 class FieldTypeTests(unittest.TestCase):
+    def test_optional_description(self):
+        schema = schemas.StringField.definition()
+        definition = schema.deserialize(
+            {'description': 'Some field',
+             'name': 'address',
+             'type': 'string'})
+        self.assertEquals(definition.get('description'), 'Some field')
+        # Description is optional (will not raise Invalid)
+        definition = schema.deserialize(
+            {'name': 'firstname',
+             'type': 'string'})
+        self.assertEquals(definition.get('description'), '')
+
     def test_range(self):
         schema = schemas.RangeField.definition()
         definition = schema.deserialize(
@@ -140,7 +153,6 @@ class FieldTypeTests(unittest.TestCase):
         self.assertTrue((datetime.datetime.now() - defaulted).seconds < 1)
         defaulted = validator.deserialize('')
         self.assertTrue((datetime.datetime.now() - defaulted).seconds < 1)
-
 
     def test_point(self):
         schema = schemas.PointField.definition()
