@@ -32,5 +32,5 @@ Feature: Model definition API always behaves nicely
         | correct    | malformed  | 400    | "body"                                  |
         | correct    | incorrect  | 400    | "fields.0.type"                         |
         | correct    | incomplete | 400    | "fields.0.type"                         |
-        | correct    | unamed     | 400    | "fields.0.name", "fields.0.description" |
+        | correct    | unamed     | 400    | "fields.0.name"                         |
         | correct    | nochoice   | 400    | "fields.0.choices"                      |

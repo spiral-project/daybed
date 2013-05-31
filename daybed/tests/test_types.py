@@ -61,8 +61,7 @@ class FieldTypeTests(unittest.TestCase):
     def test_range(self):
         schema = schemas.RangeField.definition()
         definition = schema.deserialize(
-            {'description': 'Some field',
-             'name': 'age',
+            {'name': 'age',
              'type': 'range',
              'min': 0, 'max': 100,})
 
@@ -74,8 +73,7 @@ class FieldTypeTests(unittest.TestCase):
     def test_regex(self):
         schema = schemas.RegexField.definition()
         definition = schema.deserialize(
-            {'description': 'Some field',
-             'name': 'number',
+            {'name': 'number',
              'type': 'regex',
              'regex': '\d+'})
 
@@ -86,8 +84,7 @@ class FieldTypeTests(unittest.TestCase):
     def test_email(self):
         schema = schemas.EmailField.definition()
         definition = schema.deserialize(
-            {'description': 'Some field',
-             'name': 'address',
+            {'name': 'address',
              'type': 'email'})
 
         validator = schemas.EmailField.validation(**definition)
@@ -98,8 +95,7 @@ class FieldTypeTests(unittest.TestCase):
     def test_url(self):
         schema = schemas.URLField.definition()
         definition = schema.deserialize(
-            {'description': 'Some field',
-             'name': 'homepage',
+            {'name': 'homepage',
              'type': 'url'})
 
         validator = schemas.URLField.validation(**definition)
@@ -144,8 +140,7 @@ class FieldTypeTests(unittest.TestCase):
     def test_datetime_auto_now(self):
         schema = schemas.DateTimeField.definition()
         definition = schema.deserialize(
-            {'description': 'First branch',
-             'name': 'branch',
+            {'name': 'branch',
              'type': 'datetime',
              'auto_now': True})
         validator = schemas.DateTimeField.validation(**definition)
@@ -157,8 +152,7 @@ class FieldTypeTests(unittest.TestCase):
     def test_point(self):
         schema = schemas.PointField.definition()
         definition = schema.deserialize(
-            {'description': 'Go',
-             'name': 'location',
+            {'name': 'location',
              'type': 'point'})
 
         validator = schemas.PointField.validation(**definition)
@@ -177,8 +171,7 @@ class FieldTypeTests(unittest.TestCase):
     def test_point_euclidean(self):
         schema = schemas.PointField.definition()
         definition = schema.deserialize(
-            {'description': 'Go',
-             'name': 'location',
+            {'name': 'location',
              'type': 'point',
              'gps': False})
         validator = schemas.PointField.validation(**definition)
@@ -187,8 +180,7 @@ class FieldTypeTests(unittest.TestCase):
     def test_line(self):
         schema = schemas.LineField.definition()
         definition = schema.deserialize(
-            {'description': 'Follow',
-             'name': 'along',
+            {'name': 'along',
              'type': 'line'})
 
         validator = schemas.LineField.validation(**definition)
@@ -201,8 +193,7 @@ class FieldTypeTests(unittest.TestCase):
     def test_polygon(self):
         schema = schemas.PolygonField.definition()
         definition = schema.deserialize(
-            {'description': 'Scan',
-             'name': 'area',
+            {'name': 'area',
              'type': 'polygon'})
 
         validator = schemas.PolygonField.validation(**definition)
