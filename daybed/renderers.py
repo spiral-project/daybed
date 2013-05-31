@@ -58,7 +58,7 @@ class GeoJSON(JSON):
         for name, geomtype in geom_fields.items():
             coords = record.pop(name)
             name = 'geometry' if first else name
-            geometry = dict(type=geomtype, coordinates=json.loads(coords))
+            geometry = dict(type=geomtype, coordinates=coords)
             feature[name] = geometry
         feature['properties'] = record
         return feature
