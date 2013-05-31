@@ -31,7 +31,7 @@ class GeoJSON(JSON):
                     geojson['features'].append(feature)
                 value = geojson
 
-            return self.serializer(geojson, default=default, **self.kw)
+            return self.serializer(value, default=default, **self.kw)
 
         return _render
 
