@@ -165,6 +165,24 @@ class FieldTypeTests(unittest.TestCase):
         defaulted = validator.deserialize('')
         self.assertTrue((datetime.datetime.now() - defaulted).seconds < 1)
 
+    def test_datetime_optional_auto_now(self):
+        schema = schemas.DateTimeField.definition()
+        definition = schema.deserialize(
+            {'name': 'branch',
+             'type': 'datetime',
+             'required': False})
+        validator = schemas.DateTimeField.validation(**definition)
+        self.assertEquals(colander.null, validator.deserialize(''))
+        # If auto_now, defaulted value should be now(), not null
+        definition = schema.deserialize(
+            {'name': 'branch',
+             'type': 'datetime',
+             'required': False,
+             'auto_now': True})
+        validator = schemas.DateTimeField.validation(**definition)
+        defaulted = validator.deserialize('')
+        self.assertTrue((datetime.datetime.now() - defaulted).seconds < 1)
+
     def test_point(self):
         schema = schemas.PointField.definition()
         definition = schema.deserialize(

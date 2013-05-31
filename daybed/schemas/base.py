@@ -263,7 +263,7 @@ class AutoNowMixin(object):
     def validation(cls, **kwargs):
         auto_now = kwargs.get('auto_now', cls.auto_now)
         if auto_now:
-            kwargs['missing'] = cls.default_value
+            kwargs['missing'] = cls.auto_value
         return super(AutoNowMixin, cls).validation(**kwargs).bind()
 
 
@@ -273,7 +273,7 @@ class DateField(AutoNowMixin, TypeField):
     node = Date
 
     @deferred
-    def default_value(node, kw):
+    def auto_value(node, kw):
         return datetime.date.today()
 
 
@@ -283,5 +283,5 @@ class DateTimeField(AutoNowMixin, TypeField):
     node = DateTime
 
     @deferred
-    def default_value(node, kw):
+    def auto_value(node, kw):
         return datetime.datetime.now()
