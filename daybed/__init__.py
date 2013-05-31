@@ -6,6 +6,8 @@ from cornice import Service
 from pyramid.config import Configurator
 from pyramid.renderers import JSONP
 
+from daybed.renderers import GeoJSON
+
 
 def main(global_config, **settings):
     Service.cors_origins = ('*',)
@@ -19,4 +21,5 @@ def main(global_config, **settings):
     config.registry.backend = backend(config)
 
     config.add_renderer('jsonp', JSONP(param_name='callback'))
+    config.add_renderer('geojson', GeoJSON())
     return config.make_wsgi_app()
