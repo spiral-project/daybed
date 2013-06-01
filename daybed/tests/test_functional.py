@@ -66,6 +66,13 @@ class FunctionalTest(object):
     def invalid_data(self):
         raise NotImplementedError
 
+    def post_definition(self, data=None):
+        if not data:
+            data = self.valid_definition
+        return self.app.post_json('/definitions/',
+                                  data,
+                                  headers=self.headers)
+
     def create_definition(self, data=None):
         if not data:
             data = self.valid_definition
@@ -86,6 +93,11 @@ class FunctionalTest(object):
         return self.app.post_json('/models/%s/data' % self.model_id,
                                   data,
                                   headers=self.headers)
+
+    def test_post_normal_definition(self):
+        resp = self.post_definition()
+        self.assertIn('token', resp.body)
+        self.assertIn('name', resp.body)
 
     def test_normal_definition_creation(self):
         self.create_definition()
