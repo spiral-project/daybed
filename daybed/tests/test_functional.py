@@ -49,7 +49,8 @@ class FunctionalTest(object):
         self.definition_without_title = self.valid_definition.copy()
         self.definition_without_title.pop('title')
         self.malformed_definition = '{"test":"toto", "titi": "tutu'
-        self.headers = {'Content-Type': 'application/json'}
+        self.headers = {'Accept': 'application/json',
+                        'Content-Type': 'application/json'}
 
     @property
     def valid_definition(self):
@@ -429,7 +430,7 @@ class MushroomsModelTest(FunctionalTest, BaseWebTest):
                             headers=headers)
         self.assertIn('data', resp.json)
 
-        headers['Content-Type'] = 'application/geojson'
+        headers['Accept'] = 'application/geojson'
         resp = self.app.get('/data/%s' % (self.model_name),
                             headers=headers)
         self.assertIn('features', resp.json)
@@ -439,8 +440,8 @@ class MushroomsModelTest(FunctionalTest, BaseWebTest):
         self.assertEquals(feature['properties']['mushroom'], 'Boletus')
         self.assertIsNone(feature['properties'].get('location'))
         self.assertEquals(feature['geometry']['type'], 'Polygon')
-        self.assertItemEquals(feature['geometry']['coordinates'],
-                              [[[0, 0], [0, 2], [2, 2]], [[0.5, 0.5], [0.5, 1], [1, 1]]])
+        self.assertItemsEqual(feature['geometry']['coordinates'],
+                              [[[0, 0], [0, 1], [1, 1]]])  # after update
 
 
 class CityModelTest(FunctionalTest, BaseWebTest):
