@@ -1,7 +1,7 @@
 import json
 
 from cornice import Service
-from pyramid.httpexceptions import HTTPNotFound
+from pyramid.exceptions import NotFound
 
 from daybed.validators import schema_validator
 
@@ -18,7 +18,7 @@ def get(request):
     # Check that model is defined
     exists = request.db.get_definition(model_name)
     if not exists:
-        return HTTPNotFound(detail="Unknown model %s" % model_name)
+        raise NotFound(detail="Unknown model %s" % model_name)
     # Return array of records
     results = request.db.get_data(model_name)
     # TODO: Maybe we need to keep ids secret for editing

@@ -210,6 +210,11 @@ class FunctionalTest(object):
         self.assertIn('name', errors[0])
         self.assertNotEquals('', errors[0]['name'])
 
+    def test_cors_support(self):
+        response = self.app.get('/definitions/unknown',
+                                headers={'Origin': 'notmyidea.org'},
+                                status=404)
+        self.assertIn('Access-Control-Allow-Origin', response.headers)
 
 
 class TodoModelTest(FunctionalTest, BaseWebTest):

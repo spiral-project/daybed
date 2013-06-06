@@ -31,7 +31,7 @@ functional_tests: install-dev
 	bin/coverage run --append bin/lettuce daybed/tests/features
 
 unit_tests: install-dev
-	bin/nosetests --with-coverage --cover-package=daybed
+	bin/nosetests --with-coverage --cover-package=daybed -s
 
 tests: $(INSTALL_STAMP) unit_tests functional_tests
 

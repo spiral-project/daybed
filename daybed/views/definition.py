@@ -10,7 +10,8 @@ from daybed.validators import definition_validator, token_validator
 definition = Service(name='definition',
                      path='/definitions/{model_name}',
                      description='Model Definition',
-                     renderer="jsonp")
+                     renderer="jsonp",
+                     cors_origins=('*',))
 
 
 @definition.get()
@@ -20,7 +21,7 @@ def get(request):
     definition = request.db.get_definition(model_name)
     if definition:
         return definition['definition']
-    return HTTPNotFound(detail="Unknown model %s" % model_name)
+    raise HTTPNotFound(detail="Unknown model %s" % model_name)
 
 
 @definition.put(validators=(token_validator, definition_validator))
