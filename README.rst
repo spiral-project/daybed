@@ -6,7 +6,7 @@ Storage and validation as a service.
 **Daybed** exposes a REST API where you can create your own models (definitions),
 validate data and store records.
 
-Create your own REST storage API in seconds !
+Create your own REST storage API in seconds!
 
 It takes advantage of bullet-proof technologies, such as *CouchDB* and *Pyramid*.
 
