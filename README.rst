@@ -1,39 +1,56 @@
 Daybed
 ######
 
-Daybed is a form-validation and data-storage API.
+Storage and validation as a service.
 
-It is a way to create definitions (models) and to do validation on some
-incoming data using these definitions.
+**Daybed** exposes a REST API where you can create your own models (definitions),
+validate data and store records.
 
-Why ?
-=====
+Create your own REST storage API in seconds !
 
-You can do a lot of things with this kind of service, so these use-cases are
-only some of the possibilities we would like to offer.
-
-Maybe do you know Google forms? That's a service letting you design a form and
-exposing it to end users, so then you can access the results.
-
-That's working pretty well but nothing there is done in the open. Google now
-has all your data ;) In addition to that, the APIs to access this data are not
-that funny, you can't interact with them without dealing with rows and cells…
-which probably isn't what you want.
-
-As a data geek and librist, I don't think that google forms is a reasonable
-choice.
-
-**Daybed** tries to solve this very problem by providing a REST API able to do
-validation for you, depending on some rules you defined. Oh, and of course it
-is a free software, so you can modify it if you want / need.
-
-Let's go!
-=========
-
-Go on http://daybed.rtfd.org for more documentation.
+It takes advantage of bullet-proof technologies, such as *CouchDB* and *Pyramid*.
 
 .. image:: https://travis-ci.org/spiral-project/daybed.png
     :target: https://travis-ci.org/spiral-project/daybed
 
 .. image:: https://coveralls.io/repos/spiral-project/daybed/badge.png
     :target: https://coveralls.io/r/spiral-project/daybed
+
+Use-cases
+=========
+
+Since *Daybed* talks REST and JSON, you can basically use it as a remote storage with
+any of your favorite technologies (python, Android, iOS, AngularJS, Ember.js, Backbone.js, etc.).
+
+It becomes an abstract storage layer, a Google Forms alternative, a *data pad* or an internal component
+in your applications : it's database as a service !
+
+We made two demo applications with *Daybed* :
+
+* `daybed-map <http://leplatrem.github.io/daybed-map/>`_, a *geo-pad* where you can create you own maps with custom fields, using `backbone-forms <https://github.com/powmedia/backbone-forms>`_
+
+* A `TODO list <http://daybed.lolnet.org/>`_ using `jquery-spore <https://github.com/nikopol/jquery-spore>`_ ;
+
+
+Features
+========
+
+* Geographical types
+* Create and retrieve models definitions
+* Validate, store and retrieve data
+* List available field types
+* SPORE access point
+* Pluggable database engine
+
+In the future:
+
+* Access right management
+* Relationships between models
+* JSON schema compatibility
+
+
+Resources
+=========
+
+* `Full documentation <http://daybed.rtfd.org>`_
+* `Roadmap and notes <https://github.com/spiral-project/daybed/wiki>`_
