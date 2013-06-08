@@ -17,7 +17,8 @@ class DaybedViewsTest(BaseWebTest):
         self.assertIsNone(stringfield.get('parameters'))
         # Enum field describes list items type
         enumfield = [f for f in fields if f.get('name') == 'enum'][0]
-        self.assertEqual('string', enumfield['parameters'][0].get('items', {}).get('type'))
+        _type = enumfield['parameters'][0].get('items', {}).get('type')
+        self.assertEqual('string', _type)
         # Point field describes GPS with default True
         pointfield = [f for f in fields if f.get('name') == 'point'][0]
         self.assertItemsEqual(pointfield['parameters'],
@@ -177,6 +178,29 @@ class FunctionalTest(object):
         # Todo : Verify DB
         data_items = self.db.get_data_items(self.model_id)
         self.assertEqual(len(data_items), 1)
+
+    def test_data_partial_update(self):
+        self.create_definition()
+
+        # Put data against this definition
+        entry = self.valid_data.copy()
+        resp = self.create_data(entry)
+        data_item_id = resp.json['id']
+
+        # Update this data
+        self.update_data(entry)
+        resp = self.app.patch_json('/models/%s/data/%s' % (self.model_id,
+                                                           data_item_id),
+                                   entry, headers=self.headers)
+        self.assertIn('id', resp.body)
+
+        # Check that we only have one value in the db (e.g that PATCH didn't
+        # created a new data item)
+        data_item = self.db.get_data_item(self.model_id, data_item_id)
+
+        new_item = self.valid_data.copy()
+        new_item.update(entry)
+        self.assertEquals(data_item['data'], new_item)
 
     def test_data_deletion(self):
         self.create_definition()
@@ -350,7 +374,8 @@ class MushroomsModelTest(FunctionalTest, BaseWebTest):
                 'location': [[0, 0], [0, 1]]}
 
     def update_data(self, entry):
-        entry['location'] = [[[0, 0], [0, 2], [2, 2]], [[0.5, 0.5], [0.5, 1], [1, 1]]]
+        entry['location'] = [[[0, 0], [0, 2], [2, 2]],
+                             [[0.5, 0.5], [0.5, 1], [1, 1]]]
 
 
 class CityModelTest(FunctionalTest, BaseWebTest):

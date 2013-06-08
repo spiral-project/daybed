@@ -3,7 +3,8 @@ import json
 from cornice import Service
 from pyramid.exceptions import NotFound
 
-from daybed.validators import schema_validator
+from daybed.validators import schema_validator, validate_against_schema
+from daybed.schemas import SchemaValidator
 
 
 data_item = Service(name='data_item',
@@ -34,6 +35,25 @@ def put(request):
     data_id = request.db.put_data_item(model_id, json.loads(request.body),
                                        data_item_id)
     return {'id': data_id}
+
+
+@data_item.patch()
+def patch(request):
+    """Update or create a data item."""
+    model_id = request.matchdict['model_id']
+    data_item_id = request.matchdict['data_item_id']
+    data_item = request.db.get_data_item(model_id, data_item_id)
+    if not data_item:
+        raise NotFound(
+            "Unknown data_item %s: %s" % (model_id, data_item_id)
+        )
+    data = data_item['data']
+    data.update(json.loads(request.body))
+    definition = request.db.get_model_definition(model_id)['definition']
+    validate_against_schema(request, SchemaValidator(definition), data)
+    if not request.errors:
+        request.db.put_data_item(model_id, data, data_item_id)
+    return {'id': data_item_id}
 
 
 @data_item.delete()
