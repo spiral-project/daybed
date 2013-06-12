@@ -216,6 +216,29 @@ class FunctionalTest(object):
                                 status=404)
         self.assertIn('Access-Control-Allow-Origin', response.headers)
 
+class SimpleModelTest(FunctionalTest, BaseWebTest):
+
+    model_name = 'simple'
+
+    @property
+    def valid_definition(self):
+        return {
+            "title": "simple",
+            "description": "One optional field",
+            "fields": [{"name": "age", "type": "int", "required": False}]
+        }
+
+    @property
+    def valid_data(self):
+        return {}
+
+    @property
+    def invalid_data(self):
+        return {'age': 'abc'}
+
+    def update_data(self, entry):
+        entry.pop('age', 0)
+
 
 class TodoModelTest(FunctionalTest, BaseWebTest):
 

@@ -3,6 +3,7 @@ import datetime
 
 from colander import (
     deferred,
+    null,
     SchemaNode,
     Mapping,
     String,
@@ -93,12 +94,15 @@ registry = TypeRegistry()
 
 class TypeField(object):
     node = String
+    required = True
+    default_value = null
 
     @classmethod
     def definition(cls):
         schema = SchemaNode(Mapping())
         schema.add(SchemaNode(String(), name='name'))
         schema.add(SchemaNode(String(), name='description', missing=''))
+        schema.add(SchemaNode(Boolean(), name='required', missing=cls.required))
         schema.add(SchemaNode(String(), name='type',
                               validator=OneOf(registry.names)))
         return schema
@@ -108,6 +112,9 @@ class TypeField(object):
         keys = ['name', 'description', 'validator', 'missing']
         specified = [key for key in keys if key in kwargs.keys()]
         options = dict(zip(specified, [kwargs.get(k) for k in specified]))
+        # If field is not required, use missing
+        if not kwargs.get('required', cls.required):
+            options.setdefault('missing', cls.default_value)
         return SchemaNode(cls.node(), **options)
 
 
@@ -256,7 +263,7 @@ class AutoNowMixin(object):
     def validation(cls, **kwargs):
         auto_now = kwargs.get('auto_now', cls.auto_now)
         if auto_now:
-            kwargs['missing'] = cls.default_value
+            kwargs['missing'] = cls.auto_value
         return super(AutoNowMixin, cls).validation(**kwargs).bind()
 
 
@@ -266,7 +273,7 @@ class DateField(AutoNowMixin, TypeField):
     node = Date
 
     @deferred
-    def default_value(node, kw):
+    def auto_value(node, kw):
         return datetime.date.today()
 
 
@@ -276,5 +283,5 @@ class DateTimeField(AutoNowMixin, TypeField):
     node = DateTime
 
     @deferred
-    def default_value(node, kw):
+    def auto_value(node, kw):
         return datetime.datetime.now()

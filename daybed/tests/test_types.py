@@ -58,6 +58,22 @@ class FieldTypeTests(unittest.TestCase):
              'type': 'string'})
         self.assertEquals(definition.get('description'), '')
 
+    def test_optional_field(self):
+        schema = schemas.IntField.definition()
+        definition = schema.deserialize(
+            {'name': 'address',
+             'type': 'int'})
+        validator = schemas.IntField.validation(**definition)
+        self.assertRaises(colander.Invalid, validator.deserialize, '')
+
+        definition = schema.deserialize(
+            {'name': 'address',
+             'type': 'int',
+             'required': False})
+        validator = schemas.IntField.validation(**definition)
+        self.assertEquals(colander.null, validator.deserialize(''))
+        self.assertRaises(colander.Invalid, validator.deserialize, 'abc')
+
     def test_range(self):
         schema = schemas.RangeField.definition()
         definition = schema.deserialize(
@@ -146,6 +162,24 @@ class FieldTypeTests(unittest.TestCase):
         validator = schemas.DateTimeField.validation(**definition)
         defaulted = validator.deserialize(None)
         self.assertTrue((datetime.datetime.now() - defaulted).seconds < 1)
+        defaulted = validator.deserialize('')
+        self.assertTrue((datetime.datetime.now() - defaulted).seconds < 1)
+
+    def test_datetime_optional_auto_now(self):
+        schema = schemas.DateTimeField.definition()
+        definition = schema.deserialize(
+            {'name': 'branch',
+             'type': 'datetime',
+             'required': False})
+        validator = schemas.DateTimeField.validation(**definition)
+        self.assertEquals(colander.null, validator.deserialize(''))
+        # If auto_now, defaulted value should be now(), not null
+        definition = schema.deserialize(
+            {'name': 'branch',
+             'type': 'datetime',
+             'required': False,
+             'auto_now': True})
+        validator = schemas.DateTimeField.validation(**definition)
         defaulted = validator.deserialize('')
         self.assertTrue((datetime.datetime.now() - defaulted).seconds < 1)
 
