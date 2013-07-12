@@ -131,7 +131,7 @@ class FieldTypeTests(unittest.TestCase):
                           validator.deserialize('2012-04-15'))
         self.assertRaises(colander.Invalid, validator.deserialize, '2012/04/15')
         self.assertRaises(colander.Invalid, validator.deserialize, '2012-13-01')
-        self.assertRaises(colander.Invalid, validator.deserialize, '2012-04-31')
+        self.assertRaises(colander.Invalid, validator.deserialize, '2012-04-31')  # April has 30 days only
         self.assertEquals(validator.deserialize('2012-04-30T13:37Z'),
                           datetime.date(2012, 4, 30))
 
