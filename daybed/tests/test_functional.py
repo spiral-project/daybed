@@ -27,7 +27,7 @@ class DaybedViewsTest(BaseWebTest):
                                     description="Gps")])
 
     def test_unknown_model_data_creation(self):
-        resp = self.app.post_json('/data/daybed', {},
+        resp = self.app.post_json('/models/unknown/data', {},
                                   headers={'Content-Type': 'application/json'},
                                   status=404)
         self.assertIn('"status": "error"', resp.body)
@@ -44,7 +44,7 @@ class FunctionalTest(object):
     context between tests.
     """
 
-    model_name = None
+    model_id = None
 
     def __init__(self, *args, **kwargs):
         super(FunctionalTest, self).__init__(*args, **kwargs)
@@ -68,37 +68,36 @@ class FunctionalTest(object):
     def create_definition(self, data=None):
         if not data:
             data = self.valid_definition
-        return self.app.put_json('/definitions/%s' % self.model_name,
+        return self.app.put_json('/models/%s/definition' % self.model_id,
                                  data,
                                  headers=self.headers)
 
     def create_data(self, data=None):
         if not data:
             data = self.valid_data
-        return self.app.post_json('/data/%s' % self.model_name,
+        return self.app.post_json('/models/%s/data' % self.model_id,
                                   data,
                                   headers=self.headers)
 
     def create_data_resp(self, data=None):
         if not data:
             data = self.valid_data
-        return self.app.post_json('/data/%s' % self.model_name,
+        return self.app.post_json('/models/%s/data' % self.model_id,
                                   data,
                                   headers=self.headers)
 
     def test_normal_definition_creation(self):
-        resp = self.create_definition()
-        self.assertIn('token', resp.body)
+        self.create_definition()
 
     def test_malformed_definition_creation(self):
-        resp = self.app.put_json('/definitions/%s' % self.model_name,
+        resp = self.app.put_json('/models/%s/definition' % self.model_id,
                     self.definition_without_title,
                     headers=self.headers,
                     status=400)
         self.assertIn('"name": "title"', resp.body)
 
     def test_definition_creation_rejects_malformed_data(self):
-        resp = self.app.put('/definitions/%s' % self.model_name,
+        resp = self.app.put('/models/%s/definition' % self.model_id,
                     self.malformed_definition,
                     headers=self.headers,
                     status=400)
@@ -108,28 +107,30 @@ class FunctionalTest(object):
         self.create_definition()
 
         # Verify that the schema is the same
-        resp = self.app.get('/definitions/%s' % self.model_name,
+        resp = self.app.get('/models/%s/definition' % self.model_id,
                             headers=self.headers)
         self.assertEqual(resp.json, self.valid_definition)
 
-    def test_definition_deletion(self):
+    def test_definition_deletion_redirects(self):
+        self.create_definition()
+        self.app.delete('/models/%s/definition' % self.model_id, status=307)
+        self.db.delete_model(self.model_id)
+
+    def test_model_deletion(self):
         resp = self.create_definition()
-        token = resp.json['token']
         resp = self.create_data()
         data_item_id = resp.json['id']
-        self.app.delete(str('/definitions/%s?token=%s' % (
-                            self.model_name, token)))
-        queryset = self.db.get_data_item(self.model_name,
-                                         data_item_id)
-        self.assertIsNone(queryset)
-        queryset = self.db.get_definition(self.model_name)
-        self.assertIsNone(queryset)
+        self.app.delete('/models/%s' % self.model_id)
+        data_item = self.db.get_data_item(self.model_id, data_item_id)
+        self.assertIsNone(data_item)
+        model_definition = self.db.get_model_definition(self.model_id)
+        self.assertIsNone(model_definition)
 
     def test_normal_data_creation(self):
         self.create_definition()
 
         # Put data against this definition
-        resp = self.app.post_json('/data/%s' % self.model_name,
+        resp = self.app.post_json('/models/%s/data' % self.model_id,
                                  self.valid_data,
                                  headers=self.headers)
         self.assertIn('id', resp.body)
@@ -138,7 +139,7 @@ class FunctionalTest(object):
         self.create_definition()
 
         # Try to put invalid data to this definition
-        resp = self.app.post_json('/data/%s' % self.model_name,
+        resp = self.app.post_json('/models/%s/data' % self.model_id,
                                   self.invalid_data,
                                   headers=self.headers,
                                   status=400)
@@ -152,14 +153,14 @@ class FunctionalTest(object):
         self.assertIn('id', resp.body)
 
         data_item_id = resp.json['id']
-        resp = self.app.get('/data/%s/%s' % (self.model_name,
-                                             data_item_id),
+        resp = self.app.get('/models/%s/data/%s' % (self.model_id,
+                                                    data_item_id),
                             headers=self.headers)
         entry = self.valid_data.copy()
         # entry['id'] = str(data_item_id
         self.assertEqual(resp.json, entry)
 
-    def test_data_update(self):
+    def test_data_item_update(self):
         self.create_definition()
         # Put data against this definition
         entry = self.valid_data.copy()
@@ -168,39 +169,37 @@ class FunctionalTest(object):
 
         # Update this data
         self.update_data(entry)
-        resp = self.app.put_json(str('/data/%s/%s' % (
-                                     self.model_name,
-                                     data_item_id)),
+        resp = self.app.put_json('/models/%s/data/%s' % (self.model_id,
+                                                         data_item_id),
                                  entry,
                                  headers=self.headers)
         self.assertIn('id', resp.body)
         # Todo : Verify DB
-        queryset = self.db.get_data(self.model_name)
-        self.assertEqual(len(queryset), 1)
+        data_items = self.db.get_data_items(self.model_id)
+        self.assertEqual(len(data_items), 1)
 
     def test_data_deletion(self):
         self.create_definition()
         resp = self.create_data()
         data_item_id = resp.json['id']
-        self.app.delete(str('/data/%s/%s' % (self.model_name,
-                                             data_item_id)))
-        queryset = self.db.get_data_item(self.model_name,
-                                         data_item_id)
-        self.assertIsNone(queryset)
+        self.app.delete(str('/models/%s/data/%s' % (self.model_id,
+                                                    data_item_id)))
+        data_item = self.db.get_data_item(self.model_id, data_item_id)
+        self.assertIsNone(data_item)
 
     def test_data_validation(self):
         self.create_definition()
         headers = self.headers.copy()
         headers['X-Daybed-Validate-Only'] = 'true'
-        self.app.post_json('/data/%s' % self.model_name,
+        self.app.post_json('/models/%s/data' % self.model_id,
                            self.valid_data,
                            headers=headers, status=200)
 
         # no data should be added
-        response = self.app.get('/data/%s' % self.model_name)
+        response = self.app.get('/models/%s/data' % self.model_id)
         self.assertEquals(0, len(response.json['data']))
         # of course, pushing weird data should tell what's wrong
-        response = self.app.post_json('/data/%s' % self.model_name,
+        response = self.app.post_json('/models/%s/data' % self.model_id,
                                       self.invalid_data,
                                       headers=headers, status=400)
         # make sure the field name in cause is provided
@@ -210,15 +209,16 @@ class FunctionalTest(object):
         self.assertIn('name', errors[0])
         self.assertNotEquals('', errors[0]['name'])
 
-    def test_cors_support(self):
-        response = self.app.get('/definitions/unknown',
+    def test_cors_support_on_404(self):
+        response = self.app.get('/models/unknown/definition',
                                 headers={'Origin': 'notmyidea.org'},
                                 status=404)
         self.assertIn('Access-Control-Allow-Origin', response.headers)
 
+
 class SimpleModelTest(FunctionalTest, BaseWebTest):
 
-    model_name = 'simple'
+    model_id = 'simple'
 
     @property
     def valid_definition(self):
@@ -242,7 +242,7 @@ class SimpleModelTest(FunctionalTest, BaseWebTest):
 
 class TodoModelTest(FunctionalTest, BaseWebTest):
 
-    model_name = 'todo'
+    model_id = 'todo'
 
     @property
     def valid_definition(self):
@@ -281,7 +281,7 @@ class TodoModelTest(FunctionalTest, BaseWebTest):
 
 class TimestampedModelTest(FunctionalTest, BaseWebTest):
 
-    model_name = 'timestamped'
+    model_id = 'timestamped'
 
     @property
     def valid_definition(self):
@@ -318,7 +318,7 @@ class TimestampedModelTest(FunctionalTest, BaseWebTest):
 
 class MushroomsModelTest(FunctionalTest, BaseWebTest):
 
-    model_name = 'mushroom_spots'
+    model_id = 'mushroom_spots'
 
     @property
     def valid_definition(self):
@@ -355,7 +355,7 @@ class MushroomsModelTest(FunctionalTest, BaseWebTest):
 
 class CityModelTest(FunctionalTest, BaseWebTest):
 
-    model_name = 'city'
+    model_id = 'city'
 
     @property
     def valid_definition(self):
@@ -391,7 +391,7 @@ class CityModelTest(FunctionalTest, BaseWebTest):
 
 class EuclideModelTest(FunctionalTest, BaseWebTest):
 
-    model_name = 'position'
+    model_id = 'position'
 
     @property
     def valid_definition(self):

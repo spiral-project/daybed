@@ -28,26 +28,13 @@ definition_validator = partial(validator, schema=DefinitionValidator())
 def schema_validator(request):
     """Validates a request body according to its model definition.
     """
-    model_name = request.matchdict['model_name']
+    model_id = request.matchdict['model_id']
 
-    definition = request.db.get_definition(model_name)
-    if definition:
-        schema = SchemaValidator(definition['definition'])
+    doc = request.db.get_model_definition(model_id)
+    if doc:
+        schema = SchemaValidator(doc['definition'])
         validator(request, schema)
     else:
         request.errors.add('path', 'modelname',
-                           'Unknown model %s' % model_name)
+                           'Unknown model %s' % model_id)
         request.errors.status = 404
-
-
-def token_validator(request):
-    model_name = request.matchdict['model_name']
-
-    results = request.db.get_definition_token(model_name)
-    tokens = [t.value for t in results]
-    if len(tokens) > 0:
-        token = tokens[0]
-        if token != request.GET.get('token'):
-            request.errors.add('query', 'token',
-                               'invalid token for model %s' % model_name)
-            request.errors.status = 403

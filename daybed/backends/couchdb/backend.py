@@ -7,7 +7,7 @@ from couchdb.client import Server
 from couchdb.http import PreconditionFailed
 from couchdb.design import ViewDefinition
 
-from .designdocs import docs
+from .views import docs
 from .database import Database
 
 

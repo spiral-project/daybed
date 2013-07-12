@@ -6,31 +6,30 @@ from pyramid.exceptions import NotFound
 from daybed.validators import schema_validator
 
 data = Service(name='data',
-               path='/data/{model_name}',
+               path='/models/{model_id}/data',
                description='Model data',
                renderer='jsonp')
 
 
 @data.get()
-def get(request):
+def get_data(request):
     """Retrieves all model records."""
-    model_name = request.matchdict['model_name']
+    model_id = request.matchdict['model_id']
     # Check that model is defined
-    exists = request.db.get_definition(model_name)
+    exists = request.db.get_model_definition(model_id)
     if not exists:
-        raise NotFound(detail="Unknown model %s" % model_name)
+        raise NotFound(detail="Unknown model %s" % model_id)
     # Return array of records
-    results = request.db.get_data(model_name)
-    # TODO: Maybe we need to keep ids secret for editing
+    results = request.db.get_data_items(model_id)
     data = []
     for result in results:
-        result.value['data']['id'] = result.id
+        result.value['data']['id'] = result._id
         data.append(result.value['data'])
     return {'data': data}
 
 
 @data.post(validators=schema_validator)
-def post(request):
+def post_data(request):
     """Saves a model record.
 
     Posted data fields will be matched against their related model
@@ -41,9 +40,16 @@ def post(request):
     if request.headers.get('X-Daybed-Validate-Only', 'false') == 'true':
         return
 
-    model_name = request.matchdict['model_name']
-    data_id = request.db.create_data(model_name, json.loads(request.body))
-    created = '%s/data/%s' % (request.application_url, data_id)
+    model_id = request.matchdict['model_id']
+    data_id = request.db.put_data_item(model_id, json.loads(request.body))
+    created = '%s/models/%s/data/%s' % (request.application_url, model_id,
+                                        data_id)
     request.response.status = "201 Created"
     request.response.headers['location'] = created
     return {'id': data_id}
+
+
+@data.delete()
+def delete_data(request):
+    model_id = request.matchdict['model_id']
+    request.db.delete_data_items(model_id)

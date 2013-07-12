@@ -1,68 +1,74 @@
-from .designdocs import (
-    db_model_token,
-    db_definition,
-    db_data,
-    db_data_item,
-)
+from . import views
+from uuid import uuid4
 
 
 class Database(object):
     """Object handling all the connections to the couchdb server."""
 
     def __init__(self, db):
-        self.db = db
-        self.save = db.save
+        self._db = db
 
-    def get_definition(self, model_name):
-        """Get the scheme definition from the model_name.
-
-        :param model_name: the name of the definition you want to retrieve
-
-        """
-        results = db_definition(self.db)[model_name]
+    def get_model_definition(self, model_id):
+        results = views.model_definitions(self._db)[model_id].rows
         for result in results:
             return result.value
 
-    def get_definition_token(self, model_name):
-        """Return the token associated with a definition.
+    def get_data_items(self, model_id):
+        return views.model_data(self._db)[model_id]
 
-        :param model_name: the name of the definition you want to retrieve
-
-        """
-        return db_model_token(self.db)[model_name]
-
-    def get_data(self, model_name):
-        """Get the definition of the model data.
-
-        :param model_name: the name of the definition you want to retrieve
-
-        """
-        return db_data(self.db)[model_name]
-
-    def get_data_item(self, model_name, data_item_id):
-        """Get a data-item and checks it behaves to the requested model"""
-        key = [str(data_item_id), str(model_name)]
-        data_items = db_data_item(self.db)[key]
+    def get_data_item(self, model_id, data_item_id):
+        key = '-'.join((model_id, data_item_id))
+        data_items = views.model_data_items(self._db)[key]
         if len(data_items):
-            data_item = data_items.rows[0]
+            data_item = data_items.rows[0].value
             return data_item
         return None
 
-    def create_data(self, model_name, data, data_id=None):
-        """Create a data to a model_name."""
-        if data_id:
-            data_doc = self.db[data_id]
-            data_id = data_doc.id
-        else:
-            data_doc = {
-                'type': 'data',
-                'model_name': model_name,
-            }
-        data_doc['data'] = data
-
-        if data_id:
-            self.db[data_id] = data_doc
-        else:
-            data_id, rev = self.db.save(data_doc)
-
+    def put_model_definition(self, model_id, definition):
+        data_id, _ = self._db.save({
+            'type': 'definition',
+            '_id': model_id,
+            'definition': definition,
+            })
         return data_id
+
+    def put_data_item(self, model_id, data, data_item_id=None):
+        doc = {
+            'type': 'data',
+            'data': data,
+            'model_id': model_id}
+
+        if data_item_id is not None:
+            old_doc = self.get_data_item(model_id, data_item_id)
+            old_doc.update(doc)
+            doc = old_doc
+        else:
+            data_item_id = str(uuid4()).replace('-', '')
+            doc['_id'] = '-'.join((model_id, data_item_id))
+
+        self._db.save(doc)
+        return data_item_id
+
+    def delete_data_item(self, model_id, data_item_id):
+        doc = self.get_data_item(model_id, data_item_id)
+        if doc:
+            self._db.delete(doc)
+        return doc
+
+    def delete_data_items(self, model_id):
+        results = views.model_data(self._db)[model_id].rows
+        for result in results:
+            self._db.delete(result.value)
+        return results
+
+    def delete_model(self, model_id):
+        """DELETE ALL THE THINGS"""
+
+        # delete the associated data if any
+        self.delete_data_items(model_id)
+
+        # delete the model definition
+        doc = views.model_definitions(self._db)[model_id].rows[0].value
+        if doc:
+            self._db.delete(doc)
+        return doc

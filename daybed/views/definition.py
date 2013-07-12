@@ -1,65 +1,40 @@
-import os
 import json
 
 from cornice import Service
-from pyramid.httpexceptions import HTTPNotFound
+from pyramid.httpexceptions import HTTPNotFound, HTTPTemporaryRedirect
 
-from daybed.validators import definition_validator, token_validator
+from daybed.validators import definition_validator
 
 
-definition = Service(name='definition',
-                     path='/definitions/{model_name}',
-                     description='Model Definition',
-                     renderer="jsonp",
-                     cors_origins=('*',))
+definition = Service(name='model-definition',
+                 path='/models/{model_id}/definition',
+                 description='Model Definitions',
+                 renderer="jsonp",
+                 cors_origins=('*',))
 
 
 @definition.get()
-def get(request):
-    """Retrieves the model definition."""
-    model_name = request.matchdict['model_name']
-    definition = request.db.get_definition(model_name)
-    if definition:
-        return definition['definition']
-    raise HTTPNotFound(detail="Unknown model %s" % model_name)
+def get_definition(request):
+    """Retrieves a model definition"""
+    model_id = request.matchdict['model_id']
+    doc = request.db.get_model_definition(model_id)
+    if doc:
+        return doc['definition']
+    raise HTTPNotFound(detail="Unknown model %s" % model_id)
 
 
-@definition.put(validators=(token_validator, definition_validator))
-def put(request):
+@definition.put(validators=(definition_validator,))
+def put_definition(request):
     """Create or update a model definition.
 
     Checks that the data is a valid model definition.
-    In the case of a modification, checks that the token is valid and present.
 
     """
-    model_name = request.matchdict['model_name']
-
-    # Generate a unique token
-    token = os.urandom(40).encode('hex')
-
-    model_doc = {
-        'type': 'definition',
-        'name': model_name,
-        'definition': json.loads(request.body),
-        'token': token,
-    }
-    request.db.save(model_doc)
-    return {'token': token}
+    model_id = request.matchdict['model_id']
+    request.db.put_model_definition(model_id, json.loads(request.body))
+    return "ok"
 
 
-@definition.delete(validators=token_validator)
-def delete(request):
-    """Create or update a model definition.
-
-    Checks that the data is a valid model definition.
-    In the case of a modification, checks that the token is valid and present.
-
-    """
-    model_name = request.matchdict['model_name']
-
-    results = request.db.get_data(model_name)
-    for result in results:
-        request.db.db.delete(result.value)
-
-    result = request.db.get_definition(model_name)
-    request.db.db.delete(result)
+@definition.delete()
+def delete_definition(request):
+    raise HTTPTemporaryRedirect(request.url.replace('/definition', ''))
