@@ -1,12 +1,12 @@
 from . import views
-from uuid import uuid4
 
 
 class Database(object):
     """Object handling all the connections to the couchdb server."""
 
-    def __init__(self, db):
+    def __init__(self, db, generate_id):
         self._db = db
+        self.generate_id = generate_id
 
     def get_model_definition(self, model_id):
         results = views.model_definitions(self._db)[model_id].rows
@@ -24,13 +24,16 @@ class Database(object):
             return data_item
         return None
 
-    def put_model_definition(self, model_id, definition):
-        data_id, _ = self._db.save({
+    def put_model_definition(self, definition, model_id=None):
+        if model_id is None:
+            model_id = self.generate_id()
+
+        definition_id, _ = self._db.save({
             'type': 'definition',
             '_id': model_id,
             'definition': definition,
             })
-        return data_id
+        return definition_id
 
     def put_data_item(self, model_id, data, data_item_id=None):
         doc = {
@@ -43,7 +46,7 @@ class Database(object):
             old_doc.update(doc)
             doc = old_doc
         else:
-            data_item_id = str(uuid4()).replace('-', '')
+            data_item_id = self.generate_id()
             doc['_id'] = '-'.join((model_id, data_item_id))
 
         self._db.save(doc)

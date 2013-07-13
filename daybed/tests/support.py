@@ -3,6 +3,7 @@ try:
 except ImportError:
     import unittest  # NOQA
 
+from uuid import uuid4
 import webtest
 
 from daybed.backends.couchdb.database import Database
@@ -18,7 +19,7 @@ class BaseWebTest(unittest.TestCase):
 
         self.app = webtest.TestApp("config:tests.ini", relative_to='.')
         self.backend = self.app.app.registry.backend
-        self.db = Database(self.backend.db)
+        self.db = Database(self.backend.db, lambda: str(uuid4()))
 
     def tearDown(self):
         self.backend.delete_db()

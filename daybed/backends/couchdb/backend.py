@@ -26,6 +26,10 @@ class CouchDBBackend(object):
         self.server = Server(settings['backend.db_host'])
         self.db_name = os.environ.get('DB_NAME', settings['backend.db_name'])
 
+        # model id generator
+        generator = config.maybe_dotted(settings['daybed.id_generator'])
+        self._generate_id = generator(config)
+
         self.create_db_if_not_exist()
         self.sync_views()
         self.config.add_subscriber(self.add_db_to_request, NewRequest)
@@ -44,4 +48,4 @@ class CouchDBBackend(object):
         ViewDefinition.sync_many(self.db, docs)
 
     def add_db_to_request(self, event):
-        event.request.db = Database(self.db)
+        event.request.db = Database(self.db, self._generate_id)

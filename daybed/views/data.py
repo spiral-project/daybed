@@ -30,7 +30,7 @@ def get_data(request):
 
 @data.post(validators=schema_validator)
 def post_data(request):
-    """Saves a model record.
+    """Saves a model data.
 
     Posted data fields will be matched against their related model
     definition.

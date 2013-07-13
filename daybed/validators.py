@@ -2,7 +2,7 @@ from functools import partial
 import json
 
 import colander
-from schemas import DefinitionValidator, SchemaValidator
+from daybed.schemas import DefinitionValidator, SchemaValidator
 
 
 def validator(request, schema):

@@ -3,10 +3,7 @@ from daybed.schemas import registry
 
 
 class DaybedViewsTest(BaseWebTest):
-    """Daybed views tests.
 
-    WIP #31 Migrate Lettuce tests to conventional unit tests
-    """
     def test_fields_are_listed(self):
         response = self.app.get('/fields')
         fields = response.json
@@ -66,12 +63,49 @@ class FunctionalTest(object):
     def invalid_data(self):
         raise NotImplementedError
 
-    def post_definition(self, data=None):
-        if not data:
-            data = self.valid_definition
-        return self.app.post_json('/definitions/',
-                                  data,
+    def test_post_model_definition_without_data(self):
+        resp = self.app.post_json('/models',
+                                  {'definition': self.valid_definition},
                                   headers=self.headers)
+        model_id = resp.json['id']
+
+        data = self.db.get_model_definition(model_id)
+        self.assertEquals(data['definition'], self.valid_definition)
+
+    def test_post_model_definition_with_data(self):
+        resp = self.app.post_json('/models',
+                                  {'definition': self.valid_definition,
+                                   'data': [self.valid_data, self.valid_data]},
+                                  headers=self.headers)
+        model_id = resp.json['id']
+        self.assertEquals(len(self.db.get_data_items(model_id)), 2)
+
+    def test_put_model_definition_without_data(self):
+        resp = self.app.post_json('/models',
+                                  {'definition': self.valid_definition,
+                                   'data': [self.valid_data, self.valid_data]},
+                                  headers=self.headers)
+        model_id = resp.json['id']
+
+        resp = self.app.put_json('/models/%s' % model_id,
+                                  {'definition': self.valid_definition},
+                                  headers=self.headers)
+
+        self.assertEquals(len(self.db.get_data_items(model_id)), 0)
+
+    def test_put_model_definition_with_data(self):
+        resp = self.app.post_json('/models',
+                                  {'definition': self.valid_definition,
+                                   'data': [self.valid_data, self.valid_data]},
+                                  headers=self.headers)
+        model_id = resp.json['id']
+
+        resp = self.app.put_json('/models/%s' % model_id,
+                                  {'definition': self.valid_definition,
+                                   'data': [self.valid_data]},
+                                  headers=self.headers)
+
+        self.assertEquals(len(self.db.get_data_items(model_id)), 1)
 
     def create_definition(self, data=None):
         if not data:
@@ -93,11 +127,6 @@ class FunctionalTest(object):
         return self.app.post_json('/models/%s/data' % self.model_id,
                                   data,
                                   headers=self.headers)
-
-    def test_post_normal_definition(self):
-        resp = self.post_definition()
-        self.assertIn('token', resp.body)
-        self.assertIn('name', resp.body)
 
     def test_normal_definition_creation(self):
         self.create_definition()

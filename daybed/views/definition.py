@@ -31,7 +31,7 @@ def put_definition(request):
 
     """
     model_id = request.matchdict['model_id']
-    request.db.put_model_definition(model_id, json.loads(request.body))
+    request.db.put_model_definition(json.loads(request.body), model_id)
     return "ok"
 
 
