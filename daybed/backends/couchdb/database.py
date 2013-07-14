@@ -24,7 +24,7 @@ class Database(object):
             return data_item
         return None
 
-    def put_model_definition(self, definition, model_id=None):
+    def put_model(self, definition, users, policy_id, model_id=None):
         if model_id is None:
             model_id = self.generate_id()
 
@@ -32,6 +32,8 @@ class Database(object):
             'type': 'definition',
             '_id': model_id,
             'definition': definition,
+            'users': users,
+            'policy_id': policy_id
             })
         return definition_id
 
@@ -75,3 +77,17 @@ class Database(object):
         if doc:
             self._db.delete(doc)
         return doc
+
+    def get_roles(self, model_id):
+        return {'admins': ['group:pirates', 'group:flibustiers'],
+                'users': ['Remy', 'Alexis']}
+
+    def get_groups(self, user):
+        return ['pirates', 'bartender']
+
+    def get_policy(self, policy_name):
+        return views.policy_doc(self._db)[policy_name].rows[0].value
+
+    def get_model_policy(self, model_id):
+        policy_name = views.model(self._db)[model_id].rows[0].value['policy']
+        return self.get_policy(policy_name)

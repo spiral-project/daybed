@@ -110,8 +110,8 @@ class FunctionalTest(object):
     def create_definition(self, data=None):
         if not data:
             data = self.valid_definition
-        return self.app.put_json('/models/%s/definition' % self.model_id,
-                                 data,
+        return self.app.put_json('/models/%s' % self.model_id,
+                                 {'definition': data},
                                  headers=self.headers)
 
     def create_data(self, data=None):
@@ -155,7 +155,7 @@ class FunctionalTest(object):
 
     def test_definition_deletion_redirects(self):
         self.create_definition()
-        self.app.delete('/models/%s/definition' % self.model_id, status=307)
+        self.app.delete('/models/%s/definition' % self.model_id, status=405)
         self.db.delete_model(self.model_id)
 
     def test_model_deletion(self):
@@ -171,6 +171,7 @@ class FunctionalTest(object):
     def test_normal_data_creation(self):
         self.create_definition()
 
+        self.headers['REMOTE_USER'] = 'Alexis'
         # Put data against this definition
         resp = self.app.post_json('/models/%s/data' % self.model_id,
                                  self.valid_data,

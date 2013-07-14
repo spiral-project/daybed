@@ -38,8 +38,13 @@ def model_validator(request):
             validate_against_schema(request, definition_validator, data_item)
             request.validated['data'].append(data_item)
 
+    users = body.get('users', default_users)
+    validate_against_schema(request, UserValidator(), users)
+    request.validated['users'] = users
 
-@models.post(validators=(model_validator,))
+    policy_id = body.get('policy_id')
+
+@models.post(validators=(model_validator,), permission='post_model')
 def post_models(request):
     """creates an model with the given definition and data, if any."""
     model_id = request.db.put_model_definition(request.validated['definition'])
@@ -53,7 +58,7 @@ def post_models(request):
     return {'id': model_id}
 
 
-@model.delete()
+@model.delete(permission='delete_model')
 def delete_model(request):
     """Deletes a model and its matching associated data."""
     model_id = request.matchdict['model_id']
@@ -61,7 +66,7 @@ def delete_model(request):
     return "ok"
 
 
-@model.get()
+@model.get(permission='get_model')
 def get_model(request):
     """Returns the definition and data of the given model"""
     model_id = request.matchdict['model_id']
@@ -70,14 +75,14 @@ def get_model(request):
             'data': request.db.get_data(model_id)}
 
 
-@model.put(validators=(model_validator,))
+@model.put(validators=(model_validator,), permission='put_model')
 def put_model(request):
     model_id = request.matchdict['model_id']
 
     # DELETE ALL THE THINGS.
     request.db.delete_model(model_id)
 
-    request.db.put_model_definition(request.validated['definition'], model_id)
+    request.db.put_model(request.validated['definition'], users, policy_id, model_id)
 
     for data_item in request.validated['data']:
         request.db.put_data_item(model_id, data_item)

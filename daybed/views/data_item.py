@@ -13,7 +13,7 @@ data_item = Service(name='data_item',
                     renderer="jsonp")
 
 
-@data_item.get()
+@data_item.get(permission='get_data_item')
 def get(request):
     """Retrieves all model records."""
     model_id = request.matchdict['model_id']
@@ -27,7 +27,7 @@ def get(request):
     return result['data']
 
 
-@data_item.put(validators=schema_validator)
+@data_item.put(validators=schema_validator, permission='put_data_item')
 def put(request):
     """Update or create a data item."""
     model_id = request.matchdict['model_id']
@@ -37,7 +37,7 @@ def put(request):
     return {'id': data_id}
 
 
-@data_item.patch()
+@data_item.patch(permission='patch_data_item')
 def patch(request):
     """Update or create a data item."""
     model_id = request.matchdict['model_id']
@@ -56,7 +56,7 @@ def patch(request):
     return {'id': data_item_id}
 
 
-@data_item.delete()
+@data_item.delete(permission='delete_data_item')
 def delete(request):
     """Delete the data item."""
     model_id = request.matchdict['model_id']

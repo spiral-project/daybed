@@ -1,9 +1,5 @@
-import json
-
 from cornice import Service
-from pyramid.httpexceptions import HTTPNotFound, HTTPTemporaryRedirect
-
-from daybed.validators import definition_validator
+from pyramid.httpexceptions import HTTPNotFound
 
 
 definition = Service(name='model-definition',
@@ -13,7 +9,7 @@ definition = Service(name='model-definition',
                  cors_origins=('*',))
 
 
-@definition.get()
+@definition.get(permission='get_definition')
 def get_definition(request):
     """Retrieves a model definition"""
     model_id = request.matchdict['model_id']
@@ -21,20 +17,3 @@ def get_definition(request):
     if doc:
         return doc['definition']
     raise HTTPNotFound(detail="Unknown model %s" % model_id)
-
-
-@definition.put(validators=(definition_validator,))
-def put_definition(request):
-    """Create or update a model definition.
-
-    Checks that the data is a valid model definition.
-
-    """
-    model_id = request.matchdict['model_id']
-    request.db.put_model_definition(json.loads(request.body), model_id)
-    return "ok"
-
-
-@definition.delete()
-def delete_definition(request):
-    raise HTTPTemporaryRedirect(request.url.replace('/definition', ''))

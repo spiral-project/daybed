@@ -11,7 +11,7 @@ data = Service(name='data',
                renderer='jsonp')
 
 
-@data.get()
+@data.get(permission='get_data')
 def get_data(request):
     """Retrieves all model records."""
     model_id = request.matchdict['model_id']
@@ -28,7 +28,7 @@ def get_data(request):
     return {'data': data}
 
 
-@data.post(validators=schema_validator)
+@data.post(validators=schema_validator, permission='post_data')
 def post_data(request):
     """Saves a model data.
 
@@ -49,7 +49,7 @@ def post_data(request):
     return {'id': data_id}
 
 
-@data.delete()
+@data.delete(permission='delete_data')
 def delete_data(request):
     model_id = request.matchdict['model_id']
     request.db.delete_data_items(model_id)
