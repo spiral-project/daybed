@@ -31,6 +31,8 @@ We made two demo applications with *Daybed* :
 
 * A `TODO list <http://daybed.lolnet.org/>`_ using `jquery-spore <https://github.com/nikopol/jquery-spore>`_ ;
 
+* A generic `CRUD application <http://spiral-project.github.io/backbone-daybed/>`_ using `backbone-daybed <https://github.com/spiral-project/backbone-daybed>`_ ;
+
 
 Features
 ========
