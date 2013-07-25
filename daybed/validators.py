@@ -10,7 +10,7 @@ def validator(request, schema):
     try:
         body = request.body
         dictbody = json.loads(body) if body else {}
-        schema.deserialize(dictbody)
+        request.data_clean = schema.deserialize(dictbody)
     except ValueError, e:
         request.errors.add('body', 'body', str(e))
     except colander.Invalid, e:

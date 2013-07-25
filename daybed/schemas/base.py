@@ -117,7 +117,7 @@ class TypeFieldNode(SchemaType):
             schema = registry.definition(cstruct.get('type'))
         except UnknownFieldTypeError:
             schema = TypeField.definition()
-        schema.deserialize(cstruct)
+        return schema.deserialize(cstruct)
 
 
 class DefinitionValidator(SchemaNode):

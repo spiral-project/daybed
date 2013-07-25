@@ -1,5 +1,3 @@
-import json
-
 from cornice import Service
 from pyramid.exceptions import NotFound
 
@@ -42,7 +40,7 @@ def post(request):
         return
 
     model_name = request.matchdict['model_name']
-    data_id = request.db.create_data(model_name, json.loads(request.body))
+    data_id = request.db.create_data(model_name, request.data_clean)
     created = '%s/data/%s' % (request.application_url, data_id)
     request.response.status = "201 Created"
     request.response.headers['location'] = created
