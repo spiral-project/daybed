@@ -269,7 +269,8 @@ class TimestampedModelTest(FunctionalTest, BaseWebTest):
                 {
                     "name": "creation",
                     "type": "date",
-                    "description": "created on"
+                    "description": "created on",
+                    "auto_now": False
                 },
                 {
                     "name": "modified",
@@ -311,6 +312,7 @@ class MushroomsModelTest(FunctionalTest, BaseWebTest):
                 {
                     "name": "location",
                     "type": "polygon",
+                    "gps": True,
                     "description": "Area spotted"
                 }
             ]
@@ -319,7 +321,7 @@ class MushroomsModelTest(FunctionalTest, BaseWebTest):
     @property
     def valid_data(self):
         return {'mushroom': 'Boletus',
-                'location': [[[0, 0], [0, 1], [1, 1]]]}
+                'location': [[[0, 0], [0, 1], [1, 1], [0, 0]]]}  # closed polygon
 
     @property
     def invalid_data(self):
@@ -348,6 +350,7 @@ class CityModelTest(FunctionalTest, BaseWebTest):
                 {
                     "name": "location",
                     "type": "point",
+                    "gps": True,
                     "description": "(x,y,z)"
                 }
             ]
