@@ -1,4 +1,4 @@
-from daybed.tests.support import BaseWebTest
+from daybed.tests.support import BaseWebTest, force_unicode
 from daybed.schemas import registry
 
 
@@ -110,7 +110,8 @@ class FunctionalTest(object):
         # Verify that the schema is the same
         resp = self.app.get('/definitions/%s' % self.model_name,
                             headers=self.headers)
-        self.assertEqual(resp.json, self.valid_definition)
+        definition = force_unicode(self.valid_definition)
+        self.assertEqual(resp.json, definition)
 
     def test_definition_deletion(self):
         resp = self.create_definition()
@@ -155,8 +156,7 @@ class FunctionalTest(object):
         resp = self.app.get('/data/%s/%s' % (self.model_name,
                                              data_item_id),
                             headers=self.headers)
-        entry = self.valid_data.copy()
-        # entry['id'] = str(data_item_id
+        entry = force_unicode(self.valid_data)
         self.assertEqual(resp.json, entry)
 
     def test_data_update(self):
