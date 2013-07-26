@@ -130,9 +130,7 @@ class FunctionalTest(object):
         self.create_definition()
 
         # Put data against this definition
-        resp = self.app.post_json('/data/%s' % self.model_name,
-                                 self.valid_data,
-                                 headers=self.headers)
+        resp = self.create_data(self.valid_data)
         self.assertIn('id', resp.body)
 
     def test_invalid_data_validation(self):
