@@ -1,4 +1,3 @@
-from functools import partial
 import json
 
 import colander
@@ -16,7 +15,8 @@ def validator(request, schema):
 
 
 #  Validates a request body according model definition schema.
-definition_validator = partial(validator, schema=DefinitionValidator())
+def definition_validator(request):
+    return validator(request, DefinitionValidator(request))
 
 
 def schema_validator(request):
@@ -26,7 +26,7 @@ def schema_validator(request):
 
     doc = request.db.get_model_definition(model_id)
     if doc:
-        schema = SchemaValidator(doc['definition'])
+        schema = SchemaValidator(request, doc['definition'])
         validator(request, schema)
     else:
         request.errors.add('path', 'modelname',

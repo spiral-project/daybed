@@ -63,19 +63,19 @@ class TypeRegistry(object):
             raise NotRegisteredError('The model %s is not registered' % name)
         del self._registry[name]
 
-    def validation(self, typename, **options):
+    def validation(self, typename, db, **options):
         try:
             nodetype = self._registry[typename]
         except KeyError:
             raise UnknownFieldTypeError('Type "%s" is unknown' % typename)
-        return nodetype.validation(**options)
+        return nodetype.validation(db=db, **options)
 
-    def definition(self, typename, **options):
+    def definition(self, typename, db, **options):
         try:
             nodetype = self._registry[typename]
         except KeyError:
             raise UnknownFieldTypeError('Type "%s" is unknown' % typename)
-        return nodetype.definition(**options)
+        return nodetype.definition(db=db, **options)
 
     @property
     def names(self):
@@ -97,7 +97,7 @@ class TypeField(object):
     default_value = null
 
     @classmethod
-    def definition(cls):
+    def definition(cls, db=None):
         schema = SchemaNode(Mapping())
         schema.add(SchemaNode(String(), name='name'))
         schema.add(SchemaNode(String(), name='description', missing=''))
@@ -107,7 +107,7 @@ class TypeField(object):
         return schema
 
     @classmethod
-    def validation(cls, **kwargs):
+    def validation(cls, db=None, **kwargs):
         keys = ['name', 'description', 'validator', 'missing']
         specified = [key for key in keys if key in kwargs.keys()]
         options = dict(zip(specified, [kwargs.get(k) for k in specified]))
@@ -118,29 +118,33 @@ class TypeField(object):
 
 
 class TypeFieldNode(SchemaType):
+    def __init__(self, db, *args, **kwargs):
+        super(TypeFieldNode, self).__init__(*args, **kwargs)
+        self.db = db
+
     def deserialize(self, node, cstruct=null):
         try:
-            schema = registry.definition(cstruct.get('type'))
+            schema = registry.definition(cstruct.get('type'), db=self.db)
         except UnknownFieldTypeError:
-            schema = TypeField.definition()
+            schema = TypeField.definition(self.db)
         schema.deserialize(cstruct)
 
 
 class DefinitionValidator(SchemaNode):
-    def __init__(self):
+    def __init__(self, request):
         super(DefinitionValidator, self).__init__(Mapping())
         self.add(SchemaNode(String(), name='title'))
         self.add(SchemaNode(String(), name='description'))
-        self.add(SchemaNode(Sequence(), SchemaNode(TypeFieldNode()),
+        self.add(SchemaNode(Sequence(), SchemaNode(TypeFieldNode(request.db)),
                             name='fields', validator=Length(min=1)))
 
 
 class SchemaValidator(SchemaNode):
-    def __init__(self, definition):
+    def __init__(self, request, definition):
         super(SchemaValidator, self).__init__(Mapping())
         for field in definition['fields']:
             fieldtype = field.pop('type')
-            self.add(registry.validation(fieldtype, **field))
+            self.add(registry.validation(fieldtype, db=request.db, **field))
 
 
 @registry.add('int')
@@ -168,8 +172,8 @@ class EnumField(TypeField):
     node = String
 
     @classmethod
-    def definition(cls):
-        schema = super(EnumField, cls).definition()
+    def definition(cls, **kwargs):
+        schema = super(EnumField, cls).definition(**kwargs)
         schema.add(SchemaNode(Sequence(), SchemaNode(String()),
                               name='choices', validator=Length(min=1)))
         return schema
@@ -185,8 +189,8 @@ class RangeField(TypeField):
     node = Int
 
     @classmethod
-    def definition(cls):
-        schema = super(RangeField, cls).definition()
+    def definition(cls, **kwargs):
+        schema = super(RangeField, cls).definition(**kwargs)
         schema.add(SchemaNode(Int(), name='min'))
         schema.add(SchemaNode(Int(), name='max'))
         return schema
@@ -204,8 +208,8 @@ class RegexField(TypeField):
     node = String
 
     @classmethod
-    def definition(cls):
-        schema = super(RegexField, cls).definition()
+    def definition(cls, **kwargs):
+        schema = super(RegexField, cls).definition(**kwargs)
         schema.add(SchemaNode(String(), name='regex', validator=Length(min=1)))
         return schema
 
@@ -253,8 +257,8 @@ class AutoNowMixin(object):
     auto_now = False
 
     @classmethod
-    def definition(cls):
-        schema = super(AutoNowMixin, cls).definition()
+    def definition(cls, **kwargs):
+        schema = super(AutoNowMixin, cls).definition(**kwargs)
         schema.add(SchemaNode(Boolean(), name='auto_now', missing=cls.auto_now))
         return schema
 
