@@ -1,8 +1,14 @@
+from daybed import VERSION
 from daybed.tests.support import BaseWebTest
 from daybed.schemas import registry
 
 
 class DaybedViewsTest(BaseWebTest):
+
+    def test_hello(self):
+        response = self.app.get('/')
+        self.assertDictEqual({'version': VERSION,
+                              'daybed': 'hello'}, response.json)
 
     def test_fields_are_listed(self):
         response = self.app.get('/fields')
