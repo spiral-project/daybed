@@ -154,8 +154,10 @@ class FunctionalTest(object):
         resp = self.app.get('/data/%s/%s' % (self.model_name,
                                              data_item_id),
                             headers=self.headers)
-        entry = force_unicode(self.valid_data)
-        self.assertEqual(resp.json, entry)
+        self.assertDataCorrect(resp.json, force_unicode(self.valid_data))
+
+    def assertDataCorrect(self, data, entry):
+        self.assertEqual(data, entry)
 
     def test_data_update(self):
         self.create_definition()
@@ -291,6 +293,11 @@ class TimestampedModelTest(FunctionalTest, BaseWebTest):
         entry['creation'] = '2013-05-30'
         entry['modified'] = ''
 
+    def assertDataCorrect(self, data, entry):
+        self.assertEqual(data['creation'], entry['creation'])
+        # Check that auto-now worked
+        self.assertNotEqual(data['modified'], entry['creation'])
+
 
 class MushroomsModelTest(FunctionalTest, BaseWebTest):
 
@@ -319,7 +326,7 @@ class MushroomsModelTest(FunctionalTest, BaseWebTest):
     @property
     def valid_data(self):
         return {'mushroom': 'Boletus',
-                'location': [[[0, 0], [0, 1], [1, 1], [0, 0]]]}  # closed polygon
+                'location': [[[0, 0], [0, 1], [1, 1]]]}  # closed polygon
 
     @property
     def invalid_data(self):
@@ -328,6 +335,12 @@ class MushroomsModelTest(FunctionalTest, BaseWebTest):
 
     def update_data(self, entry):
         entry['location'] = [[[0, 0], [0, 2], [2, 2]], [[0.5, 0.5], [0.5, 1], [1, 1]]]
+
+    def assertDataCorrect(self, data, entry):
+        self.assertEqual(data['mushroom'], entry['mushroom'])
+        # Check that polygon was closed automatically
+        self.assertNotEqual(data['location'], entry['location'])
+        self.assertEqual(data['location'][0][0], data['location'][0][-1])
 
 
 class CityModelTest(FunctionalTest, BaseWebTest):
