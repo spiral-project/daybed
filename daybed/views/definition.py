@@ -37,6 +37,11 @@ def put(request):
     # Generate a unique token
     token = os.urandom(40).encode('hex')
 
+    # If definition exists, re-use same token
+    definition = request.db.get_definition(model_name)
+    if definition:
+        token = definition.get('token', token)
+
     model_doc = {
         'type': 'definition',
         'name': model_name,
