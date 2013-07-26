@@ -79,7 +79,7 @@ class FieldTypeTests(unittest.TestCase):
         definition = schema.deserialize(
             {'name': 'age',
              'type': 'range',
-             'min': 0, 'max': 100,})
+             'min': 0, 'max': 100})
 
         validator = schemas.RangeField.validation(**definition)
         self.assertEquals(30, validator.deserialize(30))

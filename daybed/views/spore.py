@@ -13,4 +13,4 @@ spore = Service(name="spore",
 @spore.get()
 def get_spore(request):
     return generate_spore_description(get_services(), 'daybed',
-              request.application_url, VERSION)
+                                      request.application_url, VERSION)

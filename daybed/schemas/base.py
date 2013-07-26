@@ -12,7 +12,6 @@ from colander import (
     Sequence,
     Length,
     SchemaType,
-    null,
     Int,
     Decimal,
     Boolean,
@@ -25,7 +24,7 @@ from colander import (
 
 __all__ = ['registry', 'TypeField',
            'DefinitionValidator', 'SchemaValidator',
-           'IntField', 'StringField', 'RangeField', 
+           'IntField', 'StringField', 'RangeField',
            'RegexField', 'EmailField', 'URLField',
            'DecimalField', 'DateField', 'DateTimeField']
 

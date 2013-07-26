@@ -12,10 +12,10 @@ models = Service(name='models',
                  cors_origins=('*',))
 
 model = Service(name='model',
-                 path='/models/{model_id}',
-                 description='Model',
-                 renderer="jsonp",
-                 cors_origins=('*',))
+                path='/models/{model_id}',
+                description='Model',
+                renderer="jsonp",
+                cors_origins=('*',))
 
 
 def model_validator(request):
