@@ -74,6 +74,18 @@ class FieldTypeTests(unittest.TestCase):
         self.assertEquals(colander.null, validator.deserialize(''))
         self.assertRaises(colander.Invalid, validator.deserialize, 'abc')
 
+    def test_enum(self):
+        schema = schemas.EnumField.definition()
+        definition = schema.deserialize(
+            {'name': 'state',
+             'type': 'enum',
+             'choices': ['on', 'off']})
+
+        validator = schemas.EnumField.validation(**definition)
+        self.assertEquals('on', validator.deserialize('on'))
+        self.assertRaises(colander.Invalid, validator.deserialize, '')
+        self.assertRaises(colander.Invalid, validator.deserialize, 'ON')
+
     def test_range(self):
         schema = schemas.RangeField.definition()
         definition = schema.deserialize(
