@@ -437,6 +437,7 @@ class MushroomsModelTest(FunctionalTest, BaseWebTest):
 
         features = resp.json['features']
         feature = features[0]
+        self.assertIsNotNone(feature.get('id'))
         self.assertEquals(feature['properties']['mushroom'], 'Boletus')
         self.assertIsNone(feature['properties'].get('location'))
         self.assertEquals(feature['geometry']['type'], 'Polygon')

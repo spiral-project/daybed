@@ -54,11 +54,14 @@ class GeoJSON(JSON):
         """Return GeoJSON feature (properties + geometry(ies))
         """
         feature = dict(type='Feature')
+        feature['id'] = record.pop('id', None)
         first = True
         for name, geomtype in geom_fields.items():
             coords = record.pop(name)
             name = 'geometry' if first else name
+            # Note for future: this won't work for GeometryCollection
             geometry = dict(type=geomtype, coordinates=coords)
             feature[name] = geometry
+            first = False
         feature['properties'] = record
         return feature
