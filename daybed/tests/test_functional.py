@@ -421,17 +421,17 @@ class MushroomsModelTest(FunctionalTest, BaseWebTest):
 
     def test_data_geojson_retrieval(self):
         resp = self.create_definition()
-        self.assertIn('token', resp.body)
+        self.assertIn('ok', resp.body)
         resp = self.create_data()
         self.assertIn('id', resp.body)
 
         headers = self.headers.copy()
-        resp = self.app.get('/data/%s' % self.model_name,
+        resp = self.app.get('/models/%s/data' % self.model_id,
                             headers=headers)
         self.assertIn('data', resp.json)
 
         headers['Accept'] = 'application/geojson'
-        resp = self.app.get('/data/%s' % (self.model_name),
+        resp = self.app.get('/models/%s/data' % (self.model_id),
                             headers=headers)
         self.assertIn('features', resp.json)
 
