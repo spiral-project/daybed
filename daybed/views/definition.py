@@ -7,10 +7,10 @@ from daybed.validators import definition_validator
 
 
 definition = Service(name='model-definition',
-                 path='/models/{model_id}/definition',
-                 description='Model Definitions',
-                 renderer="jsonp",
-                 cors_origins=('*',))
+                     path='/models/{model_id}/definition',
+                     description='Model Definitions',
+                     renderer="jsonp",
+                     cors_origins=('*',))
 
 
 @definition.get()

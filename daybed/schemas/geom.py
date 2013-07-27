@@ -39,7 +39,8 @@ class PointNode(SchemaNode):
     def __init__(self, *args, **kwargs):
         defaults = dict(validator=Length(min=2))
         defaults.update(**kwargs)
-        super(PointNode, self).__init__(Sequence(), SchemaNode(Float()), **defaults)
+        super(PointNode, self).__init__(Sequence(), SchemaNode(Float()),
+                                        **defaults)
 
     def deserialize(self, cstruct=null):
         deserialized = super(PointNode, self).deserialize(cstruct)
@@ -94,8 +95,9 @@ class LinearRingNode(SchemaNode):
 class GeometryField(TypeField):
     """A field type representing geometries: basically a list of positions.
 
-    Positions are coordinates following *x, y, z* order (or *longitude, latitude,
-    altitude*) for geographic coordinates). A minimum of two dimensions is required,
+    Positions are coordinates following *x, y, z* order
+    (or *longitude, latitude, altitude*) for geographic coordinates).
+    A minimum of two dimensions is required,
     but any number of additional elements are allowed.
 
     This field definition accepts one optional parameter:

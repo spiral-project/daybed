@@ -5,7 +5,7 @@ from couchdb.design import ViewDefinition
 
 """ Model definitions, by model id. """
 model_definitions = ViewDefinition('definitions', 'all',
-                                        """function(doc) {
+                                   """function(doc) {
         if (doc.type == "definition") {
             emit(doc._id, doc);
         }

@@ -89,8 +89,8 @@ class FunctionalTest(object):
         model_id = resp.json['id']
 
         resp = self.app.put_json('/models/%s' % model_id,
-                                  {'definition': self.valid_definition},
-                                  headers=self.headers)
+                                 {'definition': self.valid_definition},
+                                 headers=self.headers)
 
         self.assertEquals(len(self.db.get_data_items(model_id)), 0)
 
@@ -102,9 +102,9 @@ class FunctionalTest(object):
         model_id = resp.json['id']
 
         resp = self.app.put_json('/models/%s' % model_id,
-                                  {'definition': self.valid_definition,
-                                   'data': [self.valid_data]},
-                                  headers=self.headers)
+                                 {'definition': self.valid_definition,
+                                  'data': [self.valid_data]},
+                                 headers=self.headers)
 
         self.assertEquals(len(self.db.get_data_items(model_id)), 1)
 
@@ -134,16 +134,16 @@ class FunctionalTest(object):
 
     def test_malformed_definition_creation(self):
         resp = self.app.put_json('/models/%s/definition' % self.model_id,
-                    self.definition_without_title,
-                    headers=self.headers,
-                    status=400)
+                                 self.definition_without_title,
+                                 headers=self.headers,
+                                 status=400)
         self.assertIn('"name": "title"', resp.body)
 
     def test_definition_creation_rejects_malformed_data(self):
         resp = self.app.put('/models/%s/definition' % self.model_id,
-                    self.malformed_definition,
-                    headers=self.headers,
-                    status=400)
+                            self.malformed_definition,
+                            headers=self.headers,
+                            status=400)
         self.assertIn('"status": "error"', resp.body)
 
     def test_definition_retrieval(self):
@@ -174,8 +174,8 @@ class FunctionalTest(object):
 
         # Put data against this definition
         resp = self.app.post_json('/models/%s/data' % self.model_id,
-                                 self.valid_data,
-                                 headers=self.headers)
+                                  self.valid_data,
+                                  headers=self.headers)
         self.assertIn('id', resp.body)
 
     def test_invalid_data_validation(self):
