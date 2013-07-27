@@ -1,4 +1,3 @@
-import json
 from pyramid.renderers import JSON
 
 
@@ -16,14 +15,15 @@ class GeoJSON(JSON):
 
             # Inspect model definition
             geom_fields = {}
-            model_name = request.matchdict.get('model_name')
-            if model_name:
-                definition = request.db.get_definition(model_name)
+            model_id = request.matchdict.get('model_id')
+            if model_id:
+                definition = request.db.get_model_definition(model_id)
                 if definition:
                     geom_fields = self._geomFields(definition.get('definition'))
 
             # Transform data records into GeoJSON feature collection
             records = value.get('data')
+
             if records:
                 geojson = dict(type='FeatureCollection', features=[])
                 for record in records:
