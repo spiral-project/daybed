@@ -1,3 +1,4 @@
+VIRTUALENV=virtualenv
 DEV_STAMP=.dev_env_installed.stamp
 VENV_STAMP=.venv_installed.stamp
 INSTALL_STAMP=.install.stamp
@@ -22,8 +23,9 @@ $(DEV_STAMP): $(VENV_STAMP) dev-requirements.txt
 	touch $(DEV_STAMP)
 
 $(VENV_STAMP):
-	virtualenv .
+	$(VIRTUALENV) .
 	touch $(VENV_STAMP)
+
 clean:
 	rm -fr $(OBJECTS) $(DEV_STAMP) $(VENV_STAMP) $(INSTALL_STAMP)
 
