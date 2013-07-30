@@ -16,7 +16,7 @@ $(INSTALL_STAMP): virtualenv
 	$(PYTHON) setup.py develop
 	touch $(INSTALL_STAMP)
 
-install-dev: $(DEV_STAMP)
+install-dev: install $(DEV_STAMP)
 $(DEV_STAMP): virtualenv dev-requirements.txt
 	$(VENV)/bin/pip install -r dev-requirements.txt --use-mirrors
 	touch $(DEV_STAMP)
