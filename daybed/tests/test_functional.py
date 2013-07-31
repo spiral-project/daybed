@@ -55,7 +55,8 @@ class FunctionalTest(object):
         self.definition_without_title = self.valid_definition.copy()
         self.definition_without_title.pop('title')
         self.malformed_definition = '{"test":"toto", "titi": "tutu'
-        self.headers = {'Content-Type': 'application/json'}
+        self.headers = {'Accept': 'application/json',
+                        'Content-Type': 'application/json'}
 
     @property
     def valid_definition(self):
@@ -205,7 +206,7 @@ class FunctionalTest(object):
                                                     data_item_id),
                             headers=self.headers)
         entry = self.valid_data.copy()
-        # entry['id'] = str(data_item_id
+
         self.assertEqual(resp.json, entry)
 
     def test_data_item_update(self):
@@ -423,6 +424,31 @@ class MushroomsModelTest(FunctionalTest, BaseWebTest):
     def update_data(self, entry):
         entry['location'] = [[[0, 0], [0, 2], [2, 2]],
                              [[0.5, 0.5], [0.5, 1], [1, 1]]]
+
+    def test_data_geojson_retrieval(self):
+        resp = self.create_definition()
+        self.assertIn('ok', resp.body)
+        resp = self.create_data()
+        self.assertIn('id', resp.body)
+
+        headers = self.headers.copy()
+        resp = self.app.get('/models/%s/data' % self.model_id,
+                            headers=headers)
+        self.assertIn('data', resp.json)
+
+        headers['Accept'] = 'application/geojson'
+        resp = self.app.get('/models/%s/data' % (self.model_id),
+                            headers=headers)
+        self.assertIn('features', resp.json)
+
+        features = resp.json['features']
+        feature = features[0]
+        self.assertIsNotNone(feature.get('id'))
+        self.assertEquals(feature['properties']['mushroom'], 'Boletus')
+        self.assertIsNone(feature['properties'].get('location'))
+        self.assertEquals(feature['geometry']['type'], 'Polygon')
+        self.assertItemsEqual(feature['geometry']['coordinates'],
+                              [[[0, 0], [0, 1], [1, 1]]])  # after update
 
 
 class CityModelTest(FunctionalTest, BaseWebTest):

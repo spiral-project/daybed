@@ -5,6 +5,7 @@ from pyramid.exceptions import NotFound
 
 from daybed.validators import schema_validator
 
+
 data = Service(name='data',
                path='/models/{model_id}/data',
                description='Model data',
@@ -12,6 +13,7 @@ data = Service(name='data',
 
 
 @data.get()
+@data.get(accept='application/geojson', renderer='geojson')
 def get_data(request):
     """Retrieves all model records."""
     model_id = request.matchdict['model_id']
@@ -23,7 +25,7 @@ def get_data(request):
     results = request.db.get_data_items(model_id)
     data = []
     for result in results:
-        result.value['data']['id'] = result._id
+        result.value['data']['id'] = result.value['_id']
         data.append(result.value['data'])
     return {'data': data}
 
