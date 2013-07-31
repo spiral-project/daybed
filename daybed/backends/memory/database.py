@@ -2,7 +2,7 @@ from copy import deepcopy
 
 
 class Database(object):
-    """Object handling all the connections to the couchdb server."""
+    """Object handling all the db interactions."""
 
     def __init__(self, db, generate_id):
         self._db = db
