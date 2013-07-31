@@ -1,5 +1,4 @@
 import os
-import json
 
 from cornice import Service
 from pyramid.httpexceptions import HTTPNotFound
@@ -45,7 +44,7 @@ def put(request):
     model_doc = {
         'type': 'definition',
         'name': model_name,
-        'definition': json.loads(request.body),
+        'definition': request.data_clean,
         'token': token,
     }
     request.db.save(model_doc)

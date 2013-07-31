@@ -1,3 +1,4 @@
+import datetime
 from .designdocs import (
     db_model_token,
     db_definition,
@@ -48,6 +49,19 @@ class Database(object):
             return data_item
         return None
 
+    def _pre_create(self, data):
+        """Prepare data to be saved.
+
+        Main purpose here, is to convert date(time) into CouchDB format
+        """
+        ready = dict()
+        for k, v in data.items():
+            if isinstance(v, (datetime.date, datetime.datetime)):
+                ready[k] = v.isoformat()
+            else:
+                ready[k] = v
+        return ready
+
     def create_data(self, model_name, data, data_id=None):
         """Create a data to a model_name."""
         if data_id:
@@ -58,11 +72,11 @@ class Database(object):
                 'type': 'data',
                 'model_name': model_name,
             }
-        data_doc['data'] = data
+
+        data_doc['data'] = self._pre_create(data)
 
         if data_id:
             self.db[data_id] = data_doc
         else:
             data_id, rev = self.db.save(data_doc)
-
         return data_id

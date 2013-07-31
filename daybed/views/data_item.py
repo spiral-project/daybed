@@ -1,5 +1,3 @@
-import json
-
 from cornice import Service
 from pyramid.exceptions import NotFound
 
@@ -31,7 +29,7 @@ def put(request):
     """Update or create a data item."""
     model_name = request.matchdict['model_name']
     data_item_id = request.matchdict['data_item_id']
-    data_id = request.db.create_data(model_name, json.loads(request.body),
+    data_id = request.db.create_data(model_name, request.data_clean,
                                      data_item_id)
     return {'id': data_id}
 
