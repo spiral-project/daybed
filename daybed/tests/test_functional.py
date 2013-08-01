@@ -1,5 +1,5 @@
 from daybed import VERSION
-from daybed.tests.support import BaseWebTest
+from daybed.tests.support import BaseWebTest, force_unicode
 from daybed.schemas import registry
 
 
@@ -158,7 +158,8 @@ class FunctionalTest(object):
         # Verify that the schema is the same
         resp = self.app.get('/models/%s/definition' % self.model_id,
                             headers=self.headers)
-        self.assertEqual(resp.json, self.valid_definition)
+        definition = force_unicode(self.valid_definition)
+        self.assertDictEqual(resp.json, definition)
 
     def test_definition_deletion_redirects(self):
         self.create_definition()
@@ -205,9 +206,10 @@ class FunctionalTest(object):
         resp = self.app.get('/models/%s/data/%s' % (self.model_id,
                                                     data_item_id),
                             headers=self.headers)
-        entry = self.valid_data.copy()
+        self.assertDataCorrect(resp.json, force_unicode(self.valid_data))
 
-        self.assertEqual(resp.json, entry)
+    def assertDataCorrect(self, data, entry):
+        self.assertEqual(data, entry)
 
     def test_data_item_update(self):
         self.create_definition()
@@ -297,7 +299,7 @@ class SimpleModelTest(FunctionalTest, BaseWebTest):
         return {
             "title": "simple",
             "description": "One optional field",
-            "fields": [{"name": "age", "type": "int", "required": False}]
+            "fields": [{"name": "age", "type": "int", "required": False, "description": ""}]
         }
 
     @property
@@ -325,7 +327,8 @@ class TodoModelTest(FunctionalTest, BaseWebTest):
                 {
                     "name": "item",
                     "type": "string",
-                    "description": "The item"
+                    "description": "The item",
+                    "required": True,
                 },
                 {
                     "name": "status",
@@ -334,6 +337,7 @@ class TodoModelTest(FunctionalTest, BaseWebTest):
                         "done",
                         "todo"
                     ],
+                    "required": True,
                     "description": "is it done or not"
                 }
             ]
@@ -364,12 +368,15 @@ class TimestampedModelTest(FunctionalTest, BaseWebTest):
                 {
                     "name": "creation",
                     "type": "date",
-                    "description": "created on"
+                    "description": "created on",
+                    "required": True,
+                    "auto_now": False
                 },
                 {
                     "name": "modified",
                     "type": "datetime",
                     "description": "modified on",
+                    "required": True,
                     "auto_now": True
                 },
             ]
@@ -387,6 +394,11 @@ class TimestampedModelTest(FunctionalTest, BaseWebTest):
         entry['creation'] = '2013-05-30'
         entry['modified'] = ''
 
+    def assertDataCorrect(self, data, entry):
+        self.assertEqual(data['creation'], entry['creation'])
+        # Check that auto-now worked
+        self.assertNotEqual(data['modified'], entry['creation'])
+
 
 class MushroomsModelTest(FunctionalTest, BaseWebTest):
 
@@ -401,11 +413,14 @@ class MushroomsModelTest(FunctionalTest, BaseWebTest):
                 {
                     "name": "mushroom",
                     "type": "string",
+                    "required": True,
                     "description": "Species"
                 },
                 {
                     "name": "location",
                     "type": "polygon",
+                    "gps": True,
+                    "required": True,
                     "description": "Area spotted"
                 }
             ]
@@ -424,6 +439,12 @@ class MushroomsModelTest(FunctionalTest, BaseWebTest):
     def update_data(self, entry):
         entry['location'] = [[[0, 0], [0, 2], [2, 2]],
                              [[0.5, 0.5], [0.5, 1], [1, 1]]]
+
+    def assertDataCorrect(self, data, entry):
+        self.assertEqual(data['mushroom'], entry['mushroom'])
+        # Check that polygon was closed automatically
+        self.assertNotEqual(data['location'], entry['location'])
+        self.assertEqual(data['location'][0][0], data['location'][0][-1])
 
     def test_data_geojson_retrieval(self):
         resp = self.create_definition()
@@ -447,8 +468,9 @@ class MushroomsModelTest(FunctionalTest, BaseWebTest):
         self.assertEquals(feature['properties']['mushroom'], 'Boletus')
         self.assertIsNone(feature['properties'].get('location'))
         self.assertEquals(feature['geometry']['type'], 'Polygon')
+        # after update
         self.assertItemsEqual(feature['geometry']['coordinates'],
-                              [[[0, 0], [0, 1], [1, 1]]])  # after update
+                              [[[0, 0], [0, 1], [1, 1], [0, 0]]])
 
 
 class CityModelTest(FunctionalTest, BaseWebTest):
@@ -464,11 +486,14 @@ class CityModelTest(FunctionalTest, BaseWebTest):
                 {
                     "name": "name",
                     "type": "string",
+                    "required": True,
                     "description": "Administrative"
                 },
                 {
                     "name": "location",
                     "type": "point",
+                    "gps": True,
+                    "required": True,
                     "description": "(x,y,z)"
                 }
             ]
@@ -500,6 +525,7 @@ class EuclideModelTest(FunctionalTest, BaseWebTest):
                 {
                     "name": "location",
                     "type": "point",
+                    "required": True,
                     "description": "(x,y)",
                     "gps": False
                 }

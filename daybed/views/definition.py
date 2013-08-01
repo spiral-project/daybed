@@ -1,5 +1,3 @@
-import json
-
 from cornice import Service
 from pyramid.httpexceptions import HTTPNotFound, HTTPTemporaryRedirect
 
@@ -31,7 +29,7 @@ def put_definition(request):
 
     """
     model_id = request.matchdict['model_id']
-    request.db.put_model_definition(json.loads(request.body), model_id)
+    request.db.put_model_definition(request.data_clean, model_id)
     return "ok"
 
 
