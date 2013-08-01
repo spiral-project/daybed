@@ -185,7 +185,7 @@ class EnumField(TypeField):
 
 
 class JSONList(List):
-    """A set of items in JSON-like format"""
+    """Pure JSON or string, as serialized JSON or comma-separated values"""
     def deserialize(self, node, cstruct, **kwargs):
         if cstruct is null:
             return cstruct
