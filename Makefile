@@ -5,19 +5,19 @@ DEV_STAMP=.dev_env_installed.stamp
 INSTALL_STAMP=.install.stamp
 
 .IGNORE: clean
-.PHONY: functional_tests unit_tests tests
+.PHONY: all install virtualenv tests
 
 OBJECTS = bin/ lib/ local/ include/ man/ .coverage d2to1-0.2.7-py2.7.egg \
 	.coverage daybed.egg-info
 
 all: install
 install: $(INSTALL_STAMP)
-$(INSTALL_STAMP): virtualenv
+$(INSTALL_STAMP): $(PYTHON)
 	$(PYTHON) setup.py develop
 	touch $(INSTALL_STAMP)
 
-install-dev: install $(DEV_STAMP)
-$(DEV_STAMP): virtualenv dev-requirements.txt
+install-dev: $(DEV_STAMP)
+$(DEV_STAMP): $(PYTHON)
 	$(VENV)/bin/pip install -r dev-requirements.txt --use-mirrors
 	touch $(DEV_STAMP)
 
@@ -28,8 +28,8 @@ $(PYTHON):
 clean:
 	rm -fr $(OBJECTS) $(DEV_STAMP) $(INSTALL_STAMP)
 
-tests: $(INSTALL_STAMP) install-dev
+tests: $(DEV_STAMP)
 	$(VENV)/bin/nosetests --with-coverage --cover-package=daybed -s
 
-serve: install-dev
+serve: $(DEV_STAMP)
 	$(VENV)/bin/pserve development.ini --reload
