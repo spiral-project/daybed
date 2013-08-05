@@ -26,14 +26,14 @@ def model_validator(request):
     if not definition:
         request.errors.add('body', 'definition', 'definition is required')
     else:
-        validate_against_schema(request, DefinitionValidator(request), definition)
+        validate_against_schema(request, DefinitionValidator(), definition)
     request.validated['definition'] = definition
 
     # Check that the data items are valid according to the definition.
     data = body.get('data')
     request.validated['data'] = []
     if data:
-        definition_validator = SchemaValidator(request, definition)
+        definition_validator = SchemaValidator(definition)
         for data_item in data:
             validate_against_schema(request, definition_validator, data_item)
             request.validated['data'].append(data_item)

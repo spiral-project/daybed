@@ -113,8 +113,8 @@ class GeometryField(TypeField):
     subnode = PointNode
 
     @classmethod
-    def definition(cls, **kwargs):
-        schema = super(GeometryField, cls).definition(**kwargs)
+    def definition(cls):
+        schema = super(GeometryField, cls).definition()
         schema.add(SchemaNode(Boolean(), name='gps', missing=cls.gps))
         return schema
 

@@ -34,9 +34,9 @@ class TypeRegistryTests(unittest.TestCase):
         self.types.unregister('bar')
         self.assertEqual([], self.types.names)
         self.assertRaises(UnknownFieldTypeError,
-                          self.types.definition, 'bar', db=None)
+                          self.types.definition, 'bar')
         self.assertRaises(UnknownFieldTypeError,
-                          self.types.validation, 'bar', db=None)
+                          self.types.validation, 'bar')
 
     def test_register_again(self):
         self.types.register('foo', None)

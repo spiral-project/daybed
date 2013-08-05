@@ -50,7 +50,7 @@ def patch(request):
     data = data_item['data']
     data.update(json.loads(request.body))
     definition = request.db.get_model_definition(model_id)['definition']
-    validate_against_schema(request, SchemaValidator(request, definition), data)
+    validate_against_schema(request, SchemaValidator(definition), data)
     if not request.errors:
         request.db.put_data_item(model_id, data, data_item_id)
     return {'id': data_item_id}

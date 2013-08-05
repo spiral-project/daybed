@@ -18,7 +18,7 @@ def list_fields(request):
     for name in registry.names:
         field = dict(name=name)
         # Describe field parameters using Colander children
-        for parameter in registry.definition(name, request.db).children:
+        for parameter in registry.definition(name).children:
             if parameter.name not in common_params:
                 fieldtype = parameter.typ.__class__.__name__.lower()
                 extras = dict(name=parameter.name,
