@@ -1,3 +1,4 @@
+from pyramid.config import global_registries
 from colander import (String, SchemaNode, Invalid)
 from .base import registry, TypeField
 
@@ -31,12 +32,14 @@ class OneOfField(TypeField):
 
     @classmethod
     def definition(cls, **kwargs):
+        db = global_registries.last.backend.db()
         schema = super(OneOfField, cls).definition(**kwargs)
         schema.add(SchemaNode(String(), name='model',
-                   validator=ModelExist(kwargs['db'])))
+                   validator=ModelExist(db)))
         return schema
 
     @classmethod
     def validation(cls, **kwargs):
-        kwargs['validator'] = DataItemExist(kwargs['db'], kwargs['model'])
+        db = global_registries.last.backend.db()
+        kwargs['validator'] = DataItemExist(db, kwargs['model'])
         return super(OneOfField, cls).validation(**kwargs)

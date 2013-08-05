@@ -12,7 +12,7 @@ class FieldTypeTests(BaseWebTest):
         return self.db.put_data_item('simple', fakedata)
 
     def test_unknown_model(self):
-        schema = schemas.OneOfField.definition(db=self.db)
+        schema = schemas.OneOfField.definition()
         self.assertRaises(colander.Invalid,
                           schema.deserialize, {'name': 'foo',
                                                'type': 'oneof',
@@ -20,7 +20,7 @@ class FieldTypeTests(BaseWebTest):
 
     def test_existing_model(self):
         self._create_model()
-        schema = schemas.OneOfField.definition(db=self.db)
+        schema = schemas.OneOfField.definition()
         definition = schema.deserialize({'name': 'foo',
                                          'type': 'oneof',
                                          'model': 'simple'})
@@ -28,18 +28,18 @@ class FieldTypeTests(BaseWebTest):
 
     def test_unknown_data_item(self):
         self._create_model()
-        schema = schemas.OneOfField.definition(db=self.db)
+        schema = schemas.OneOfField.definition()
         definition = schema.deserialize({'name': 'foo',
                                          'type': 'oneof',
                                          'model': 'simple'})
-        validator = schemas.OneOfField.validation(db=self.db, **definition)
+        validator = schemas.OneOfField.validation(**definition)
         self.assertRaises(colander.Invalid, validator.deserialize, 'unknown_id')
 
     def test_existing_data_item(self):
         data_id = self._create_model()
-        schema = schemas.OneOfField.definition(db=self.db)
+        schema = schemas.OneOfField.definition()
         definition = schema.deserialize({'name': 'foo',
                                          'type': 'oneof',
                                          'model': 'simple'})
-        validator = schemas.OneOfField.validation(db=self.db, **definition)
+        validator = schemas.OneOfField.validation(**definition)
         self.assertEqual(data_id, validator.deserialize(data_id))
