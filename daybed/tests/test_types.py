@@ -74,6 +74,39 @@ class FieldTypeTests(unittest.TestCase):
         self.assertEquals(colander.null, validator.deserialize(''))
         self.assertRaises(colander.Invalid, validator.deserialize, 'abc')
 
+    def test_enum(self):
+        schema = schemas.EnumField.definition()
+        definition = schema.deserialize(
+            {'name': 'state',
+             'type': 'enum',
+             'choices': ['on', 'off']})
+
+        validator = schemas.EnumField.validation(**definition)
+        self.assertEquals('on', validator.deserialize('on'))
+        self.assertRaises(colander.Invalid, validator.deserialize, '')
+        self.assertRaises(colander.Invalid, validator.deserialize, 'ON')
+
+    def test_choices(self):
+        schema = schemas.ChoicesField.definition()
+        definition = schema.deserialize(
+            {'name': 'tags',
+             'type': 'choices',
+             'choices': ['a', 'b', 'c']})
+
+        validator = schemas.ChoicesField.validation(**definition)
+        self.assertEquals(['a'], validator.deserialize('a'))
+        self.assertEquals(['a'], validator.deserialize(['a']))
+        self.assertEquals(['a'], validator.deserialize('[a]'))
+        self.assertEquals(['a'], validator.deserialize('["a"]'))
+        self.assertEquals([u'a', u'b'], validator.deserialize('["a","b"]'))
+        self.assertEquals(['a', 'b'], validator.deserialize('a,b'))
+        self.assertEquals(['a', 'b', 'c'], validator.deserialize('[a,b,c]'))
+        self.assertRaises(colander.Invalid, validator.deserialize, '')
+        self.assertRaises(colander.Invalid, validator.deserialize, ['d'])
+        self.assertRaises(colander.Invalid, validator.deserialize, '["a"')
+        self.assertRaises(colander.Invalid, validator.deserialize, '[d]')
+        self.assertRaises(colander.Invalid, validator.deserialize, '[a,d]')
+
     def test_range(self):
         schema = schemas.RangeField.definition()
         definition = schema.deserialize(

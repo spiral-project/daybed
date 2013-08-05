@@ -1,34 +1,35 @@
+VIRTUALENV=virtualenv
+VENV=.
+PYTHON=$(VENV)/bin/python
 DEV_STAMP=.dev_env_installed.stamp
-VENV_STAMP=.venv_installed.stamp
 INSTALL_STAMP=.install.stamp
 
 .IGNORE: clean
-.PHONY: functional_tests unit_tests tests
+.PHONY: all install virtualenv tests
 
 OBJECTS = bin/ lib/ local/ include/ man/ .coverage d2to1-0.2.7-py2.7.egg \
 	.coverage daybed.egg-info
 
 all: install
 install: $(INSTALL_STAMP)
-
-install-dev: $(DEV_STAMP)
-
-$(INSTALL_STAMP): $(VENV_STAMP)
-	bin/python setup.py develop
+$(INSTALL_STAMP): $(PYTHON)
+	$(PYTHON) setup.py develop
 	touch $(INSTALL_STAMP)
 
-$(DEV_STAMP): $(VENV_STAMP) dev-requirements.txt
-	bin/pip install -r dev-requirements.txt --use-mirrors
+install-dev: $(DEV_STAMP)
+$(DEV_STAMP): $(PYTHON)
+	$(VENV)/bin/pip install -r dev-requirements.txt --use-mirrors
 	touch $(DEV_STAMP)
 
-$(VENV_STAMP):
-	virtualenv .
-	touch $(VENV_STAMP)
+virtualenv: $(PYTHON)
+$(PYTHON):
+	$(VIRTUALENV) $(VENV)
+
 clean:
-	rm -fr $(OBJECTS) $(DEV_STAMP) $(VENV_STAMP) $(INSTALL_STAMP)
+	rm -fr $(OBJECTS) $(DEV_STAMP) $(INSTALL_STAMP)
 
-tests: $(INSTALL_STAMP) install-dev
-	bin/nosetests --with-coverage --cover-package=daybed -s
+tests: $(DEV_STAMP)
+	$(VENV)/bin/nosetests --with-coverage --cover-package=daybed -s
 
-serve: install-dev
-	bin/pserve development.ini --reload
+serve: $(DEV_STAMP)
+	$(VENV)/bin/pserve development.ini --reload
