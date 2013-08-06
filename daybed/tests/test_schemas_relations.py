@@ -16,8 +16,8 @@ class RelationTest(BaseWebTest):
         return self.db.put_data_item('simple', fakedata)
 
     def _create_model(self):
-        self._create_definition(self)
-        return self._create_data_item(self)
+        self._create_definition()
+        return self._create_data_item()
 
 
 class OneOfFieldTest(RelationTest):
