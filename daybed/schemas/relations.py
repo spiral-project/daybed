@@ -1,6 +1,6 @@
 from pyramid.config import global_registries
 from colander import (String, SchemaNode, Invalid)
-from .base import registry, TypeField
+from .base import registry, TypeField, JSONList
 
 
 class ModelExist(object):
@@ -14,16 +14,19 @@ class ModelExist(object):
             raise Invalid(node, msg)
 
 
-class DataItemExist(object):
+class DataItemsExist(object):
     def __init__(self, db, model_id):
         self.db = db
         self.model_id = model_id
 
     def __call__(self, node, value):
-        record = self.db.get_data_item(self.model_id, value)
-        if not record:
-            msg = u"Record '%s' of model '%s' not found." % (value, self.model_id)
-            raise Invalid(node, msg)
+        if not hasattr(value, '__iter__'):
+            value = [value]
+        for record_id in value:
+            record = self.db.get_data_item(self.model_id, record_id)
+            if not record:
+                msg = u"Record '%s' of model '%s' not found." % (record_id, self.model_id)
+                raise Invalid(node, msg)
 
 
 @registry.add('oneof')
@@ -41,5 +44,24 @@ class OneOfField(TypeField):
     @classmethod
     def validation(cls, **kwargs):
         db = global_registries.last.backend.db()
-        kwargs['validator'] = DataItemExist(db, kwargs['model'])
+        kwargs['validator'] = DataItemsExist(db, kwargs['model'])
         return super(OneOfField, cls).validation(**kwargs)
+
+
+@registry.add('anyof')
+class AnyOfField(TypeField):
+    node = JSONList
+
+    @classmethod
+    def definition(cls, **kwargs):
+        db = global_registries.last.backend.db()
+        schema = super(AnyOfField, cls).definition(**kwargs)
+        schema.add(SchemaNode(String(), name='model',
+                   validator=ModelExist(db)))
+        return schema
+
+    @classmethod
+    def validation(cls, **kwargs):
+        db = global_registries.last.backend.db()
+        kwargs['validator'] = DataItemsExist(db, kwargs['model'])
+        return super(AnyOfField, cls).validation(**kwargs)
