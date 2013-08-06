@@ -1,3 +1,7 @@
+import datetime
+
+import colander
+
 from . import views
 
 
@@ -35,10 +39,25 @@ class Database(object):
             })
         return definition_id
 
+    def _pre_create(self, data):
+        """Prepare data to be saved.
+
+        Main purpose here, is to convert date(time) into CouchDB format
+        """
+        ready = dict()
+        for k, v in data.items():
+            if isinstance(v, (datetime.date, datetime.datetime)):
+                ready[k] = v.isoformat()
+            elif v is colander.null:
+                pass
+            else:
+                ready[k] = v
+        return ready
+
     def put_data_item(self, model_id, data, data_item_id=None):
         doc = {
             'type': 'data',
-            'data': data,
+            'data': self._pre_create(data),
             'model_id': model_id}
 
         if data_item_id is not None:
