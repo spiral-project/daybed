@@ -1,5 +1,3 @@
-from pyramid.events import NewRequest
-
 from .database import Database
 
 
@@ -19,14 +17,9 @@ class MemoryBackend(object):
         generator = config.maybe_dotted(settings['daybed.id_generator'])
         self._generate_id = generator(config)
 
-        config.add_subscriber(self.add_db_to_request, NewRequest)
-
     def delete_db(self):
         self._db.clear()
         self._db = {
             'models': {},
             'data': {}
         }
-
-    def add_db_to_request(self, event):
-        event.request.db = self.db
