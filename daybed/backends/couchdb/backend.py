@@ -15,9 +15,6 @@ logger = logging.getLogger(__name__)
 
 
 class CouchDBBackend(object):
-    @property
-    def db(self):
-        return self.server[self.db_name]
 
     def __init__(self, config):
         settings = config.registry.settings
@@ -45,7 +42,10 @@ class CouchDBBackend(object):
             logger.debug('Using db "%s".' % self.db_name)
 
     def sync_views(self):
-        ViewDefinition.sync_many(self.db, docs)
+        ViewDefinition.sync_many(self.server[self.db_name], docs)
+
+    def db(self):
+        return Database(self.server[self.db_name], self._generate_id)
 
     def add_db_to_request(self, event):
-        event.request.db = Database(self.db, self._generate_id)
+        event.request.db = self.db()
