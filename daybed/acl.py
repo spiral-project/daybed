@@ -16,14 +16,14 @@ class DaybedAuthorizationPolicy(object):
 
         if context.model_id:
             policy = context.db.get_model_policy(context.model_id)
-            for role, permissions in policy['data'].items():
+            for role, permissions in policy.items():
                 if role in principals:
                     allowed |= permissions
 
         return bool(allowed & mask)
 
     def principals_allowed_by_permission(self, context, permission):
-        raise NotImplementedError()
+        raise NotImplementedError()  # PRAGMA NOCOVER
 
 
 def permission_mask(permission):
@@ -36,22 +36,22 @@ def permission_mask(permission):
     # The order is Definition, Data, Users, Policy
 
     mapping = {
-               'post_model': 0x8888,        # C on everything
-               'get_model': 0x4444,         # R on everything
-               'put_model': 0xBBBB,         # C+U+D on everything
-               'delete_model': 0x1111,      # D on everything
+        'post_model': 0x8888,        # C on everything
+        'get_model': 0x4444,         # R on everything
+        'put_model': 0xBBBB,         # C+U+D on everything
+        'delete_model': 0x1111,      # D on everything
 
-               'get_definition': 0x4000,
+        'get_definition': 0x4000,
 
-               'post_data': 0x0800,         # C
-               'get_data': 0x0400,          # R
-               'put_data': 0x0B00,          # C+U+D
-               'delete_data': 0x0100,       # D
+        'post_data': 0x0800,         # C
+        'get_data': 0x0400,          # R
+        'put_data': 0x0B00,          # C+U+D
+        'delete_data': 0x0100,       # D
 
-               'get_data_item': 0x0400,     # R
-               'put_data_item': 0x0B00,     # C+U+D
-               'patch_data_item': 0x0200,   # U
-               'delete_data_item': 0x0100,  # D
+        'get_data_item': 0x0400,     # R
+        'put_data_item': 0x0B00,     # C+U+D
+        'patch_data_item': 0x0200,   # U
+        'delete_data_item': 0x0100,  # D
 
     }
     # XXX Add users / policy management.
@@ -89,8 +89,9 @@ def build_user_principals(user, request):
                         principals.add(u'role:%s' % role_name)
 
     if data_item_id is not None:
-        authors = request.db.get_data_item(model_id, data_item_id)['authors']
+        authors = request.db.get_data_item_authors(model_id, data_item_id)
         if user in authors:
-            principals.append('authors:')
+            principals.add('authors:')
 
+    principals.add('others:')
     return principals

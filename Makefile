@@ -22,7 +22,7 @@ $(DEV_STAMP): $(VENV_STAMP) dev-requirements.txt
 	touch $(DEV_STAMP)
 
 $(VENV_STAMP):
-	virtualenv .
+	virtualenv -p python2.7 .
 	touch $(VENV_STAMP)
 clean:
 	rm -fr $(OBJECTS) $(DEV_STAMP) $(VENV_STAMP) $(INSTALL_STAMP)

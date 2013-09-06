@@ -5,20 +5,17 @@ from cornice import Service
 from daybed.validators import validate_against_schema
 from daybed.schemas import DefinitionValidator, SchemaValidator
 
-models = Service(name='models',
-                 path='/models',
-                 description='Models',
-                 renderer="jsonp",
-                 cors_origins=('*',))
+models = Service(name='models', path='/models', description='Models',
+                 renderer="jsonp", cors_origins=('*',))
 
-model = Service(name='model',
-                 path='/models/{model_id}',
-                 description='Model',
-                 renderer="jsonp",
-                 cors_origins=('*',))
+model = Service(name='model', path='/models/{model_id}', description='Model',
+                renderer="jsonp", cors_origins=('*',))
 
 
 def model_validator(request):
+    """Verify that the model is okay (that we have the right fields) and
+    eventually populates it if there is a need to.
+    """
     body = json.loads(request.body)
 
     # Check the definition is valid.
@@ -38,16 +35,22 @@ def model_validator(request):
             validate_against_schema(request, definition_validator, data_item)
             request.validated['data'].append(data_item)
 
+    return 
+    # Check that users are valid users
     users = body.get('users', default_users)
     validate_against_schema(request, UserValidator(), users)
     request.validated['users'] = users
 
     policy_id = body.get('policy_id')
 
+
 @models.post(validators=(model_validator,), permission='post_model')
 def post_models(request):
     """creates an model with the given definition and data, if any."""
-    model_id = request.db.put_model_definition(request.validated['definition'])
+    model_id = request.db.put_model(definition=request.validated['definition'],
+            users={'admins': ['group:admins'],
+                   'authors': [request.validated['users']]},
+                                    policy_id=request.validated['policy_id'])
 
     for data_item in request.validated['data']:
         request.db.put_data_item(model_id, data_item)

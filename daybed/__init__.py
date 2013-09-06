@@ -34,4 +34,6 @@ def main(global_config, **settings):
     config.registry.backend = backend(config)
 
     config.add_renderer('jsonp', JSONP(param_name='callback'))
+
+    # Here, define the default users / policies etc.
     return config.make_wsgi_app()

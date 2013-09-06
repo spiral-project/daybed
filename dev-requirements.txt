@@ -3,3 +3,5 @@ nose
 nose-cov
 pyramid_debugtoolbar
 waitress
+unittest2
+Mock
