@@ -1,7 +1,9 @@
 from pyramid.interfaces import IAuthorizationPolicy
 from zope.interface import implementer
 
-from daybed.backends.exceptions import ModelNotFound, DataItemNotFound
+from daybed.backends.exceptions import (
+    ModelNotFound, DataItemNotFound, UserNotFound
+)
 
 
 @implementer(IAuthorizationPolicy)
@@ -70,8 +72,9 @@ def permission_mask(permission):
 class RootFactory(object):
     def __init__(self, request):
         self.db = request.db
-        self.model_id = request.matchdict.get('model_id')
-        self.data_item_id = request.matchdict.get('data_item_id')
+        matchdict = request.matchdict or {}
+        self.model_id = matchdict.get('model_id')
+        self.data_item_id = matchdict.get('data_item_id')
         self.request = request
 
 
@@ -83,7 +86,12 @@ def build_user_principals(user, request):
     """
     model_id = request.matchdict.get('model_id')
     data_item_id = request.matchdict.get('data_item_id')
-    groups = [u'group:%s' % g for g in request.db.get_groups(user)]
+
+    try:
+        groups = [u'group:%s' % g for g in request.db.get_groups(user)]
+    except UserNotFound:
+        user = request.db.add_user({'name': user})
+        groups = user['groups']
     principals = set(groups)
 
     if model_id is not None:

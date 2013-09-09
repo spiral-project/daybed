@@ -187,6 +187,7 @@ class Database(object):
 
         doc = dict(user=user, name=user['name'], type='user')
         self._db.save(doc)
+        return user
 
     def __get_policy(self, policy_name):
         try:
