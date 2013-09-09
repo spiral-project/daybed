@@ -25,9 +25,10 @@ from colander import (
 
 __all__ = ['registry', 'TypeField',
            'DefinitionValidator', 'SchemaValidator',
-           'IntField', 'StringField', 'RangeField', 
+           'IntField', 'StringField', 'RangeField',
            'RegexField', 'EmailField', 'URLField',
-           'DecimalField', 'DateField', 'DateTimeField']
+           'DecimalField', 'DateField', 'DateTimeField',
+           'RolesValidator']
 
 
 class AlreadyRegisteredError(Exception):
@@ -134,6 +135,18 @@ class DefinitionValidator(SchemaNode):
         self.add(SchemaNode(String(), name='description'))
         self.add(SchemaNode(Sequence(), SchemaNode(TypeFieldNode()),
                             name='fields', validator=Length(min=1)))
+
+
+class RolesValidator(SchemaNode):
+    def __init__(self):
+        super(RolesValidator, self).__init__(Mapping(unknown='preserve'))
+        self.add(SchemaNode(Sequence(), SchemaNode(String()),
+                            name='admins', validator=Length(min=1)))
+        self.unknown = SchemaNode(Sequence(), SchemaNode(String()),
+                                  name='unknown', validator=Length(min=1))
+
+        # XXX Control that the values of the sequence are valid users.
+        # (we need to merge master to fix this. see #86)
 
 
 class SchemaValidator(SchemaNode):

@@ -245,3 +245,14 @@ class FieldTypeTests(unittest.TestCase):
                                                     [[0.4, 45.0], [0.6, 65.0], [0.8, 85.0]]]"""))
         self.assertRaises(colander.Invalid, schema.deserialize, '[[[0.4, 45.0]]]')
         self.assertRaises(colander.Invalid, schema.deserialize, '[[[0.4, 45.0], [0.6, 65.0]]]')
+
+    def test_roles(self):
+        schema = schemas.RolesValidator()
+        self.assertRaises(colander.Invalid, schema.deserialize, {})
+        self.assertRaises(colander.Invalid, schema.deserialize,
+                          {'admins': 'not-a-sequence'})
+        self.assertEquals(schema.deserialize({'admins': ['Remy', 'Alexis']}),
+                          {'admins': ['Remy', 'Alexis']})
+        self.assertEquals(schema.deserialize({'admins': ['Remy', 'Alexis'],
+                                              'others:': ['Test']}),
+                          {'admins': ['Remy', 'Alexis'], 'others:': ['Test']})
