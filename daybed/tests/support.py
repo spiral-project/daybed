@@ -7,7 +7,7 @@ from uuid import uuid4
 import webtest
 
 from daybed.backends.couchdb.database import Database
-from daybed.backends.exceptions import PolicyAlreadyExist
+from daybed.backends.exceptions import PolicyAlreadyExist, UserAlreadyExist
 
 
 class BaseWebTest(unittest.TestCase):
@@ -24,12 +24,16 @@ class BaseWebTest(unittest.TestCase):
         try:
             self.db.set_policy('admin-only', {
                 'group:admins': 0xFFFF,
+                'role:admins': 0xFFFF,
                 'authors:': 0x0F00,
                 'others:': 0x4000})
         except PolicyAlreadyExist:
             pass
 
-        self.db.add_user({'name': 'admin', 'groups': ['admins']})
+        try:
+            self.db.add_user({'name': 'admin', 'groups': ['admins']})
+        except UserAlreadyExist:
+            pass
 
     def tearDown(self):
         self.backend.delete_db()

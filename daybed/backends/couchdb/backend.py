@@ -32,6 +32,7 @@ class CouchDBBackend(object):
 
         self.create_db_if_not_exist()
         self.sync_views()
+        self._db = Database(self.db, self._generate_id)
         self.config.add_subscriber(self.add_db_to_request, NewRequest)
 
     def delete_db(self):
@@ -48,4 +49,4 @@ class CouchDBBackend(object):
         ViewDefinition.sync_many(self.db, docs)
 
     def add_db_to_request(self, event):
-        event.request.db = Database(self.db, self._generate_id)
+        event.request.db = self._db

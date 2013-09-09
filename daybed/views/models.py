@@ -1,9 +1,11 @@
 import json
 
 from cornice import Service
+from pyramid.httpexceptions import HTTPNotFound
 
 from daybed.validators import validate_against_schema
-from daybed.schemas import DefinitionValidator, SchemaValidator
+from daybed.schemas import DefinitionValidator, SchemaValidator, RolesValidator
+from daybed.backends.exceptions import ModelNotFound, PolicyNotFound
 
 models = Service(name='models', path='/models', description='Models',
                  renderer="jsonp", cors_origins=('*',))
@@ -35,25 +37,33 @@ def model_validator(request):
             validate_against_schema(request, definition_validator, data_item)
             request.validated['data'].append(data_item)
 
-    return 
-    # Check that users are valid users
-    users = body.get('users', default_users)
-    validate_against_schema(request, UserValidator(), users)
-    request.validated['users'] = users
+    # Check that roles are valid.
+    default_roles = {'admins': [request.user['name']]}
+    roles = body.get('roles', default_roles)
+    validate_against_schema(request, RolesValidator(), roles)
 
-    policy_id = body.get('policy_id')
+    request.validated['roles'] = roles
+    policy_id = body.get('policy_id', request.registry.default_policy)
+
+    # Check that the policy exists in our db.
+    try:
+        request.db.get_policy(policy_id)
+    except PolicyNotFound:
+        request.errors.add('body', 'policy_id',
+                           "policy '%s' doesn't exist" % policy_id)
+    request.validated['policy_id'] = policy_id
 
 
 @models.post(validators=(model_validator,), permission='post_model')
 def post_models(request):
     """creates an model with the given definition and data, if any."""
-    model_id = request.db.put_model(definition=request.validated['definition'],
-            users={'admins': ['group:admins'],
-                   'authors': [request.validated['users']]},
-                                    policy_id=request.validated['policy_id'])
+    model_id = request.db.put_model(
+        definition=request.validated['definition'],
+        roles=request.validated['roles'],
+        policy_id=request.validated['policy_id'])
 
     for data_item in request.validated['data']:
-        request.db.put_data_item(model_id, data_item)
+        request.db.put_data_item(model_id, data_item, [request.user['name']])
 
     request.response.status = "201 Created"
     location = '%s/models/%s' % (request.application_url, model_id)
@@ -74,7 +84,12 @@ def get_model(request):
     """Returns the definition and data of the given model"""
     model_id = request.matchdict['model_id']
 
-    return {'definition': request.db.get_model_definition(model_id),
+    try:
+        definition = request.db.get_model_definition(model_id),
+    except ModelNotFound:
+        raise HTTPNotFound()
+
+    return {'definition': definition,
             'data': request.db.get_data(model_id)}
 
 
@@ -83,11 +98,17 @@ def put_model(request):
     model_id = request.matchdict['model_id']
 
     # DELETE ALL THE THINGS.
-    request.db.delete_model(model_id)
+    try:
+        request.db.delete_model(model_id)
+    except ModelNotFound:
+        pass
 
-    request.db.put_model(request.validated['definition'], users, policy_id, model_id)
+    request.db.put_model(request.validated['definition'],
+                         request.validated['roles'],
+                         request.validated['policy_id'],
+                         model_id)
 
     for data_item in request.validated['data']:
-        request.db.put_data_item(model_id, data_item)
+        request.db.put_data_item(model_id, data_item, [request.user['name']])
 
     return "ok"

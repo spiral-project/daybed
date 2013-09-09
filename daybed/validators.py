@@ -3,6 +3,7 @@ import json
 
 import colander
 from daybed.schemas import DefinitionValidator, SchemaValidator
+from daybed.backends.exceptions import ModelNotFound
 
 
 def validator(request, schema):
@@ -24,11 +25,11 @@ def schema_validator(request):
     """
     model_id = request.matchdict['model_id']
 
-    doc = request.db.get_model_definition(model_id)
-    if doc:
-        schema = SchemaValidator(doc['definition'])
+    try:
+        definition = request.db.get_model_definition(model_id)
+        schema = SchemaValidator(definition)
         validator(request, schema)
-    else:
+    except ModelNotFound:
         request.errors.add('path', 'modelname',
                            'Unknown model %s' % model_id)
         request.errors.status = 404

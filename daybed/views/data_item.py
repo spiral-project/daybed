@@ -1,11 +1,11 @@
 import json
 
 from cornice import Service
-from pyramid.exceptions import NotFound
+from pyramid.httpexceptions import HTTPNotFound
 
+from daybed.backends.exceptions import DataItemNotFound
 from daybed.validators import schema_validator, validate_against_schema
 from daybed.schemas import SchemaValidator
-
 
 data_item = Service(name='data_item',
                     path='/models/{model_id}/data/{data_item_id}',
@@ -18,13 +18,11 @@ def get(request):
     """Retrieves all model records."""
     model_id = request.matchdict['model_id']
     data_item_id = request.matchdict['data_item_id']
-
-    # Check that model is defined
-    result = request.db.get_data_item(model_id, data_item_id)
-    if not result:
-        raise NotFound("Unknown data_item %s: %s" % (model_id, data_item_id))
-
-    return result['data']
+    try:
+        return request.db.get_data_item(model_id, data_item_id)
+    except DataItemNotFound:
+        raise HTTPNotFound("Unknown data_item %s: %s" %
+                           (model_id, data_item_id))
 
 
 @data_item.put(validators=schema_validator, permission='put_data_item')
@@ -33,7 +31,8 @@ def put(request):
     model_id = request.matchdict['model_id']
     data_item_id = request.matchdict['data_item_id']
     data_id = request.db.put_data_item(model_id, json.loads(request.body),
-                                       data_item_id)
+                                       [request.user['name']],
+                                       data_item_id=data_item_id)
     return {'id': data_id}
 
 
@@ -42,17 +41,18 @@ def patch(request):
     """Update or create a data item."""
     model_id = request.matchdict['model_id']
     data_item_id = request.matchdict['data_item_id']
-    data_item = request.db.get_data_item(model_id, data_item_id)
-    if not data_item:
-        raise NotFound(
+    try:
+        data = request.db.get_data_item(model_id, data_item_id)
+    except DataItemNotFound:
+        raise HTTPNotFound(
             "Unknown data_item %s: %s" % (model_id, data_item_id)
         )
-    data = data_item['data']
     data.update(json.loads(request.body))
-    definition = request.db.get_model_definition(model_id)['definition']
+    definition = request.db.get_model_definition(model_id)
     validate_against_schema(request, SchemaValidator(definition), data)
     if not request.errors:
-        request.db.put_data_item(model_id, data, data_item_id)
+        request.db.put_data_item(model_id, data, [request.user['name']],
+                                 data_item_id)
     return {'id': data_item_id}
 
 
@@ -65,3 +65,4 @@ def delete(request):
     deleted = request.db.delete_data_item(model_id, data_item_id)
     if not deleted:
         raise NotFound("Unknown data_item %s: %s" % (model_id, data_item_id))
+    return 'ok'

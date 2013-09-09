@@ -1,6 +1,8 @@
 from pyramid.interfaces import IAuthorizationPolicy
 from zope.interface import implementer
 
+from daybed.backends.exceptions import ModelNotFound, DataItemNotFound
+
 
 @implementer(IAuthorizationPolicy)
 class DaybedAuthorizationPolicy(object):
@@ -15,10 +17,17 @@ class DaybedAuthorizationPolicy(object):
         mask = permission_mask(permission)
 
         if context.model_id:
-            policy = context.db.get_model_policy(context.model_id)
+            try:
+                policy = context.db.get_model_policy(context.model_id)
+            except ModelNotFound:
+                #  In case the model doesn't exist, you have access to it.
+                return True
             for role, permissions in policy.items():
                 if role in principals:
                     allowed |= permissions
+        else:
+            # Everybody can create models
+            allowed = 0x8888
 
         return bool(allowed & mask)
 
@@ -63,6 +72,7 @@ class RootFactory(object):
         self.db = request.db
         self.model_id = request.matchdict.get('model_id')
         self.data_item_id = request.matchdict.get('data_item_id')
+        self.request = request
 
 
 def build_user_principals(user, request):
@@ -77,7 +87,11 @@ def build_user_principals(user, request):
     principals = set(groups)
 
     if model_id is not None:
-        roles = request.db.get_roles(model_id)
+        try:
+            roles = request.db.get_roles(model_id)
+        except ModelNotFound:
+            roles = {}
+
         for role_name, accredited in roles.items():
             for acc in accredited:
                 if acc.startswith('group:'):
@@ -89,9 +103,13 @@ def build_user_principals(user, request):
                         principals.add(u'role:%s' % role_name)
 
     if data_item_id is not None:
-        authors = request.db.get_data_item_authors(model_id, data_item_id)
-        if user in authors:
-            principals.add('authors:')
+        try:
+            authors = request.db.get_data_item_authors(model_id, data_item_id)
+        except DataItemNotFound:
+            pass
+        else:
+            if user in authors:
+                principals.add('authors:')
 
     principals.add('others:')
     return principals

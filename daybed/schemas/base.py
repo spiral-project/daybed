@@ -3,7 +3,6 @@ import datetime
 
 from colander import (
     deferred,
-    null,
     SchemaNode,
     Mapping,
     String,
@@ -103,7 +102,8 @@ class TypeField(object):
         schema = SchemaNode(Mapping())
         schema.add(SchemaNode(String(), name='name'))
         schema.add(SchemaNode(String(), name='description', missing=''))
-        schema.add(SchemaNode(Boolean(), name='required', missing=cls.required))
+        schema.add(SchemaNode(Boolean(), name='required',
+                              missing=cls.required))
         schema.add(SchemaNode(String(), name='type',
                               validator=OneOf(registry.names)))
         return schema
@@ -142,8 +142,6 @@ class RolesValidator(SchemaNode):
         super(RolesValidator, self).__init__(Mapping(unknown='preserve'))
         self.add(SchemaNode(Sequence(), SchemaNode(String()),
                             name='admins', validator=Length(min=1)))
-        self.unknown = SchemaNode(Sequence(), SchemaNode(String()),
-                                  name='unknown', validator=Length(min=1))
 
         # XXX Control that the values of the sequence are valid users.
         # (we need to merge master to fix this. see #86)
@@ -269,7 +267,8 @@ class AutoNowMixin(object):
     @classmethod
     def definition(cls):
         schema = super(AutoNowMixin, cls).definition()
-        schema.add(SchemaNode(Boolean(), name='auto_now', missing=cls.auto_now))
+        schema.add(SchemaNode(Boolean(), name='auto_now',
+                              missing=cls.auto_now))
         return schema
 
     @classmethod

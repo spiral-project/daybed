@@ -28,7 +28,7 @@ class BackendTestBase(object):
             "description": "One optional field",
             "fields": [{"name": "age", "type": "int", "required": False}]
         }
-        self.policy = {'group:admins': 0xFFFF, 'Alexis': 0x0F00}
+        self.policy = {'role:admins': 0xFFFF}
 
         self.data_item = {'age': 7}
 
@@ -98,6 +98,18 @@ class BackendTestBase(object):
                        'mymodel')
         self.assertDictEqual(self.db.get_model_policy('mymodel'), policy)
 
+    def test_put_data_item(self):
+        self._create_model()
+        self.db.put_data_item('modelname', self.data_item, ['Alexis'])
+
+        # When we put a new version of a data item, we should keep the list of
+        # authors.
+        item_id = self.db.put_data_item('modelname', self.data_item, ['Remy'])
+        self.db.put_data_item('modelname', self.data_item, ['Alexis'], item_id)
+
+        authors = self.db.get_data_item_authors('modelname', item_id)
+        self.assertEquals(set(authors), set(['Alexis', 'Remy']))
+
     def test_get_data_items(self):
         self._create_model()
         self.db.put_data_item('modelname', self.data_item, ['author'])
@@ -148,6 +160,9 @@ class BackendTestBase(object):
         self.db.delete_model('modelname')
         self.assertRaises(ModelNotFound, self.db.get_model_definition,
                           'modelname')
+
+    def test_model_deletion_raises_if_unknwon(self):
+        self.assertRaises(ModelNotFound, self.db.delete_model, 'unknown')
 
 
 class TestCouchDBBackend(BackendTestBase, TestCase):

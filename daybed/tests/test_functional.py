@@ -1,3 +1,4 @@
+from daybed.backends.exceptions import DataItemNotFound, ModelNotFound
 from daybed.tests.support import BaseWebTest
 from daybed.schemas import registry
 
@@ -64,14 +65,24 @@ class FunctionalTest(object):
     def invalid_data(self):
         raise NotImplementedError
 
+    def test_post_model_definition_without_definition(self):
+        self.app.post_json('/models', {}, headers=self.headers, status=400)
+
     def test_post_model_definition_without_data(self):
         resp = self.app.post_json('/models',
                                   {'definition': self.valid_definition},
                                   headers=self.headers)
         model_id = resp.json['id']
 
-        data = self.db.get_model_definition(model_id)
-        self.assertEquals(data['definition'], self.valid_definition)
+        definition = self.db.get_model_definition(model_id)
+        self.assertEquals(definition, self.valid_definition)
+
+    def test_post_model_definition_wrong_policy(self):
+        resp = self.app.post_json('/models',
+                                  {'definition': self.valid_definition,
+                                   'policy_id': 'unknown'},
+                                  headers=self.headers,
+                                  status=400)
 
     def test_post_model_definition_with_data(self):
         resp = self.app.post_json('/models',
@@ -89,8 +100,8 @@ class FunctionalTest(object):
         model_id = resp.json['id']
 
         resp = self.app.put_json('/models/%s' % model_id,
-                                  {'definition': self.valid_definition},
-                                  headers=self.headers)
+                                 {'definition': self.valid_definition},
+                                 headers=self.headers)
 
         self.assertEquals(len(self.db.get_data_items(model_id)), 0)
 
@@ -102,9 +113,9 @@ class FunctionalTest(object):
         model_id = resp.json['id']
 
         resp = self.app.put_json('/models/%s' % model_id,
-                                  {'definition': self.valid_definition,
-                                   'data': [self.valid_data]},
-                                  headers=self.headers)
+                                 {'definition': self.valid_definition,
+                                  'data': [self.valid_data]},
+                                 headers=self.headers)
 
         self.assertEquals(len(self.db.get_data_items(model_id)), 1)
 
@@ -119,8 +130,7 @@ class FunctionalTest(object):
         if not data:
             data = self.valid_data
         return self.app.post_json('/models/%s/data' % self.model_id,
-                                  data,
-                                  headers=self.headers)
+                                  data, headers=self.headers)
 
     def create_data_resp(self, data=None):
         if not data:
@@ -132,20 +142,6 @@ class FunctionalTest(object):
     def test_normal_definition_creation(self):
         self.create_definition()
 
-    def test_malformed_definition_creation(self):
-        resp = self.app.put_json('/models/%s/definition' % self.model_id,
-                    self.definition_without_title,
-                    headers=self.headers,
-                    status=400)
-        self.assertIn('"name": "title"', resp.body)
-
-    def test_definition_creation_rejects_malformed_data(self):
-        resp = self.app.put('/models/%s/definition' % self.model_id,
-                    self.malformed_definition,
-                    headers=self.headers,
-                    status=400)
-        self.assertIn('"status": "error"', resp.body)
-
     def test_definition_retrieval(self):
         self.create_definition()
 
@@ -154,29 +150,22 @@ class FunctionalTest(object):
                             headers=self.headers)
         self.assertEqual(resp.json, self.valid_definition)
 
-    def test_definition_deletion_redirects(self):
-        self.create_definition()
-        self.app.delete('/models/%s/definition' % self.model_id, status=405)
-        self.db.delete_model(self.model_id)
-
     def test_model_deletion(self):
         resp = self.create_definition()
         resp = self.create_data()
         data_item_id = resp.json['id']
-        self.app.delete('/models/%s' % self.model_id)
-        data_item = self.db.get_data_item(self.model_id, data_item_id)
-        self.assertIsNone(data_item)
-        model_definition = self.db.get_model_definition(self.model_id)
-        self.assertIsNone(model_definition)
+        self.app.delete('/models/%s' % self.model_id, headers=self.headers)
+        self.assertRaises(DataItemNotFound,
+                          self.db.get_data_item, self.model_id, data_item_id)
+        self.assertRaises(ModelNotFound, self.db.get_model_definition,
+                          self.model_id)
 
     def test_normal_data_creation(self):
         self.create_definition()
 
-        self.headers['REMOTE_USER'] = 'Alexis'
         # Put data against this definition
         resp = self.app.post_json('/models/%s/data' % self.model_id,
-                                 self.valid_data,
-                                 headers=self.headers)
+                                  self.valid_data, headers=self.headers)
         self.assertIn('id', resp.body)
 
     def test_invalid_data_validation(self):
@@ -218,7 +207,6 @@ class FunctionalTest(object):
                                  entry,
                                  headers=self.headers)
         self.assertIn('id', resp.body)
-        # Todo : Verify DB
         data_items = self.db.get_data_items(self.model_id)
         self.assertEqual(len(data_items), 1)
 
@@ -243,16 +231,22 @@ class FunctionalTest(object):
 
         new_item = self.valid_data.copy()
         new_item.update(entry)
-        self.assertEquals(data_item['data'], new_item)
+        self.assertEquals(data_item, new_item)
 
     def test_data_deletion(self):
         self.create_definition()
         resp = self.create_data()
         data_item_id = resp.json['id']
-        self.app.delete(str('/models/%s/data/%s' % (self.model_id,
-                                                    data_item_id)))
-        data_item = self.db.get_data_item(self.model_id, data_item_id)
-        self.assertIsNone(data_item)
+        self.app.delete(
+            str('/models/%s/data/%s' % (self.model_id, data_item_id)),
+            headers=self.headers)
+        self.assertRaises(DataItemNotFound, self.db.get_data_item,
+                          self.model_id, data_item_id)
+
+    def test_unknown_data_returns_404(self):
+        self.create_definition()
+        self.app.get(str('/models/%s/data/%s' % (self.model_id, 1234)),
+                     headers=self.headers, status=404)
 
     def test_data_validation(self):
         self.create_definition()
@@ -263,7 +257,8 @@ class FunctionalTest(object):
                            headers=headers, status=200)
 
         # no data should be added
-        response = self.app.get('/models/%s/data' % self.model_id)
+        response = self.app.get('/models/%s/data' % self.model_id,
+                                headers=self.headers)
         self.assertEquals(0, len(response.json['data']))
         # of course, pushing weird data should tell what's wrong
         response = self.app.post_json('/models/%s/data' % self.model_id,

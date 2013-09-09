@@ -1,7 +1,7 @@
 import json
 
 from cornice import Service
-from pyramid.exceptions import NotFound
+from pyramid.httpexceptions import HTTPNotFound
 
 from daybed.validators import schema_validator
 
@@ -18,7 +18,7 @@ def get_data(request):
     # Check that model is defined
     exists = request.db.get_model_definition(model_id)
     if not exists:
-        raise NotFound(detail="Unknown model %s" % model_id)
+        raise HTTPNotFound(detail="Unknown model %s" % model_id)
     # Return array of records
     results = request.db.get_data_items(model_id)
     data = []
@@ -41,7 +41,8 @@ def post_data(request):
         return
 
     model_id = request.matchdict['model_id']
-    data_id = request.db.put_data_item(model_id, json.loads(request.body))
+    data_id = request.db.put_data_item(model_id, json.loads(request.body),
+                                       request.user['name'])
     created = '%s/models/%s/data/%s' % (request.application_url, model_id,
                                         data_id)
     request.response.status = "201 Created"

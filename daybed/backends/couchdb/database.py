@@ -74,6 +74,8 @@ class Database(object):
             except DataItemNotFound:
                 doc['_id'] = '-'.join((model_id, data_item_id))
             else:
+                authors = list(set(authors) | set(old_doc['authors']))
+                doc['authors'] = authors
                 old_doc.update(doc)
                 doc = old_doc
         else:
@@ -98,13 +100,16 @@ class Database(object):
     def delete_model(self, model_id):
         """DELETE ALL THE THINGS"""
 
-        # delete the associated data if any
+        # Delete the associated data if any.
         self.delete_data_items(model_id)
 
-        # delete the model definition
-        doc = views.model_definitions(self._db)[model_id].rows[0].value
-        if doc:
-            self._db.delete(doc)
+        try:
+            doc = views.model_definitions(self._db)[model_id].rows[0].value
+        except IndexError:
+            raise ModelNotFound(model_id)
+
+        # Delete the model definition if it exists.
+        self._db.delete(doc)
         return doc
 
     def put_roles(self, model_id, roles):
