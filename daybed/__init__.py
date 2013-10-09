@@ -19,6 +19,7 @@ from pyramid.settings import aslist
 
 from pyramid_persona.utils import button, js
 from pyramid_persona.views import login, logout
+from pyramid_multiauth import MultiAuthenticationPolicy
 
 from daybed.acl import (
     RootFactory, DaybedAuthorizationPolicy, build_user_principals
@@ -44,15 +45,19 @@ def main(global_config, **settings):
     config = Configurator(settings=settings, root_factory=RootFactory)
     config.include("cornice")
 
-    # ACL management
-    authn_policy = RemoteUserAuthenticationPolicy(
-        'HTTP_REMOTE_USER',
-        callback=build_user_principals)
+    ## ACL management
 
     # Persona authentication
     secret = settings.get('persona.secret', None)
-    authn_policy = AuthTktAuthenticationPolicy(secret, hashalg='sha512',
-                                               callback=build_user_principals)
+
+    policies = [
+        AuthTktAuthenticationPolicy(secret, hashalg='sha512',
+                                    callback=build_user_principals),
+        RemoteUserAuthenticationPolicy('HTTP_REMOTE_USER',
+                                       callback=build_user_principals)
+    ]
+    authn_policy = MultiAuthenticationPolicy(policies)
+
     session_factory = UnencryptedCookieSessionFactoryConfig(secret)
     config.set_session_factory(session_factory)
 

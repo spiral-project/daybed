@@ -91,6 +91,7 @@ def build_user_principals(user, request):
         groups = [u'group:%s' % g for g in request.db.get_groups(user)]
     except UserNotFound:
         user = request.db.add_user({'name': user})
+        # XXX create API token.
         groups = user['groups']
     principals = set(groups)
 

@@ -5,3 +5,5 @@ pyramid_debugtoolbar
 waitress
 unittest2
 Mock
+pyramid_multiauth
+pyramid_persona
