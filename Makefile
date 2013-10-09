@@ -18,6 +18,7 @@ $(INSTALL_STAMP): $(VENV_STAMP)
 	touch $(INSTALL_STAMP)
 
 $(DEV_STAMP): $(VENV_STAMP) dev-requirements.txt
+	bin/pip install pip==1.4.1 setuptools==1.1.6
 	bin/pip install -r dev-requirements.txt --use-mirrors
 	touch $(DEV_STAMP)
 
