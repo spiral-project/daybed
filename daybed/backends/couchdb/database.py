@@ -189,6 +189,15 @@ class Database(object):
         self._db.save(doc)
         return user
 
+    def __get_policies(self):
+        return views.policies(self._db)
+
+    def get_policies(self):
+        policies = []
+        for item in self.__get_policies():
+            policies.append(item.value['name'])
+        return policies
+
     def __get_policy(self, policy_name):
         try:
             doc = views.policies(self._db)[policy_name].rows[0]
@@ -210,6 +219,23 @@ class Database(object):
                 'policy': policy
             })
 
+    def delete_policy(self, policy_name):
+        doc = self.__get_policy(policy_name)
+        if doc:
+            self._db.delete(doc)
+        return doc
+
     def get_model_policy(self, model_id):
         doc = self.__get_model(model_id)
         return self.get_policy(doc['policy_id'])
+
+    def get_model_policy_id(self, model_id):
+        doc = self.__get_model(model_id)
+        return doc['policy_id']
+
+    def __get_policy_definitions(self, policy_name):
+        return views.policy_definitions(self._db)[policy_name]
+
+    def policy_is_used(self, policy_name):
+        definitions = self.__get_policy_definitions(policy_name)
+        return len(definitions) > 0

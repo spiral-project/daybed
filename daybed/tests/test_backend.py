@@ -164,6 +164,10 @@ class BackendTestBase(object):
     def test_model_deletion_raises_if_unknwon(self):
         self.assertRaises(ModelNotFound, self.db.delete_model, 'unknown')
 
+    def test_policies(self):
+        policies = self.db.get_policies()
+        self.assertTrue(isinstance(policies, list))
+
 
 class TestCouchDBBackend(BackendTestBase, TestCase):
 

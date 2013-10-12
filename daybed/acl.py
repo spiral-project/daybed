@@ -27,11 +27,12 @@ class DaybedAuthorizationPolicy(object):
             for role, permissions in policy.items():
                 if role in principals:
                     allowed |= permissions
-        else:
+        elif len(principals) > 1:  # Then a user is logged-in
             # Everybody can create models
             allowed = 0x8888
 
-        return bool(allowed & mask)
+        result = allowed & mask == mask
+        return result
 
     def principals_allowed_by_permission(self, context, permission):
         raise NotImplementedError()  # PRAGMA NOCOVER
@@ -63,7 +64,6 @@ def permission_mask(permission):
         'put_data_item': 0x0B00,     # C+U+D
         'patch_data_item': 0x0200,   # U
         'delete_data_item': 0x0100,  # D
-
     }
     # XXX Add users / policy management.
     return mapping[permission]

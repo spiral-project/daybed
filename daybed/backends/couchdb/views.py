@@ -12,6 +12,15 @@ function(doc) {
 }""")
 
 
+"""models by policy_id"""
+policy_definitions = ViewDefinition('definitions', 'by_policy_id', """
+function(doc) {
+  if (doc.type == "definition") {
+    emit(doc.policy_id, doc);
+  }
+}
+""")
+
 """ Model data, by model name."""
 model_data = ViewDefinition('data_items', 'by_model', """
 function(doc) {

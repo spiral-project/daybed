@@ -1,3 +1,4 @@
+=========================
 How to use the daybed API
 =========================
 
@@ -7,44 +8,49 @@ publish data that complies to these models.
 Let's say we want to have a daybed managed todo list. First, we put
 a definition under the name "todo".
 
+
 Definition of the model
 -----------------------
 
-**PUT /definition/**
+**PUT /model/**
 
 We want to push this to daybed, if we run it locally, that would be something
 like this:
 
 .. code-block:: bash
 
-    definition='{
-    "title": "todo",
-    "description": "A list of my stuff to do", 
-    "fields": [
-        {
-            "name": "item", 
-            "type": "string",
-            "description": "The item"
-        }, 
-        {
-            "name": "status", 
-            "type": "enum",
-            "choices": [
-                "done", 
-                "todo"
-            ], 
-            "description": "is it done or not"
-        }
-    ]}'
+    model='{
+      "definition": {
+        "title": "todo",
+        "description": "A list of my stuff to do", 
+        "fields": [
+            {
+                "name": "item", 
+                "type": "string",
+                "description": "The item"
+            }, 
+            {
+                "name": "status", 
+                "type": "enum",
+                "choices": [
+                    "done", 
+                    "todo"
+                ], 
+                "description": "is it done or not"
+            }
+         ]
+      }
+    }'
 
-    curl -XPUT http://localhost:8000/definitions/todo -d "${definition}"
+    curl -XPUT http://localhost:8000/models/todo -d "${model}"
 
-And we get back a token::
+And we get back::
 
-    {"token": "37952ea9d7d5286b0175f060b31e12e5e2ea40bd632119ccdbf256908a2f211c1e043fc590f71aea"}
+    "ok"
 
-The token is useful to be able to modify the definition later. Store it to use
-it later ;)
+We can now get our models back::
+
+
 
 Pushing data
 ------------

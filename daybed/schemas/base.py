@@ -27,7 +27,7 @@ __all__ = ['registry', 'TypeField',
            'IntField', 'StringField', 'RangeField',
            'RegexField', 'EmailField', 'URLField',
            'DecimalField', 'DateField', 'DateTimeField',
-           'RolesValidator']
+           'RolesValidator', 'PolicyValidator']
 
 
 class AlreadyRegisteredError(Exception):
@@ -145,6 +145,14 @@ class RolesValidator(SchemaNode):
 
         # XXX Control that the values of the sequence are valid users.
         # (we need to merge master to fix this. see #86)
+
+
+class PolicyValidator(SchemaNode):
+    def __init__(self, policy):
+        super(PolicyValidator, self).__init__(Mapping(unknown='preserve'))
+        for key in policy.iterkeys():
+            self.add(SchemaNode(Int(), name=key,
+                                validator=Range(min=0, max=0xFFFF)))
 
 
 class SchemaValidator(SchemaNode):

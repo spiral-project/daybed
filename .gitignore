@@ -13,3 +13,4 @@ include/
 man/
 build/
 share/
+.tox/

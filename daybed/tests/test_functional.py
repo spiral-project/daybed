@@ -1,3 +1,6 @@
+import json
+from uuid import uuid4
+
 from daybed.backends.exceptions import DataItemNotFound, ModelNotFound
 from daybed.tests.support import BaseWebTest
 from daybed.schemas import registry
@@ -30,6 +33,71 @@ class DaybedViewsTest(BaseWebTest):
                                   headers={'Content-Type': 'application/json'},
                                   status=404)
         self.assertIn('"status": "error"', resp.body)
+
+
+class PolicyTest(BaseWebTest):
+
+    def __init__(self, *args, **kwargs):
+        super(PolicyTest, self).__init__(*args, **kwargs)
+        self.headers = {'Content-Type': 'application/json',
+                        'REMOTE_USER': 'admin'}
+
+    def test_policy_put_get_delete_ok(self):
+        policy_id = 'read-only%s' % uuid4()
+        policy = {'role:admins': 0xFFFF,
+                  'others:': 0x4400}
+
+        # Test Create
+        self.app.put_json('/policies/%s' % policy_id,
+                          policy,
+                          headers=self.headers, status=200)
+
+        # Test Get
+        resp = self.app.get('/policies/%s' % policy_id,
+                            headers=self.headers, status=200)
+        self.assertDictEqual(json.loads(resp.body)[0], policy)
+
+        # Test Create another time with the same name
+        self.app.put_json('/policies/%s' % policy_id,
+                          policy,
+                          headers=self.headers, status=409)
+
+        # Test Create a definition with it
+        model = {'definition': {"title": "simple",
+                                "description": "One optional field",
+                                "fields": [{"name": "age", "type": "int",
+                                            "required": False}]
+                                },
+                 'policy_id': policy_id}
+
+        self.app.put_json('/models/test', model,
+                          headers=self.headers, status=200)
+
+        # Test Delete when used
+        self.app.delete('/policies/%s' % policy_id,
+                        headers=self.headers, status=403)
+
+        # Delete the model
+        self.app.delete('/models/test', model,
+                        headers=self.headers, status=200)
+
+        # Test Delete when not used
+        self.app.delete('/policies/%s' % policy_id,
+                        headers=self.headers, status=200)
+
+        self.app.get('/policies/%s' % policy_id,
+                     headers=self.headers, status=404)
+
+    def test_policy_put_wrong(self):
+        policy_id = 'read-only%s' % uuid4()
+        policy = {'role:admins': 'toto'}
+        self.app.put_json('/policies/%s' % policy_id,
+                          policy,
+                          headers=self.headers, status=400)
+
+    def test_policies_list(self):
+        resp = self.app.get('/policies', headers=self.headers, status=200)
+        self.assertEqual(resp.body, '["admin-only", "read-only"]')
 
 
 class FunctionalTest(object):
@@ -78,11 +146,11 @@ class FunctionalTest(object):
         self.assertEquals(definition, self.valid_definition)
 
     def test_post_model_definition_wrong_policy(self):
-        resp = self.app.post_json('/models',
-                                  {'definition': self.valid_definition,
-                                   'policy_id': 'unknown'},
-                                  headers=self.headers,
-                                  status=400)
+        self.app.post_json('/models',
+                           {'definition': self.valid_definition,
+                            'policy_id': 'unknown'},
+                           headers=self.headers,
+                           status=400)
 
     def test_post_model_definition_with_data(self):
         resp = self.app.post_json('/models',

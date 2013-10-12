@@ -7,3 +7,4 @@ unittest2
 Mock
 pyramid_multiauth
 pyramid_persona
+pyramid_mako

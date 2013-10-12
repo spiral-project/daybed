@@ -54,7 +54,7 @@ def model_validator(request):
     request.validated['policy_id'] = policy_id
 
 
-@models.post(validators=(model_validator,), permission='post_model')
+@models.post(permission='post_model', validators=(model_validator,))
 def post_models(request):
     """creates an model with the given definition and data, if any."""
     model_id = request.db.put_model(
@@ -81,7 +81,7 @@ def delete_model(request):
 
 @model.get(permission='get_model')
 def get_model(request):
-    """Returns the definition and data of the given model"""
+    """Returns the full model definition."""
     model_id = request.matchdict['model_id']
 
     try:
@@ -90,7 +90,9 @@ def get_model(request):
         raise HTTPNotFound()
 
     return {'definition': definition,
-            'data': request.db.get_data(model_id)}
+            'data': request.db.get_data_items(model_id),
+            'policy_id': request.db.get_model_policy_id(model_id),
+            'roles': request.db.get_roles(model_id)}
 
 
 @model.put(validators=(model_validator,), permission='put_model')
