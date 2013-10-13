@@ -21,11 +21,7 @@ def get_data(request):
         raise HTTPNotFound(detail="Unknown model %s" % model_id)
     # Return array of records
     results = request.db.get_data_items(model_id)
-    data = []
-    for result in results:
-        result.value['data']['id'] = result._id
-        data.append(result.value['data'])
-    return {'data': data}
+    return {'data': results}
 
 
 @data.post(validators=schema_validator, permission='post_data')
@@ -43,10 +39,10 @@ def post_data(request):
     model_id = request.matchdict['model_id']
     data_id = request.db.put_data_item(model_id, json.loads(request.body),
                                        request.user['name'])
-    created = '%s/models/%s/data/%s' % (request.application_url, model_id,
-                                        data_id)
+    created = u'%s/models/%s/data/%s' % (request.application_url, model_id,
+                                         data_id)
     request.response.status = "201 Created"
-    request.response.headers['location'] = created
+    request.response.headers['location'] = created.encode('utf-8')
     return {'id': data_id}
 
 

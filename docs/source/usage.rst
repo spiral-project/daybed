@@ -8,11 +8,21 @@ publish data that complies to these models.
 Let's say we want to have a daybed managed todo list. First, we put
 a definition under the name "todo".
 
+Authentication
+--------------
 
-Definition of the model
------------------------
+You need to be authenticated to be able to run this curl commands.
 
-**PUT /model/**
+You can use REST Console in Chrome to use your Persona credentials.
+
+If you are using the REMOTE_USER Authentication backend, you can add
+`` -H "REMOTE_USER: admin@example.com"`` to each curl request to get
+rid of the 403 error.
+
+Model management
+----------------
+
+**PUT /models**
 
 We want to push this to daybed, if we run it locally, that would be something
 like this:
@@ -48,44 +58,86 @@ And we get back::
 
     "ok"
 
+**GET /models**
+
 We can now get our models back::
 
+    curl http://localhost:8000/models/todo
+
+    {
+        "definition": [{
+            "fields": [{
+                "type": "string",
+                "name": "item",
+                "description": "The item"
+            }, {
+                "choices": ["done", "todo"],
+                "type": "enum",
+                "description": "is it done or not",
+                "name": "status"
+            }],
+            "description": "A list of my stuff to do",
+            "title": "todo"
+        }],
+        "data": [],
+        "roles": {
+            "admins": ["admin@example.com"]
+        },
+        "policy_id": "read-only"
+    }
+
+**POST /models**
+
+We can also post on ``http://localhost:8000/models`` and we get back an id::
+
+    curl -XPOST http://localhost:8000/models -d "${model}"
+
+    {
+        "id": "a8e6c80dcd3b4aeb847b423ffc399fcc"
+    }
 
 
 Pushing data
 ------------
 
-**POST /data/{modelname}**
-**PUT /data/{modelname}/{id}**
+**POST /models/{modelname}/data**
+**PUT /models/{modelname}/data/{id}**
 
 Now that we defined the schema, we want to push some real data there::
 
     data='{"item": "finish the documentation", "status": "todo"}'
-    curl -XPOST http://localhost:8000/data/todo -d "$data" -H "Content-Type: application/json"
+    curl -XPOST http://localhost:8000/models/todo/data -d "$data"
 
 And we get this in exchange, which is the id of the created document.::
 
-    {"id": "37fa47f52ccdf1670747c39c85002cc6"}
+    {"id": "c429ab7c1f0f49a99cade9b76b9e6311"}
 
 .. note::
     When you push some data, you can also send a special header, named
     `X-Daybed-Validate-Only`, which will allow you to only validate the
     resource you are sending, without actually recording it to the database.
 
-Getting data
-------------
+**GET /models/{modelname}/data/{id}**
 
-Of course, you can retrieve the data you pushed, as well as the definitions. To
-do so, just issue some GET requests to the right resources.
+Using the GET method, you can get back the data you just POST::
+
+    curl http://localhost:8000/models/todo/data/c429ab7c1f0f49a99cade9b76b9e6311
+
+    {
+        "status": "todo",
+        "item": "finish the documentation"
+    }
+
 
 Get back a definition
-~~~~~~~~~~~~~~~~~~~~~
+---------------------
 
-**GET /definition/{modelname}**
+**GET /models/{modelname}/definition**
 
 ::
 
-    curl http://localhost:8000/definitions/todo | python -m json.tool
+    curl http://localhost:8000/models/todo/definition
+
     {
         "description": "A list of my stuff to do", 
         "fields": [
@@ -108,18 +160,41 @@ Get back a definition
     }
 
 Get back all the data you pushed to a model
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+-------------------------------------------
 
-**GET /data/{modelname}**
+**GET /models/{modelname}/data**
 
 ::
 
-    curl http://localhost:8000/todo
+    curl http://localhost:8000/models/todo/data
+
     {
-    "data": [
-        {
-            "item": "finish the documentation", 
-            "status": "todo"
-        }, 
-    ]
+        "data": [{
+            "status": "todo",
+            "item": "finish the documentation",
+            "id": "c429ab7c1f0f49a99cade9b76b9e6311"
+        }]
     }
+
+Get policy list
+---------------
+
+**GET /policies**
+
+::
+
+    curl http://localhost:8000/policies
+
+    {'policies': ["read-only"]}
+
+**GET /policies/{policy_name}**
+
+::
+
+    curl http://localhost:8000/policies/read-only
+
+    {"role:admins": 65535, "others:": 17408}
+
+This means::
+
+    {

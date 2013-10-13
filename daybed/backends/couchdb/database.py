@@ -28,6 +28,7 @@ class Database(object):
     def get_data_items(self, model_id):
         data_items = []
         for item in self.__get_data_items(model_id):
+            item.value['data']['id'] = item.value['_id'].split('-')[1]
             data_items.append(item.value['data'])
         return data_items
 
@@ -206,7 +207,8 @@ class Database(object):
             raise PolicyNotFound(policy_name)
 
     def get_policy(self, policy_name):
-        return self.__get_policy(policy_name)['policy']
+        policy = self. __get_policy(policy_name)['policy']
+        return policy
 
     def set_policy(self, policy_name, policy):
         try:

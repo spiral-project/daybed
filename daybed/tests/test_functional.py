@@ -55,7 +55,7 @@ class PolicyTest(BaseWebTest):
         # Test Get
         resp = self.app.get('/policies/%s' % policy_id,
                             headers=self.headers, status=200)
-        self.assertDictEqual(json.loads(resp.body)[0], policy)
+        self.assertDictEqual(json.loads(resp.body), policy)
 
         # Test Create another time with the same name
         self.app.put_json('/policies/%s' % policy_id,
@@ -97,7 +97,8 @@ class PolicyTest(BaseWebTest):
 
     def test_policies_list(self):
         resp = self.app.get('/policies', headers=self.headers, status=200)
-        self.assertEqual(resp.body, '["admin-only", "read-only"]')
+        self.assertDictEqual(json.loads(resp.body),
+                             {"policies": ["admin-only", "read-only"]})
 
 
 class FunctionalTest(object):

@@ -21,7 +21,7 @@ def policy_validator(request):
 
 @policies.get()
 def get_policies(request):
-    return request.db.get_policies()
+    return {'policies': request.db.get_policies()}
 
 
 @policy.delete()
@@ -41,7 +41,7 @@ def get_policy(request):
     policy_id = request.matchdict['policy_id']
 
     try:
-        policy = request.db.get_policy(policy_id),
+        policy = request.db.get_policy(policy_id)
     except PolicyNotFound:
         raise HTTPNotFound()
 
