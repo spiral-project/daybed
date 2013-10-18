@@ -13,7 +13,7 @@ function(doc) {
 
 
 """models by policy_id"""
-policy_definitions = ViewDefinition('definitions', 'by_policy_id', """
+policy_definitions = ViewDefinition('definitions_policy', 'by_policy_id', """
 function(doc) {
   if (doc.type == "definition") {
     emit(doc.policy_id, doc);
