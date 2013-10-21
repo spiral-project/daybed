@@ -37,11 +37,6 @@ class DaybedViewsTest(BaseWebTest):
 
 class PolicyTest(BaseWebTest):
 
-    def __init__(self, *args, **kwargs):
-        super(PolicyTest, self).__init__(*args, **kwargs)
-        self.headers = {'Content-Type': 'application/json',
-                        'REMOTE_USER': 'admin'}
-
     def test_policy_put_get_delete_ok(self):
         policy_id = 'read-only%s' % uuid4()
         policy = {'role:admins': 0xFFFF,
@@ -119,8 +114,6 @@ class FunctionalTest(object):
         self.definition_without_title = self.valid_definition.copy()
         self.definition_without_title.pop('title')
         self.malformed_definition = '{"test":"toto", "titi": "tutu'
-        self.headers = {'Content-Type': 'application/json',
-                        'REMOTE_USER': 'admin'}
 
     @property
     def valid_definition(self):

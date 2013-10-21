@@ -1,3 +1,4 @@
+from uuid import uuid4
 from pyramid.interfaces import IAuthorizationPolicy
 from zope.interface import implementer
 
@@ -39,13 +40,18 @@ class DaybedAuthorizationPolicy(object):
 
 
 def permission_mask(permission):
-    """Permissions are defined with the format {privilege}_{resource}"""
-    # CRUD
+    """Returns the permission mask associated with a permission, so that it's
+    possible to do boolean operations with them.
+
+    Permissions are defined with the format {privilege}_{resource}.
+    """
+    # As a note, here are the permissions, for a "CRUD":
     # Create = 8
     # Read   = 4
     # Update = 2
     # Delete = 1
-    # The order is Definition, Data, Users, Policy
+
+    # The order matters and is "Definition, Data, Users, Policy".
 
     mapping = {
         'post_model': 0x8888,        # C on everything
@@ -79,10 +85,11 @@ class RootFactory(object):
 
 
 def build_user_principals(user, request):
-    """
-    Groups start by "group:"
-    Roles start by "role:"
-    Authors are defined by "author:"
+    """Returns the principals for an user.
+
+    On the returned principals, there can be groups, roles and authors.
+    Each of these special groups are prefixed with '<group>:<name>', e.g.
+    'group:readers', 'role:curator' and 'author:'.
     """
     model_id = request.matchdict.get('model_id')
     data_item_id = request.matchdict.get('data_item_id')
@@ -90,8 +97,8 @@ def build_user_principals(user, request):
     try:
         groups = [u'group:%s' % g for g in request.db.get_groups(user)]
     except UserNotFound:
-        user = request.db.add_user({'name': user})
-        # XXX create API token.
+        token = str(uuid4())
+        user = request.db.add_user({'name': user, 'api-token': token})
         groups = user['groups']
     principals = set(groups)
 
@@ -122,3 +129,9 @@ def build_user_principals(user, request):
 
     principals.add('others:')
     return principals
+
+
+def check_api_token(username, password, request):
+    user = request.db.get_user(username)
+    if user['apitoken'] == password:
+        return build_user_principals(username, request)

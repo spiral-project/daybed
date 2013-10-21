@@ -5,8 +5,9 @@
 <script type="text/javascript">${request.persona_js}</script>
 </head>
 <body>
-<h1>Persona test page</h1>
-hello ${user}
+<h1>Welcome on Daybed, ${user['name']}</h1>
+
+Your API token is <code>${user['api-token']}</code>
 ${request.persona_button}
 </body>
 </html>

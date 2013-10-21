@@ -56,7 +56,7 @@ def model_validator(request):
 
 @models.post(permission='post_model', validators=(model_validator,))
 def post_models(request):
-    """creates an model with the given definition and data, if any."""
+    """creates a model with the given definition and data, if any."""
     model_id = request.db.put_model(
         definition=request.validated['definition'],
         roles=request.validated['roles'],

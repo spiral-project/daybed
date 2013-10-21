@@ -7,11 +7,10 @@ from cornice import Service
 from pyramid.config import Configurator
 from pyramid.renderers import JSONP
 from pyramid.authentication import (
-    RemoteUserAuthenticationPolicy, AuthTktAuthenticationPolicy
+    AuthTktAuthenticationPolicy, BasicAuthAuthenticationPolicy
 )
 from pyramid.session import UnencryptedCookieSessionFactoryConfig
 from pyramid.security import (
-    authenticated_userid,
     unauthenticated_userid,
     NO_PERMISSION_REQUIRED
 )
@@ -22,15 +21,15 @@ from pyramid_persona.views import login, logout
 from pyramid_multiauth import MultiAuthenticationPolicy
 
 from daybed.acl import (
-    RootFactory, DaybedAuthorizationPolicy, build_user_principals
+    RootFactory, DaybedAuthorizationPolicy, build_user_principals,
+    check_api_token
 )
 
 from daybed.backends.exceptions import PolicyAlreadyExist
 
 
 def home(request):
-    userid = authenticated_userid(request)
-    return {'user': userid}
+    return {'user': get_user(request)}
 
 
 def get_user(request):
@@ -51,10 +50,9 @@ def main(global_config, **settings):
     secret = settings.get('persona.secret', None)
 
     policies = [
+        BasicAuthAuthenticationPolicy(check_api_token),
         AuthTktAuthenticationPolicy(secret, hashalg='sha512',
-                                    callback=build_user_principals),
-        RemoteUserAuthenticationPolicy('HTTP_REMOTE_USER',
-                                       callback=build_user_principals)
+                                    callback=build_user_principals)
     ]
     authn_policy = MultiAuthenticationPolicy(policies)
 

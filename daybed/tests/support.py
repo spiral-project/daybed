@@ -4,6 +4,7 @@ except ImportError:
     import unittest  # NOQA
 
 from uuid import uuid4
+import base64
 import webtest
 
 from daybed.backends.couchdb.database import Database
@@ -31,9 +32,17 @@ class BaseWebTest(unittest.TestCase):
             pass
 
         try:
-            self.db.add_user({'name': 'admin', 'groups': ['admins']})
+            self.db.add_user({'name': 'admin', 'groups': ['admins'],
+                              'apitoken': 'foo'})
         except UserAlreadyExist:
             pass
+
+        auth_password = base64.encodestring('admin:foo').strip()
+        self.headers = {
+            'Content-Type': 'application/json',
+            'AUTH_TYPE': 'Basic',
+            'HTTP_AUTHORIZATION': 'Basic {}'.format(auth_password),
+        }
 
     def tearDown(self):
         self.backend.delete_db()
