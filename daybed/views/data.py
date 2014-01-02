@@ -42,7 +42,7 @@ def post_data(request):
 
     model_id = request.matchdict['model_id']
     data_id = request.db.put_data_item(model_id, request.data_clean)
-    created = '%s/models/%s/data/%s' % (request.application_url, model_id,
+    created = '%s/models/%s/data/%s' % (request.application_url, str(model_id),
                                         data_id)
     request.response.status = "201 Created"
     request.response.headers['location'] = created
