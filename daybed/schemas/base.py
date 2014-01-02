@@ -157,6 +157,11 @@ class StringField(TypeField):
     node = String
 
 
+@registry.add('text')
+class TextField(TypeField):
+    node = String
+
+
 @registry.add('decimal')
 class DecimalField(TypeField):
     node = Decimal
