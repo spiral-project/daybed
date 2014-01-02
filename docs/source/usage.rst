@@ -108,7 +108,7 @@ Get back all the data you pushed to a model
 
 ::
 
-    curl http://localhost:8000/todo
+    curl http://localhost:8000/data/todo
     {
     "data": [
         {
