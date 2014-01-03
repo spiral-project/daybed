@@ -37,11 +37,10 @@ class BaseWebTest(unittest.TestCase):
         except UserAlreadyExist:
             pass
 
-        auth_password = base64.encodestring('admin:foo').strip()
+        auth_password = base64.b64encode('admin:foo').strip().decode('ascii')
         self.headers = {
             'Content-Type': 'application/json',
-            'AUTH_TYPE': 'Basic',
-            'HTTP_AUTHORIZATION': 'Basic {}'.format(auth_password),
+            'Authorization': 'Basic {}'.format(auth_password),
         }
 
     def tearDown(self):

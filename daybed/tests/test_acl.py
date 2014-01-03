@@ -30,7 +30,8 @@ class TestACL(TestCase):
         context.db.get_model_policy.return_value = policy
 
         self.assertFalse(permits(context, ['Alexis'], 'get_definition'))
-        self.assertTrue(permits(context, ['Alexis', 'others:'], 'get_definition'))
+        self.assertTrue(permits(context, ['Alexis', 'others:'],
+                                'get_definition'))
 
     def test_build_user_principals_resolve_group(self):
         principals = build_user_principals('Chuck Norris', self._get_request())
