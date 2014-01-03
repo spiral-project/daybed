@@ -4,7 +4,10 @@ python:
   - 2.7
 services:
     - couchdb
-install: make install
+install:
+  - make install
+  # Use colander dev version (until 1.0 released)
+  - bin/pip install --upgrade -e git+https://github.com/Pylons/colander.git#egg=colander
 script:  make tests
 after_success:
   # Report coverage results to coveralls.io

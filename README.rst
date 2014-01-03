@@ -25,11 +25,13 @@ any of your favorite technologies (python, Android, iOS, AngularJS, Ember.js, Ba
 It becomes an abstract storage layer, a Google Forms alternative, a *data pad* or an internal component
 in your applications : it's database as a service !
 
-We made two demo applications with *Daybed* :
+We made some demo applications with *Daybed* :
 
 * `daybed-map <http://leplatrem.github.io/daybed-map/>`_, a *geo-pad* where you can create you own maps with custom fields, using `backbone-forms <https://github.com/powmedia/backbone-forms>`_
 
 * A `TODO list <http://daybed.lolnet.org/>`_ using `jquery-spore <https://github.com/nikopol/jquery-spore>`_ ;
+
+* A generic `CRUD application <http://spiral-project.github.io/backbone-daybed/>`_ using `backbone-daybed <https://github.com/spiral-project/backbone-daybed>`_ ;
 
 
 Features

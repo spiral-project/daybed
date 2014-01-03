@@ -1,3 +1,4 @@
+import collections
 try:
     import unittest2 as unittest
 except ImportError:
@@ -53,3 +54,19 @@ class BaseWebTest(unittest.TestCase):
         self.app.put_json('/definitions/todo',
                           self.valid_definition,
                           headers=self.headers)
+
+
+def force_unicode(data):
+    """ Recursively force unicode.
+
+    Works for dict keys, list values etc.
+    (source: http://stackoverflow.com/questions/1254454/fastest-way-to-convert-a-dicts-keys-values-from-unicode-to-str)
+    """
+    if isinstance(data, basestring):
+        return unicode(data)
+    elif isinstance(data, collections.Mapping):
+        return dict(map(force_unicode, data.iteritems()))
+    elif isinstance(data, collections.Iterable):
+        return type(data)(map(force_unicode, data))
+    else:
+        return data

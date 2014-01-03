@@ -1,5 +1,4 @@
 import json
-
 from cornice import Service
 from pyramid.httpexceptions import HTTPNotFound
 

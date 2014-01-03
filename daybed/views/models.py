@@ -76,7 +76,6 @@ def delete_model(request):
     """Deletes a model and its matching associated data."""
     model_id = request.matchdict['model_id']
     request.db.delete_model(model_id)
-    return "ok"
 
 
 @model.get(permission='get_model')
@@ -113,4 +112,4 @@ def put_model(request):
     for data_item in request.validated['data']:
         request.db.put_data_item(model_id, data_item, [request.user['name']])
 
-    return "ok"
+    return {"msg": "ok"}

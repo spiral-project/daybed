@@ -1,5 +1,4 @@
 import json
-
 from cornice import Service
 from pyramid.httpexceptions import HTTPNotFound
 
@@ -64,5 +63,5 @@ def delete(request):
 
     deleted = request.db.delete_data_item(model_id, data_item_id)
     if not deleted:
-        raise NotFound("Unknown data_item %s: %s" % (model_id, data_item_id))
-    return 'ok'
+        raise HTTPNotFound("Unknown data_item %s: %s" % (model_id,
+                                                         data_item_id))

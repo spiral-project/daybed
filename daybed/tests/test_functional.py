@@ -2,7 +2,7 @@ import json
 from uuid import uuid4
 
 from daybed.backends.exceptions import DataItemNotFound, ModelNotFound
-from daybed.tests.support import BaseWebTest
+from daybed.tests.support import BaseWebTest, force_unicode
 from daybed.schemas import registry
 
 
@@ -210,7 +210,8 @@ class FunctionalTest(object):
         # Verify that the schema is the same
         resp = self.app.get('/models/%s/definition' % self.model_id,
                             headers=self.headers)
-        self.assertEqual(resp.json, self.valid_definition)
+        definition = force_unicode(self.valid_definition)
+        self.assertEqual(resp.json, definition)
 
     def test_model_deletion(self):
         resp = self.create_definition()
@@ -251,9 +252,10 @@ class FunctionalTest(object):
         resp = self.app.get('/models/%s/data/%s' % (self.model_id,
                                                     data_item_id),
                             headers=self.headers)
-        entry = self.valid_data.copy()
-        # entry['id'] = str(data_item_id
-        self.assertEqual(resp.json, entry)
+        self.assertDataCorrect(resp.json, force_unicode(self.valid_data))
+
+    def assertDataCorrect(self, data, entry):
+        self.assertEqual(data, entry)
 
     def test_data_item_update(self):
         self.create_definition()
@@ -416,7 +418,8 @@ class TimestampedModelTest(FunctionalTest, BaseWebTest):
                 {
                     "name": "creation",
                     "type": "date",
-                    "description": "created on"
+                    "description": "created on",
+                    "auto_now": False
                 },
                 {
                     "name": "modified",
@@ -439,6 +442,11 @@ class TimestampedModelTest(FunctionalTest, BaseWebTest):
         entry['creation'] = '2013-05-30'
         entry['modified'] = ''
 
+    def assertDataCorrect(self, data, entry):
+        self.assertEqual(data['creation'], entry['creation'])
+        # Check that auto-now worked
+        self.assertNotEqual(data['modified'], entry['creation'])
+
 
 class MushroomsModelTest(FunctionalTest, BaseWebTest):
 
@@ -458,6 +466,7 @@ class MushroomsModelTest(FunctionalTest, BaseWebTest):
                 {
                     "name": "location",
                     "type": "polygon",
+                    "gps": True,
                     "description": "Area spotted"
                 }
             ]
@@ -466,7 +475,7 @@ class MushroomsModelTest(FunctionalTest, BaseWebTest):
     @property
     def valid_data(self):
         return {'mushroom': 'Boletus',
-                'location': [[[0, 0], [0, 1], [1, 1]]]}
+                'location': [[[0, 0], [0, 1], [1, 1]]]}  # closed polygon
 
     @property
     def invalid_data(self):
@@ -476,6 +485,12 @@ class MushroomsModelTest(FunctionalTest, BaseWebTest):
     def update_data(self, entry):
         entry['location'] = [[[0, 0], [0, 2], [2, 2]],
                              [[0.5, 0.5], [0.5, 1], [1, 1]]]
+
+    def assertDataCorrect(self, data, entry):
+        self.assertEqual(data['mushroom'], entry['mushroom'])
+        # Check that polygon was closed automatically
+        self.assertNotEqual(data['location'], entry['location'])
+        self.assertEqual(data['location'][0][0], data['location'][0][-1])
 
 
 class CityModelTest(FunctionalTest, BaseWebTest):
@@ -496,6 +511,7 @@ class CityModelTest(FunctionalTest, BaseWebTest):
                 {
                     "name": "location",
                     "type": "point",
+                    "gps": True,
                     "description": "(x,y,z)"
                 }
             ]
