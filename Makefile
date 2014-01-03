@@ -16,14 +16,14 @@ $(INSTALL_STAMP): $(PYTHON)
 	$(PYTHON) setup.py develop
 	touch $(INSTALL_STAMP)
 
-$(DEV_STAMP): $(VENV_STAMP) dev-requirements.txt
-	bin/pip install pip==1.4.1 setuptools==1.1.6
-	bin/pip install -r dev-requirements.txt --use-mirrors
+install-dev: $(DEV_STAMP)
+$(DEV_STAMP): $(PYTHON)
+	$(VENV)/bin/pip install -r dev-requirements.txt --use-mirrors
 	touch $(DEV_STAMP)
 
-$(VENV_STAMP):
-	virtualenv -p python2.7 .
-	touch $(VENV_STAMP)
+virtualenv: $(PYTHON)
+$(PYTHON):
+	$(VIRTUALENV) $(VENV)
 
 clean:
 	rm -fr $(OBJECTS) $(DEV_STAMP) $(INSTALL_STAMP)
