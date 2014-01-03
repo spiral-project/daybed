@@ -1,4 +1,5 @@
 import re
+import json
 import datetime
 
 from colander import (
@@ -10,8 +11,10 @@ from colander import (
     Range,
     Sequence,
     Length,
-    SchemaType,
+    List,
+    ContainsOnly,
     null,
+    SchemaType,
     Int,
     Decimal,
     Boolean,
@@ -26,7 +29,8 @@ __all__ = ['registry', 'TypeField',
            'DefinitionValidator', 'SchemaValidator',
            'IntField', 'StringField', 'RangeField',
            'RegexField', 'EmailField', 'URLField',
-           'DecimalField', 'DateField', 'DateTimeField',
+           'EnumField', 'ChoicesField', 'DecimalField',
+           'DateField', 'DateTimeField',
            'RolesValidator', 'PolicyValidator']
 
 
@@ -173,6 +177,11 @@ class StringField(TypeField):
     node = String
 
 
+@registry.add('text')
+class TextField(TypeField):
+    node = String
+
+
 @registry.add('decimal')
 class DecimalField(TypeField):
     node = Decimal
@@ -198,6 +207,39 @@ class EnumField(TypeField):
     def validation(cls, **kwargs):
         kwargs['validator'] = OneOf(kwargs['choices'])
         return super(EnumField, cls).validation(**kwargs)
+
+
+class JSONList(List):
+    """Pure JSON or string, as serialized JSON or comma-separated values"""
+    def deserialize(self, node, cstruct, **kwargs):
+        if cstruct is null:
+            return cstruct
+        try:
+            appstruct = cstruct
+            if isinstance(cstruct, basestring):
+                # Try JSON format
+                appstruct = json.loads(cstruct)
+        except ValueError:
+            cstruct = re.sub(r'^\s*\[(.*)\]\s*', r'\1', cstruct)
+            appstruct = re.split(r'\s*,\s*', cstruct)
+        return super(JSONList, self).deserialize(node, appstruct, **kwargs)
+
+
+@registry.add('choices')
+class ChoicesField(TypeField):
+    node = JSONList
+
+    @classmethod
+    def definition(cls):
+        schema = super(ChoicesField, cls).definition()
+        schema.add(SchemaNode(Sequence(), SchemaNode(String()),
+                              name='choices', validator=Length(min=1)))
+        return schema
+
+    @classmethod
+    def validation(cls, **kwargs):
+        kwargs['validator'] = ContainsOnly(kwargs['choices'])
+        return super(ChoicesField, cls).validation(**kwargs)
 
 
 @registry.add('range')

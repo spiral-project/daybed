@@ -7,7 +7,7 @@
 <body>
 <h1>Welcome on Daybed, ${user['name']}</h1>
 
-Your API token is <code>${user['api-token']}</code>
+Your API token is <code>${user['apitoken']}</code>
 ${request.persona_button}
 </body>
 </html>

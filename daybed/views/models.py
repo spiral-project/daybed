@@ -10,15 +10,22 @@ from daybed.backends.exceptions import ModelNotFound, PolicyNotFound
 models = Service(name='models', path='/models', description='Models',
                  renderer="jsonp", cors_origins=('*',))
 
-model = Service(name='model', path='/models/{model_id}', description='Model',
-                renderer="jsonp", cors_origins=('*',))
+model = Service(name='model',
+                path='/models/{model_id}',
+                description='Model',
+                renderer="jsonp",
+                cors_origins=('*',))
 
 
 def model_validator(request):
     """Verify that the model is okay (that we have the right fields) and
     eventually populates it if there is a need to.
     """
-    body = json.loads(request.body)
+    try:
+        body = json.loads(request.body)
+    except ValueError:
+        request.errors.add('body', 'json value error', "body malformed")
+        return
 
     # Check the definition is valid.
     definition = body.get('definition')

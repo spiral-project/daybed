@@ -4,10 +4,11 @@ from pyramid.httpexceptions import HTTPNotFound
 from daybed.backends.exceptions import ModelNotFound
 
 
-definition = Service(
-    name='model-definition', path='/models/{model_id}/definition',
-    description='Model Definitions', renderer="jsonp",
-    cors_origins=('*',))
+definition = Service(name='model-definition',
+                     path='/models/{model_id}/definition',
+                     description='Model Definitions',
+                     renderer="jsonp",
+                     cors_origins=('*',))
 
 
 @definition.get(permission='get_definition')

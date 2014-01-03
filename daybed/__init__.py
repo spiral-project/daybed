@@ -1,6 +1,11 @@
 """Main entry point
 """
-VERSION = '0.1'
+import pkg_resources
+
+
+#: Module version, as defined in PEP-0396.
+__version__ = pkg_resources.get_distribution(__package__).version
+
 import json
 
 from cornice import Service
@@ -37,12 +42,15 @@ def get_user(request):
     if userid is not None:
         return request.db.get_user(userid)
 
+from daybed.renderers import GeoJSON
+
 
 def main(global_config, **settings):
     Service.cors_origins = ('*',)
 
     config = Configurator(settings=settings, root_factory=RootFactory)
     config.include("cornice")
+    config.include('pyramid_mako')
 
     ## ACL management
 
@@ -74,8 +82,8 @@ def main(global_config, **settings):
     config.registry['persona.request_params'] = json.dumps(request_params)
 
     # Login and logout views.
-    config.add_route('home', '/')
-    config.add_view(home, route_name='home', renderer='home.mako')
+    config.add_route('persona', '/persona')
+    config.add_view(home, route_name='persona', renderer='home.mako')
 
     login_route = settings.get('persona.login_route', 'login')
     config.registry['persona.login_route'] = login_route
@@ -119,4 +127,5 @@ def main(global_config, **settings):
         pass
     config.registry.default_policy = 'read-only'
 
+    config.add_renderer('geojson', GeoJSON())
     return config.make_wsgi_app()

@@ -12,20 +12,22 @@ fields = Service(name='fields',
 
 @fields.get()
 def list_fields(request):
+    common_params = ['name', 'type', 'description', 'required']
     fields = []
     # Iterate registered field types
     for name in registry.names:
         field = dict(name=name)
         # Describe field parameters using Colander children
         for parameter in registry.definition(name).children:
-            if parameter.name not in ['name', 'type', 'description', 'required']:
+            if parameter.name not in common_params:
                 fieldtype = parameter.typ.__class__.__name__.lower()
                 extras = dict(name=parameter.name,
                               description=parameter.title,
                               type=fieldtype)
                 # Special case for sequence
                 if fieldtype == 'sequence':
-                    itemtype = parameter.children[0].typ.__class__.__name__.lower()
+                    node = parameter.children[0].typ  # sample node (first)
+                    itemtype = node.__class__.__name__.lower()
                     extras['type'] = 'array'
                     extras['items'] = dict(type=itemtype)
                 # Show default only if present

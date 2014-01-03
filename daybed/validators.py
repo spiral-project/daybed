@@ -37,7 +37,7 @@ def schema_validator(request):
 
 def validate_against_schema(request, schema, data):
     try:
-        schema.deserialize(data)
+        request.data_clean = schema.deserialize(data)
     except colander.Invalid, e:
         for error in e.children:
             # here we transform the errors we got from colander into cornice

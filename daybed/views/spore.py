@@ -2,7 +2,7 @@ from cornice import Service
 from cornice.ext.spore import generate_spore_description
 from cornice.service import get_services
 
-from daybed import VERSION
+from daybed import __version__ as VERSION
 
 spore = Service(name="spore",
                 path='/spore',
@@ -13,4 +13,4 @@ spore = Service(name="spore",
 @spore.get()
 def get_spore(request):
     return generate_spore_description(get_services(), 'daybed',
-              request.application_url, VERSION)
+                                      request.application_url, VERSION)

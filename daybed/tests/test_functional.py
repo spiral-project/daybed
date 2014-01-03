@@ -1,12 +1,22 @@
 import json
 from uuid import uuid4
 
+from daybed import __version__ as VERSION
+
 from daybed.backends.exceptions import DataItemNotFound, ModelNotFound
 from daybed.tests.support import BaseWebTest, force_unicode
 from daybed.schemas import registry
 
 
 class DaybedViewsTest(BaseWebTest):
+
+    def test_hello(self):
+        response = self.app.get('/', headers=self.headers)
+        self.assertDictEqual({'version': VERSION,
+                              'daybed': 'hello'}, response.json)
+
+    def test_persona(self):
+        self.app.get('/persona', headers=self.headers)
 
     def test_fields_are_listed(self):
         response = self.app.get('/fields')
@@ -204,6 +214,20 @@ class FunctionalTest(object):
     def test_normal_definition_creation(self):
         self.create_definition()
 
+    def test_malformed_definition_creation(self):
+        resp = self.app.put_json('/models/%s' % self.model_id,
+                                 {'definition': self.definition_without_title},
+                                 headers=self.headers,
+                                 status=400)
+        self.assertIn('"name": "title"', resp.body)
+
+    def test_definition_creation_rejects_malformed_data(self):
+        resp = self.app.put('/models/%s' % self.model_id,
+                            {'definition': self.malformed_definition},
+                            headers=self.headers,
+                            status=400)
+        self.assertIn('"status": "error"', resp.body)
+
     def test_definition_retrieval(self):
         self.create_definition()
 
@@ -211,7 +235,7 @@ class FunctionalTest(object):
         resp = self.app.get('/models/%s/definition' % self.model_id,
                             headers=self.headers)
         definition = force_unicode(self.valid_definition)
-        self.assertEqual(resp.json, definition)
+        self.assertDictEqual(resp.json, definition)
 
     def test_model_deletion(self):
         resp = self.create_definition()
@@ -351,7 +375,7 @@ class SimpleModelTest(FunctionalTest, BaseWebTest):
         return {
             "title": "simple",
             "description": "One optional field",
-            "fields": [{"name": "age", "type": "int", "required": False}]
+            "fields": [{"name": "age", "type": "int", "required": False, "description": ""}]
         }
 
     @property
@@ -379,7 +403,8 @@ class TodoModelTest(FunctionalTest, BaseWebTest):
                 {
                     "name": "item",
                     "type": "string",
-                    "description": "The item"
+                    "description": "The item",
+                    "required": True,
                 },
                 {
                     "name": "status",
@@ -388,6 +413,7 @@ class TodoModelTest(FunctionalTest, BaseWebTest):
                         "done",
                         "todo"
                     ],
+                    "required": True,
                     "description": "is it done or not"
                 }
             ]
@@ -419,12 +445,14 @@ class TimestampedModelTest(FunctionalTest, BaseWebTest):
                     "name": "creation",
                     "type": "date",
                     "description": "created on",
+                    "required": True,
                     "auto_now": False
                 },
                 {
                     "name": "modified",
                     "type": "datetime",
                     "description": "modified on",
+                    "required": True,
                     "auto_now": True
                 },
             ]
@@ -461,12 +489,14 @@ class MushroomsModelTest(FunctionalTest, BaseWebTest):
                 {
                     "name": "mushroom",
                     "type": "string",
+                    "required": True,
                     "description": "Species"
                 },
                 {
                     "name": "location",
                     "type": "polygon",
                     "gps": True,
+                    "required": True,
                     "description": "Area spotted"
                 }
             ]
@@ -475,7 +505,7 @@ class MushroomsModelTest(FunctionalTest, BaseWebTest):
     @property
     def valid_data(self):
         return {'mushroom': 'Boletus',
-                'location': [[[0, 0], [0, 1], [1, 1]]]}  # closed polygon
+                'location': [[[0, 0], [0, 1], [1, 1]]]}
 
     @property
     def invalid_data(self):
@@ -492,6 +522,32 @@ class MushroomsModelTest(FunctionalTest, BaseWebTest):
         self.assertNotEqual(data['location'], entry['location'])
         self.assertEqual(data['location'][0][0], data['location'][0][-1])
 
+    def test_data_geojson_retrieval(self):
+        resp = self.create_definition()
+        self.assertIn('ok', resp.body)
+        resp = self.create_data()
+        self.assertIn('id', resp.body)
+
+        headers = self.headers.copy()
+        resp = self.app.get('/models/%s/data' % self.model_id,
+                            headers=headers)
+        self.assertIn('data', resp.json)
+
+        headers['Accept'] = 'application/geojson'
+        resp = self.app.get('/models/%s/data' % (self.model_id),
+                            headers=headers)
+        self.assertIn('features', resp.json)
+
+        features = resp.json['features']
+        feature = features[0]
+        self.assertIsNotNone(feature.get('id'))
+        self.assertEquals(feature['properties']['mushroom'], 'Boletus')
+        self.assertIsNone(feature['properties'].get('location'))
+        self.assertEquals(feature['geometry']['type'], 'Polygon')
+        # after update
+        self.assertItemsEqual(feature['geometry']['coordinates'],
+                              [[[0, 0], [0, 1], [1, 1], [0, 0]]])
+
 
 class CityModelTest(FunctionalTest, BaseWebTest):
 
@@ -506,12 +562,14 @@ class CityModelTest(FunctionalTest, BaseWebTest):
                 {
                     "name": "name",
                     "type": "string",
+                    "required": True,
                     "description": "Administrative"
                 },
                 {
                     "name": "location",
                     "type": "point",
                     "gps": True,
+                    "required": True,
                     "description": "(x,y,z)"
                 }
             ]
@@ -543,6 +601,7 @@ class EuclideModelTest(FunctionalTest, BaseWebTest):
                 {
                     "name": "location",
                     "type": "point",
+                    "required": True,
                     "description": "(x,y)",
                     "gps": False
                 }
