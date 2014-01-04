@@ -1,3 +1,7 @@
+from datetime import date, datetime
+
+import colander
+
 from . import views
 from daybed.backends.exceptions import (
     UserAlreadyExist, UserNotFound, ModelNotFound,
@@ -62,12 +66,25 @@ class Database(object):
             'policy_id': policy_id})
         return definition_id
 
+    def _prepare_data(self, data):
+        """ Prepare data to go through JSON serialization for CouchDB.
+        """
+        serializable = {}
+        for key, value in data.items():
+            if value is colander.null:
+                value = None
+            elif isinstance(value, (datetime, date)):
+                value = value.isoformat()
+            serializable[key] = value
+        return serializable
+
     def put_data_item(self, model_id, data, authors, data_item_id=None):
         doc = {
             'type': 'data',
-            'data': data,
             'authors': authors,
             'model_id': model_id}
+
+        doc['data'] = self._prepare_data(data)
 
         if data_item_id is not None:
             try:
