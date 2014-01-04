@@ -39,7 +39,7 @@ class BaseWebTest(unittest.TestCase):
         auth_password = base64.b64encode('admin:foo').strip().decode('ascii')
         self.headers = {
             'Content-Type': 'application/json',
-            'Authorization': 'Basic {}'.format(auth_password),
+            'Authorization': 'Basic {0}'.format(auth_password),
         }
 
     def tearDown(self):

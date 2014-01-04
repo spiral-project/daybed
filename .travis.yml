@@ -1,20 +1,11 @@
 language: python
-python:
-  - 2.6
-  - 2.7
+python: 2.7
 services:
     - couchdb
+env:
+    - TOX_ENV=py26
+    - TOX_ENV=py27
+    - TOX_ENV=flake8
+script: tox -e $TOX_ENV
 install:
-  - make install
-  # Use colander dev version (until 1.0 released)
-  - bin/pip install --upgrade -e git+https://github.com/Pylons/colander.git#egg=colander
-script:  make tests
-after_success:
-  # Report coverage results to coveralls.io
-  - pip install coveralls
-  - coveralls
-notifications:
-    irc:
-        channels:
-            - "irc.freenode.org#daybed"
-        on_success: change
+    - pip install tox

@@ -28,8 +28,8 @@ $(PYTHON):
 clean:
 	rm -fr $(OBJECTS) $(DEV_STAMP) $(INSTALL_STAMP)
 
-tests: $(DEV_STAMP)
-	$(VENV)/bin/nosetests --with-coverage --cover-package=daybed -s
+tests:
+	tox
 
 serve: $(DEV_STAMP)
 	$(VENV)/bin/pserve development.ini --reload
