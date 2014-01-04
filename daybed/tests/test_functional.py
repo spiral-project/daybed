@@ -375,7 +375,8 @@ class SimpleModelTest(FunctionalTest, BaseWebTest):
         return {
             "title": "simple",
             "description": "One optional field",
-            "fields": [{"name": "age", "type": "int", "required": False, "description": ""}]
+            "fields": [{"name": "age", "type": "int", "required": False,
+                        "description": ""}]
         }
 
     @property

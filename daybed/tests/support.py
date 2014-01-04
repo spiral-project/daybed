@@ -58,7 +58,7 @@ def force_unicode(data):
     """ Recursively force unicode.
 
     Works for dict keys, list values etc.
-    (source: http://stackoverflow.com/questions/1254454/fastest-way-to-convert-a-dicts-keys-values-from-unicode-to-str)
+    (source: http://stackoverflow.com/questions/1254454/)
     """
     if isinstance(data, basestring):
         return unicode(data)

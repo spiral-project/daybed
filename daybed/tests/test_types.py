@@ -139,7 +139,8 @@ class FieldTypeTests(unittest.TestCase):
         validator = schemas.EmailField.validation(**definition)
         self.assertEquals('u@you.org', validator.deserialize('u@you.org'))
         self.assertEquals('u+i@you.org', validator.deserialize('u+i@you.org'))
-        self.assertRaises(colander.Invalid, validator.deserialize, 'u i@you.org')
+        self.assertRaises(colander.Invalid, validator.deserialize,
+                          'u i@you.org')
 
     def test_url(self):
         schema = schemas.URLField.definition()
@@ -150,7 +151,8 @@ class FieldTypeTests(unittest.TestCase):
         validator = schemas.URLField.validation(**definition)
         self.assertEquals('http://daybed.lolnet.org',
                           validator.deserialize('http://daybed.lolnet.org'))
-        self.assertRaises(colander.Invalid, validator.deserialize, 'http://lolnet/org')
+        self.assertRaises(colander.Invalid, validator.deserialize,
+                          'http://lolnet/org')
 
     def test_date(self):
         schema = schemas.DateField.definition()
@@ -162,9 +164,12 @@ class FieldTypeTests(unittest.TestCase):
         validator = schemas.DateField.validation(**definition)
         self.assertEquals(datetime.date(2012, 4, 15),
                           validator.deserialize('2012-04-15'))
-        self.assertRaises(colander.Invalid, validator.deserialize, '2012/04/15')
-        self.assertRaises(colander.Invalid, validator.deserialize, '2012-13-01')
-        self.assertRaises(colander.Invalid, validator.deserialize, '2012-04-31')  # April has 30 days only
+        self.assertRaises(colander.Invalid, validator.deserialize,
+                          '2012/04/15')
+        self.assertRaises(colander.Invalid, validator.deserialize,
+                          '2012-13-01')
+        self.assertRaises(colander.Invalid, validator.deserialize,
+                          '2012-04-31')  # April has 30 days only
         self.assertEquals(validator.deserialize('2012-04-30T13:37Z'),
                           datetime.date(2012, 4, 30))
 
@@ -176,16 +181,22 @@ class FieldTypeTests(unittest.TestCase):
              'type': 'datetime'})
 
         validator = schemas.DateTimeField.validation(**definition)
-        self.assertEquals(datetime.datetime(2012, 4, 16, 13, 45, 12, 0, colander.iso8601.UTC),
+        self.assertEquals(datetime.datetime(2012, 4, 16, 13, 45, 12, 0,
+                                            colander.iso8601.UTC),
                           validator.deserialize('2012-04-16T13:45:12'))
-        self.assertEquals(datetime.datetime(2012, 4, 16, 13, 45, 12, 0, colander.iso8601.UTC),
+        self.assertEquals(datetime.datetime(2012, 4, 16, 13, 45, 12, 0,
+                                            colander.iso8601.UTC),
                           validator.deserialize('2012-04-16T13:45:12Z'))
         # Without time
-        self.assertEquals(datetime.datetime(2012, 4, 16, 0, 0, 0, 0, colander.iso8601.UTC),
+        self.assertEquals(datetime.datetime(2012, 4, 16, 0, 0, 0, 0,
+                                            colander.iso8601.UTC),
                           validator.deserialize('2012-04-16'))
-        self.assertRaises(colander.Invalid, validator.deserialize, '2012/04/16 13H45')
-        self.assertRaises(colander.Invalid, validator.deserialize, '2012-04-30T25:37Z')
-        self.assertRaises(colander.Invalid, validator.deserialize, '2012-04-30T13:60Z')
+        self.assertRaises(colander.Invalid, validator.deserialize,
+                          '2012/04/16 13H45')
+        self.assertRaises(colander.Invalid, validator.deserialize,
+                          '2012-04-30T25:37Z')
+        self.assertRaises(colander.Invalid, validator.deserialize,
+                          '2012-04-30T13:60Z')
 
     def test_datetime_auto_now(self):
         schema = schemas.DateTimeField.definition()
@@ -226,15 +237,20 @@ class FieldTypeTests(unittest.TestCase):
         validator = schemas.PointField.validation(**definition)
         self.assertEquals([0.4, 45.0], validator.deserialize('[0.4, 45.0]'))
         self.assertEquals([0, 45], validator.deserialize('[0, 45]'))
-        self.assertEquals([0.4, 45.0, 1280], validator.deserialize('[0.4, 45.0, 1280]'))
+        self.assertEquals([0.4, 45.0, 1280],
+                          validator.deserialize('[0.4, 45.0, 1280]'))
         self.assertRaises(colander.Invalid, schema.deserialize, '[0.4]')
-        self.assertRaises(colander.Invalid, schema.deserialize, '[[0.4, 45.0]]')
+        self.assertRaises(colander.Invalid, schema.deserialize,
+                          '[[0.4, 45.0]]')
         self.assertRaises(colander.Invalid, schema.deserialize, '"0.4, 45.0"')
         self.assertRaises(colander.Invalid, schema.deserialize, '["a", "b"]')
         # Exceeding GPS coordinates
-        self.assertRaises(colander.Invalid, schema.deserialize, '[181.0, 91.0]')
-        self.assertRaises(colander.Invalid, schema.deserialize, '[-181.0, -91.0]')
-        self.assertRaises(colander.Invalid, schema.deserialize, '[120.0, -91.0]')
+        self.assertRaises(colander.Invalid, schema.deserialize,
+                          '[181.0, 91.0]')
+        self.assertRaises(colander.Invalid, schema.deserialize,
+                          '[-181.0, -91.0]')
+        self.assertRaises(colander.Invalid, schema.deserialize,
+                          '[120.0, -91.0]')
 
     def test_point_euclidean(self):
         schema = schemas.PointField.definition()
@@ -243,7 +259,8 @@ class FieldTypeTests(unittest.TestCase):
              'type': 'point',
              'gps': False})
         validator = schemas.PointField.validation(**definition)
-        self.assertEquals([181.0, 91.0], validator.deserialize('[181.0, 91.0]'))
+        self.assertEquals([181.0, 91.0],
+                          validator.deserialize('[181.0, 91.0]'))
 
     def test_line(self):
         schema = schemas.LineField.definition()
@@ -255,7 +272,8 @@ class FieldTypeTests(unittest.TestCase):
         self.assertEquals([[0.4, 45.0], [0.6, 65.0]],
                           validator.deserialize('[[0.4, 45.0], [0.6, 65.0]]'))
         self.assertEquals([[0.4, 45.0], [0.6, 65.0], [0.8, 85.0]],
-                          validator.deserialize('[[0.4, 45.0], [0.6, 65.0], [0.8, 85.0]]'))
+                          validator.deserialize(
+                              '[[0.4, 45.0], [0.6, 65.0], [0.8, 85.0]]'))
         self.assertRaises(colander.Invalid, schema.deserialize, '[0.4, 45.0]')
 
     def test_polygon(self):
@@ -266,18 +284,24 @@ class FieldTypeTests(unittest.TestCase):
 
         validator = schemas.PolygonField.validation(**definition)
         # With linear-rings
-        self.assertEquals([[[0.4, 45.0], [0.6, 65.0], [0.8, 85.0], [0.4, 45.0]]],
-                          validator.deserialize('[[[0.4, 45.0], [0.6, 65.0], [0.8, 85.0], [0.4, 45.0]]]'))
+        self.assertEquals(
+            [[[0.4, 45.0], [0.6, 65.0], [0.8, 85.0], [0.4, 45.0]]],
+            validator.deserialize(
+                '[[[0.4, 45.0], [0.6, 65.0], [0.8, 85.0], [0.4, 45.0]]]'))
         # Check that non linear-rings are automatically closed
-        self.assertEquals([[[0.4, 45.0], [0.6, 65.0], [0.8, 85.0], [0.4, 45.0]]],
-                          validator.deserialize('[[[0.4, 45.0], [0.6, 65.0], [0.8, 85.0]]]'))
+        self.assertEquals(
+            [[[0.4, 45.0], [0.6, 65.0], [0.8, 85.0], [0.4, 45.0]]],
+            validator.deserialize('[[[0.4, 45.0], [0.6, 65.0], [0.8, 85.0]]]'))
         # With polygon hole
-        self.assertEquals([[[0.4, 45.0], [0.6, 65.0], [0.8, 85.0], [0.4, 45.0]],
-                           [[0.4, 45.0], [0.6, 65.0], [0.8, 85.0], [0.4, 45.0]]],
-                          validator.deserialize("""[[[0.4, 45.0], [0.6, 65.0], [0.8, 85.0]],
-                                                    [[0.4, 45.0], [0.6, 65.0], [0.8, 85.0]]]"""))
-        self.assertRaises(colander.Invalid, schema.deserialize, '[[[0.4, 45.0]]]')
-        self.assertRaises(colander.Invalid, schema.deserialize, '[[[0.4, 45.0], [0.6, 65.0]]]')
+        self.assertEquals(
+            [[[0.4, 45.0], [0.6, 65.0], [0.8, 85.0], [0.4, 45.0]],
+             [[0.4, 45.0], [0.6, 65.0], [0.8, 85.0], [0.4, 45.0]]],
+            validator.deserialize("""[[[0.4, 45.0], [0.6, 65.0], [0.8, 85.0]],
+                                  [[0.4, 45.0], [0.6, 65.0], [0.8, 85.0]]]"""))
+        self.assertRaises(colander.Invalid, schema.deserialize,
+                          '[[[0.4, 45.0]]]')
+        self.assertRaises(colander.Invalid, schema.deserialize,
+                          '[[[0.4, 45.0], [0.6, 65.0]]]')
 
     def test_roles(self):
         schema = schemas.RolesValidator()
