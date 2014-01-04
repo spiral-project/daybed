@@ -1,4 +1,3 @@
-import json
 from cornice import Service
 from pyramid.httpexceptions import HTTPNotFound
 
@@ -38,7 +37,7 @@ def post_data(request):
         return
 
     model_id = request.matchdict['model_id']
-    data_id = request.db.put_data_item(model_id, json.loads(request.body),
+    data_id = request.db.put_data_item(model_id, request.data_clean,
                                        request.user['name'])
     created = u'%s/models/%s/data/%s' % (request.application_url, model_id,
                                          data_id)

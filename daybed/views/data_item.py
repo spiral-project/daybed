@@ -30,7 +30,7 @@ def put(request):
     """Update or create a data item."""
     model_id = request.matchdict['model_id']
     data_item_id = request.matchdict['data_item_id']
-    data_id = request.db.put_data_item(model_id, json.loads(request.body),
+    data_id = request.db.put_data_item(model_id, request.data_clean,
                                        [request.user['name']],
                                        data_item_id=data_item_id)
     return {'id': data_id}
