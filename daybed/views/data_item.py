@@ -47,7 +47,7 @@ def patch(request):
         raise HTTPNotFound(
             "Unknown data_item %s: %s" % (model_id, data_item_id)
         )
-    data.update(json.loads(request.body))
+    data.update(json.loads(request.body.decode('utf-8')))
     definition = request.db.get_model_definition(model_id)
     validate_against_schema(request, SchemaValidator(definition), data)
     if not request.errors:

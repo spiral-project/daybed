@@ -1,3 +1,4 @@
+import six
 from uuid import uuid4
 from pyramid.interfaces import IAuthorizationPolicy
 from zope.interface import implementer
@@ -97,7 +98,7 @@ def build_user_principals(user, request):
     try:
         groups = [u'group:%s' % g for g in request.db.get_groups(user)]
     except UserNotFound:
-        token = str(uuid4())
+        token = six.text_type(uuid4())
         user = request.db.add_user({'name': user, 'api-token': token})
         groups = user['groups']
     principals = set(groups)

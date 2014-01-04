@@ -1,3 +1,4 @@
+import six
 from uuid import uuid4
 
 
@@ -7,4 +8,4 @@ class UUID4Generator(object):
         pass
 
     def __call__(self, request=None):
-        return str(uuid4()).replace('-', '')
+        return six.text_type(uuid4()).replace('-', '')

@@ -1,3 +1,4 @@
+import six
 from pyramid.config import global_registries
 from colander import (String, SchemaNode, Invalid)
 from .base import registry, TypeField, JSONList
@@ -20,7 +21,7 @@ class DataItemsExist(object):
         self.model_id = model_id
 
     def __call__(self, node, value):
-        if not hasattr(value, '__iter__'):
+        if isinstance(value, six.string_types):
             value = [value]
         for record_id in value:
             record = self.db.get_data_item(self.model_id, record_id)

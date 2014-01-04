@@ -35,20 +35,28 @@ KEYWORDS = ['web',
             'storage']
 PACKAGES = [NAME.replace('-', '_')]
 REQUIREMENTS = ['setuptools',
+                'six',
                 'pyramid',
                 'cornice',
                 'colander',
-                'couchdb',
                 'pyramid_persona',
                 'pyramid_multiauth',
                 'pyramid_mako']
-DEPENDENCY_LINKS = [
-    'https://github.com/lilydjwg/couchdb-python3/tarball/master#egg=couchdb',
-]
+DEPENDENCY_LINKS = []
 ENTRY_POINTS = {
     'paste.app_factory': [
         'main = daybed:main',
     ]}
+
+if PY2:
+    REQUIREMENTS.append('CouchDB')
+else:
+    # Python3 version for couchdb
+    REQUIREMENTS.append('CouchDB==0.9dev')
+    DEPENDENCY_LINKS.append(
+        'https://github.com/lilydjwg/couchdb-python3/zipball/master'
+        '#egg=CouchDB-0.9dev',
+    )
 
 
 if __name__ == '__main__':  # Don't run setup() when we import this module.

@@ -19,9 +19,9 @@ class TypeRegistryTests(unittest.TestCase):
 
     def test_register(self):
         # Register a type
-        self.assertEqual([], self.types.names)
+        self.assertEqual([], list(self.types.names))
         self.types.register('foo', None)
-        self.assertEqual(['foo'], self.types.names)
+        self.assertEqual(['foo'], list(self.types.names))
 
     def test_unregister_unknown(self):
         # Unregister unknown
@@ -30,9 +30,9 @@ class TypeRegistryTests(unittest.TestCase):
 
     def test_unregister(self):
         self.types.register('bar', None)
-        self.assertEqual(['bar'], self.types.names)
+        self.assertEqual(['bar'], list(self.types.names))
         self.types.unregister('bar')
-        self.assertEqual([], self.types.names)
+        self.assertEqual([], list(self.types.names))
         self.assertRaises(UnknownFieldTypeError,
                           self.types.definition, 'bar')
         self.assertRaises(UnknownFieldTypeError,

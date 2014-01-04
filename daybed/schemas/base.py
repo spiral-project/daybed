@@ -1,3 +1,4 @@
+import six
 import re
 import json
 import datetime
@@ -154,7 +155,7 @@ class RolesValidator(SchemaNode):
 class PolicyValidator(SchemaNode):
     def __init__(self, policy):
         super(PolicyValidator, self).__init__(Mapping(unknown='preserve'))
-        for key in policy.iterkeys():
+        for key in six.iterkeys(policy):
             self.add(SchemaNode(Int(), name=key,
                                 validator=Range(min=0, max=0xFFFF)))
 
@@ -216,7 +217,7 @@ class JSONList(List):
             return cstruct
         try:
             appstruct = cstruct
-            if isinstance(cstruct, basestring):
+            if isinstance(cstruct, six.string_types):
                 # Try JSON format
                 appstruct = json.loads(cstruct)
         except ValueError:
