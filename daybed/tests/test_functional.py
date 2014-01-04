@@ -529,6 +529,7 @@ class MushroomsModelTest(FunctionalTest, BaseWebTest):
         self.assertIn('id', resp.body)
 
         headers = self.headers.copy()
+        headers['Accept'] = 'application/json'
         resp = self.app.get('/models/%s/data' % self.model_id,
                             headers=headers)
         self.assertIn('data', resp.json)
