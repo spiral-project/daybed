@@ -1,5 +1,5 @@
 include *.txt *.ini *.cfg *.rst
-include LICENSE
+include LICENSE VERSION
 
 recursive-include daybed *.py *.rx *.feature
 global-exclude *.pyc
