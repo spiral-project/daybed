@@ -1,4 +1,5 @@
 import json
+
 from cornice import Service
 
 from daybed.backends.exceptions import RecordNotFound

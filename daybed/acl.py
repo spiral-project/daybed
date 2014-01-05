@@ -1,6 +1,6 @@
-import six
 from uuid import uuid4
 
+import six
 from pyramid.interfaces import IAuthorizationPolicy
 from zope.interface import implementer
 

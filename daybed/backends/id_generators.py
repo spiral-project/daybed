@@ -1,5 +1,6 @@
-import six
 from uuid import uuid4
+
+import six
 
 
 class UUID4Generator(object):

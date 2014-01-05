@@ -34,7 +34,6 @@ from daybed.acl import (
     check_api_token,
     POLICY_READONLY, POLICY_ANONYMOUS, POLICY_ADMINONLY
 )
-
 from daybed.backends.exceptions import PolicyAlreadyExist
 from daybed.views.errors import unauthorized_view
 from daybed.renderers import GeoJSON

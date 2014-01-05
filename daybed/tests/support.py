@@ -1,11 +1,11 @@
-import six
 import collections
 try:
     import unittest2 as unittest
 except ImportError:
     import unittest  # NOQA
-
 import base64
+
+import six
 import webtest
 
 from daybed.backends.exceptions import UserAlreadyExist

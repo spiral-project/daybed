@@ -1,8 +1,8 @@
-import six
 from functools import partial
 import json
 import datetime
 
+import six
 from colander import (SchemaNode, Mapping, Sequence, Length, String, Int,
                       Range, null, Invalid)
 

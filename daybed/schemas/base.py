@@ -1,8 +1,8 @@
-import six
 import re
 import json
 import datetime
 
+import six
 from colander import (
     deferred,
     SchemaNode,
