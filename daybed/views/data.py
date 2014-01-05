@@ -47,8 +47,12 @@ def post_data(request):
         return
 
     model_id = request.matchdict['model_id']
+    if request.user:
+        username = request.user['name']
+    else:
+        username = 'system.Everyone'
     data_id = request.db.put_data_item(model_id, request.data_clean,
-                                       request.user['name'])
+                                       username)
     created = u'%s/models/%s/data/%s' % (request.application_url, model_id,
                                          data_id)
     request.response.status = "201 Created"
@@ -80,8 +84,14 @@ def put(request):
     """Update or create a data item."""
     model_id = request.matchdict['model_id']
     data_item_id = request.matchdict['data_item_id']
+
+    if request.user:
+        username = request.user['name']
+    else:
+        username = 'system.Everyone'
+
     data_id = request.db.put_data_item(model_id, request.data_clean,
-                                       [request.user['name']],
+                                       [username],
                                        data_item_id=data_item_id)
     return {'id': data_id}
 
@@ -91,6 +101,12 @@ def patch(request):
     """Update or create a data item."""
     model_id = request.matchdict['model_id']
     data_item_id = request.matchdict['data_item_id']
+
+    if request.user:
+        username = request.user['name']
+    else:
+        username = 'system.Everyone'
+
     try:
         data = request.db.get_data_item(model_id, data_item_id)
     except DataItemNotFound:
@@ -101,7 +117,7 @@ def patch(request):
     definition = request.db.get_model_definition(model_id)
     validate_against_schema(request, SchemaValidator(definition), data)
     if not request.errors:
-        request.db.put_data_item(model_id, data, [request.user['name']],
+        request.db.put_data_item(model_id, data, [username],
                                  data_item_id)
     return {'id': data_item_id}
 

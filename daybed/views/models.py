@@ -91,8 +91,13 @@ def post_models(request):
         roles=request.validated['roles'],
         policy_id=request.validated['policy_id'])
 
+    if request.user:
+        username = request.user['name']
+    else:
+        username = 'system.Everyone'
+
     for data_item in request.validated['data']:
-        request.db.put_data_item(model_id, data_item, [request.user['name']])
+        request.db.put_data_item(model_id, data_item, [username])
 
     request.response.status = "201 Created"
     location = '%s/models/%s' % (request.application_url, model_id)
@@ -139,12 +144,17 @@ def put_model(request):
     except ModelNotFound:
         pass
 
+    if request.user:
+        username = request.user['name']
+    else:
+        username = 'system.Everyone'
+
     request.db.put_model(request.validated['definition'],
                          request.validated['roles'],
                          request.validated['policy_id'],
                          model_id)
 
     for data_item in request.validated['data']:
-        request.db.put_data_item(model_id, data_item, [request.user['name']])
+        request.db.put_data_item(model_id, data_item, [username])
 
     return {"id": model_id}
