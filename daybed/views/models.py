@@ -7,14 +7,23 @@ from daybed.validators import validate_against_schema
 from daybed.schemas import DefinitionValidator, SchemaValidator, RolesValidator
 from daybed.backends.exceptions import ModelNotFound, PolicyNotFound
 
+
 models = Service(name='models', path='/models', description='Models',
                  renderer="jsonp", cors_origins=('*',))
+
 
 model = Service(name='model',
                 path='/models/{model_id}',
                 description='Model',
                 renderer="jsonp",
                 cors_origins=('*',))
+
+
+definition = Service(name='model-definition',
+                     path='/models/{model_id}/definition',
+                     description='Model Definitions',
+                     renderer="jsonp",
+                     cors_origins=('*',))
 
 
 def model_validator(request):
@@ -63,6 +72,16 @@ def model_validator(request):
         request.errors.add('body', 'policy_id',
                            "policy '%s' doesn't exist" % policy_id)
     request.validated['policy_id'] = policy_id
+
+
+@definition.get(permission='get_definition')
+def get_definition(request):
+    """Retrieves a model definition"""
+    model_id = request.matchdict['model_id']
+    try:
+        return request.db.get_model_definition(model_id)
+    except ModelNotFound:
+        raise HTTPNotFound(detail="Unknown model %s" % model_id)
 
 
 @models.post(permission='post_model', validators=(model_validator,))
