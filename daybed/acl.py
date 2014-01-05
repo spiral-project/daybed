@@ -6,6 +6,7 @@ from zope.interface import implementer
 from daybed.backends.exceptions import (
     ModelNotFound, DataItemNotFound, UserNotFound
 )
+from daybed.log import logger
 
 
 @implementer(IAuthorizationPolicy)
@@ -26,13 +27,16 @@ class DaybedAuthorizationPolicy(object):
             except ModelNotFound:
                 #  In case the model doesn't exist, you have access to it.
                 return True
-            for role, permissions in policy.items():
-                if role in principals:
-                    allowed |= permissions
-        elif len(principals) > 1:  # Then a user is logged-in
-            # Everybody can create models
-            allowed = 0x8888
+        else:
+            policy = context.db.get_policy(context.default_policy)
 
+        for role, permissions in policy.items():
+            if role in principals:
+                allowed |= permissions
+
+        logger.debug("(%s, %s) => %x & %x = %x" % (permission, principals,
+                                                   allowed, mask,
+                                                   allowed & mask))
         result = allowed & mask == mask
         return result
 
@@ -79,6 +83,7 @@ def permission_mask(permission):
 class RootFactory(object):
     def __init__(self, request):
         self.db = request.db
+        self.default_policy = request.registry.default_policy
         matchdict = request.matchdict or {}
         self.model_id = matchdict.get('model_id')
         self.data_item_id = matchdict.get('data_item_id')
@@ -128,11 +133,15 @@ def build_user_principals(user, request):
             if user in authors:
                 principals.add('authors:')
 
-    principals.add('others:')
     return principals
 
 
 def check_api_token(username, password, request):
-    user = request.db.get_user(username)
+    try:
+        user = request.db.get_user(username)
+    except UserNotFound:
+        # We create the user if it doesn't exists yet.
+        user = {'name': username, 'apitoken': password}
+        user = request.db.add_user(user)
     if user['apitoken'] == password:
         return build_user_principals(username, request)

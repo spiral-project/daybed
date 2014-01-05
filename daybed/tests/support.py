@@ -27,7 +27,7 @@ class BaseWebTest(unittest.TestCase):
                 'group:admins': 0xFFFF,
                 'role:admins': 0xFFFF,
                 'authors:': 0x0F00,
-                'others:': 0x4000})
+                'system.Authenticated:': 0x4000})
         except PolicyAlreadyExist:
             pass
 
@@ -46,14 +46,6 @@ class BaseWebTest(unittest.TestCase):
 
     def tearDown(self):
         self.backend.delete_db()
-
-    def put_valid_definition(self):
-        """Create a valid definition named "todo".
-        """
-        # Put a valid definition
-        self.app.put_json('/definitions/todo',
-                          self.valid_definition,
-                          headers=self.headers)
 
 
 def force_unicode(data):
