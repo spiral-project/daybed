@@ -1,4 +1,9 @@
-0.0
----
+Changelog
+=========
 
--  Initial version
+
+0.1 (2014-01-05)
+----------------
+
+- First proof of concept using CouchDB
+- Anonymous data access
