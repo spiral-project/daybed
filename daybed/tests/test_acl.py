@@ -29,30 +29,26 @@ class TestACL(TestCase):
         context = mock.MagicMock()
         policy = {'group:admins': 0xFFFF,
                   'authors:': 0x0F00,
-                  'others:': 0x4000}
+                  'system.Authenticated': 0x4000}
         context.db.get_model_policy.return_value = policy
 
         self.assertFalse(permits(context, ['Alexis'], 'get_definition'))
-        self.assertTrue(permits(context, ['Alexis', 'others:'],
+        self.assertTrue(permits(context, ['Alexis', 'system.Authenticated'],
                                 'get_definition'))
 
     def test_build_user_principals_resolve_group(self):
         principals = build_user_principals('Chuck Norris', self._get_request())
-        self.assertEquals(set([u'role:admins', u'group:dumb-people',
-                               'others:']), principals)
+        self.assertEquals(set([u'role:admins', u'group:dumb-people']),
+                          principals)
 
     def test_build_user_principals_resolve_role(self):
         request = self._get_request()
         request.db.get_groups.return_value = []
         principals = build_user_principals('Benoit', request)
-        self.assertEquals(set([u'role:admins', 'others:']), principals)
+        self.assertEquals(set([u'role:admins']), principals)
 
     def test_build_user_principals_resolve_author(self):
         request = self._get_request()
         request.db.get_groups.return_value = []
         principals = build_user_principals('Alexis', request)
-        self.assertEquals(set([u'authors:', 'others:']), principals)
-
-    def test_build_user_principals_return_others(self):
-        principals = build_user_principals('Chuck Norris', self._get_request())
-        self.assertIn('others:', principals)
+        self.assertEquals(set([u'authors:']), principals)

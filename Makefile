@@ -31,5 +31,8 @@ clean:
 tests:
 	tox
 
+tests-failfast: .tox/py27/
+	.tox/py27/bin/nosetests --with-coverage --cover-package=daybed -x -s
+
 serve: install install-dev
 	$(VENV)/bin/pserve development.ini --reload

@@ -1,10 +1,13 @@
 import six
 import json
 from uuid import uuid4
+import base64
 
 from daybed import __version__ as VERSION
 
-from daybed.backends.exceptions import DataItemNotFound, ModelNotFound
+from daybed.backends.exceptions import (
+    DataItemNotFound, ModelNotFound, UserNotFound
+)
 from daybed.tests.support import BaseWebTest, force_unicode
 from daybed.schemas import registry
 
@@ -51,12 +54,51 @@ class DaybedViewsTest(BaseWebTest):
         self.assertIn('"status": "error"', resp.body.decode('utf-8'))
 
 
+class BasicAuthRegistrationTest(BaseWebTest):
+    model_id = 'simple'
+
+    @property
+    def valid_definition(self):
+        return {
+            "title": "simple",
+            "description": "One optional field",
+            "fields": [{"name": "age", "type": "int", "required": False,
+                        "description": ""}]
+        }
+
+    def test_basic_auth_user_creation(self):
+        auth_password = base64.b64encode(
+            u'arthur:foo'.encode('ascii')).strip().decode('ascii')
+        headers = {
+            'Content-Type': 'application/json',
+            'Authorization': 'Basic {0}'.format(auth_password),
+        }
+
+        self.app.put_json('/models/%s' % self.model_id,
+                          {'definition': self.valid_definition},
+                          headers=headers)
+
+        try:
+            self.db.get_user('arthur')
+        except UserNotFound:
+            self.fail("BasicAuth didn't create the user arthur.")
+
+    def test_forbidden(self):
+        self.app.put_json('/models/%s' % self.model_id,
+                          {'definition': self.valid_definition},
+                          headers=self.headers)
+        resp = self.app.get('/models/%s' % self.model_id,
+                            headers={'Content-Type': 'application/json'},
+                            status=401)
+        self.assertIn('401', resp)
+
+
 class PolicyTest(BaseWebTest):
 
     def test_policy_put_get_delete_ok(self):
         policy_id = 'read-only%s' % uuid4()
         policy = {'role:admins': 0xFFFF,
-                  'others:': 0x4400}
+                  'system.Authenticated': 0x4400}
 
         # Test Create
         self.app.put_json('/policies/%s' % policy_id,
@@ -89,7 +131,7 @@ class PolicyTest(BaseWebTest):
                         headers=self.headers, status=403)
 
         # Delete the model
-        self.app.delete('/models/test', model,
+        self.app.delete('/models/test',
                         headers=self.headers, status=200)
 
         # Test Delete when not used
@@ -108,8 +150,9 @@ class PolicyTest(BaseWebTest):
 
     def test_policies_list(self):
         resp = self.app.get('/policies', headers=self.headers, status=200)
-        self.assertDictEqual(json.loads(resp.body.decode('utf-8')),
-                             {"policies": ["admin-only", "read-only"]})
+        self.assertDictEqual(
+            json.loads(resp.body.decode('utf-8')),
+            {"policies": ["admin-only", "anonymous", "read-only"]})
 
 
 class FunctionalTest(object):

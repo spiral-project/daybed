@@ -312,11 +312,8 @@ class FieldTypeTests(unittest.TestCase):
             {'admins': ['Remy', 'Alexis']}),
             {'admins': ['Remy', 'Alexis']})
 
-        self.assertEquals(schema.deserialize(
-            {'admins': ['Remy', 'Alexis'], 'others:': ['Test']}),
-            {'admins': ['Remy', 'Alexis'], 'others:': ['Test']})
         return
-        # XXX fix this.
+        # XXX: FIXME
         self.assertRaises(colander.Invalid, schema.deserialize,
                           {'admins': ['Test'],
-                           'others:': 'not-a-sequence'})
+                           'group:toto': 'not-a-sequence'})

@@ -126,7 +126,7 @@ def main(global_config, **settings):
     # Here, define the default users / policies etc.
     try:
         backend._db.set_policy('read-only', {'role:admins': 0xFFFF,
-                                             'others:': 0x4400,
+                                             'system.Authenticated': 0x8888,
                                              'system.Everyone': 0x4400})
     except PolicyAlreadyExist:
         pass
@@ -134,7 +134,8 @@ def main(global_config, **settings):
         backend._db.set_policy('anonymous', {'system.Everyone': 0xFFFF})
     except PolicyAlreadyExist:
         pass
-    config.registry.default_policy = 'anonymous'
+    config.registry.default_policy = settings.get('daybed.default_policy',
+                                                  'read-only')
 
     config.add_renderer('geojson', GeoJSON())
     return config.make_wsgi_app()

@@ -94,13 +94,22 @@ class BackendTestBase(object):
     def test_get_policy_return_non_when_unknown(self):
         self.assertRaises(PolicyNotFound, self.db.get_policy, 'unknown')
 
-    def get_model_policy(self):
+    def test_get_model_policy(self):
         policy = {'group:admins': 0xFFFF, 'Alexis': 0x0F00}
         self.db.set_policy('admin-only', policy)
 
-        self.put_model(self.definition, ['Alexis', 'Remy'], 'admin-only',
-                       'mymodel')
+        self.db.put_model(self.definition, ['Alexis', 'Remy'], 'admin-only',
+                          'mymodel')
         self.assertDictEqual(self.db.get_model_policy('mymodel'), policy)
+
+    def test_get_model_policy_id(self):
+        policy = {'group:admins': 0xFFFF, 'Alexis': 0x0F00}
+        self.db.set_policy('admin-only', policy)
+
+        self.db.put_model(self.definition, ['Alexis', 'Remy'], 'admin-only',
+                          'mymodel')
+        self.assertEqual(self.db.get_model_policy_id('mymodel'),
+                         'admin-only')
 
     def test_put_data_item(self):
         self._create_model()

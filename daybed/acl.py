@@ -34,7 +34,7 @@ class DaybedAuthorizationPolicy(object):
             if role in principals:
                 allowed |= permissions
 
-        logger.debug("(%s, %s) => %s & %s = %s" % (permission, principals,
+        logger.debug("(%s, %s) => %x & %x = %x" % (permission, principals,
                                                    allowed, mask,
                                                    allowed & mask))
         result = allowed & mask == mask
@@ -133,7 +133,6 @@ def build_user_principals(user, request):
             if user in authors:
                 principals.add('authors:')
 
-    principals.add('others:')
     return principals
 
 

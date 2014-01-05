@@ -18,6 +18,7 @@ data_item = Service(name='data_item',
                     renderer="jsonp")
 
 
+@data.get(permission='get_data')
 @data.get(accept='application/geojson', renderer='geojson',
           permission='get_data')
 def get_data(request):

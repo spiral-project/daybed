@@ -196,13 +196,18 @@ Get policy list
 
     curl http://localhost:8000/policies/read-only
 
-    {"role:admins": 65535, "others:": 17408}
+    {
+        "role:admins": 65535,
+        "system.Authenticated": 32768,
+        "system.Everyone": 17408
+    }
 
 This means::
 
     {
         "role:admins": 0xFFFF,
-        "others:": 0x4400
+        "system.Authenticated": 0xC000,
+        "system.Everyone": 0x4400
     }
 
  - People with the role admins, can do everything on the model and it data.
@@ -213,9 +218,7 @@ This means::
 +=================+============+======+========+========+
 | 0xFFFF - 65535  |    CRUD    | CRUD |  CRUD  |  CRUD  |
 +-----------------+------------+------+--------+--------+
+| 0xC000 - 32768  |    CR      |      |        |        |
++-----------------+------------+------+--------+--------+
 | 0x4400 - 17408  |     R      |  R   |        |        |
-+-----------------+------------+------+--------+--------+
-| 0x4400 - 17408  |      X     |   X  |        |        |
-+-----------------+------------+------+--------+--------+
-| 0x4400 - 17408  |      X     |   X  |        |        |
 +-----------------+------------+------+--------+--------+
