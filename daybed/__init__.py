@@ -31,6 +31,7 @@ from daybed.acl import (
 )
 
 from daybed.backends.exceptions import PolicyAlreadyExist
+from daybed.views.errors import unauthorized_view
 
 
 def home(request):
@@ -103,6 +104,9 @@ def main(global_config, **settings):
     config.add_request_method(button, 'persona_button', reify=True)
     config.add_request_method(js, 'persona_js', reify=True)
 
+    # Unauthorized view
+    config.add_forbidden_view(unauthorized_view)
+
     # Authorization policy
     authz_policy = DaybedAuthorizationPolicy()
     config.set_authentication_policy(authn_policy)
@@ -122,10 +126,15 @@ def main(global_config, **settings):
     # Here, define the default users / policies etc.
     try:
         backend._db.set_policy('read-only', {'role:admins': 0xFFFF,
-                                             'others:': 0x4400})
+                                             'others:': 0x4400,
+                                             'system.Everyone': 0x4400})
     except PolicyAlreadyExist:
         pass
-    config.registry.default_policy = 'read-only'
+    try:
+        backend._db.set_policy('anonymous', {'system.Everyone': 0xFFFF})
+    except PolicyAlreadyExist:
+        pass
+    config.registry.default_policy = 'anonymous'
 
     config.add_renderer('geojson', GeoJSON())
     return config.make_wsgi_app()

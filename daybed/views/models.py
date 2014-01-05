@@ -1,7 +1,6 @@
 import json
 
 from cornice import Service
-from pyramid.httpexceptions import HTTPNotFound
 
 from daybed.validators import validate_against_schema
 from daybed.schemas import DefinitionValidator, SchemaValidator, RolesValidator
@@ -55,10 +54,9 @@ def model_validator(request):
 
     # Check that roles are valid.
     if request.user:
-        user = request.user['name']
+        default_roles = {'admins': [request.user['name']]}
     else:
-        user = 'others:'
-    default_roles = {'admins': [user]}
+        default_roles = {'admins': ["system.Everyone"]}
     roles = body.get('roles', default_roles)
     validate_against_schema(request, RolesValidator(), roles)
 
@@ -81,7 +79,8 @@ def get_definition(request):
     try:
         return request.db.get_model_definition(model_id)
     except ModelNotFound:
-        raise HTTPNotFound(detail="Unknown model %s" % model_id)
+        request.response.status = "404 Not Found"
+        return {"msg": "%s: model not found" % model_id}
 
 
 @models.post(permission='post_model', validators=(model_validator,))
@@ -97,7 +96,7 @@ def post_models(request):
 
     request.response.status = "201 Created"
     location = '%s/models/%s' % (request.application_url, model_id)
-    request.response.headers['location'] = location
+    request.response.headers['location'] = str(location)
     return {'id': model_id}
 
 
@@ -105,7 +104,12 @@ def post_models(request):
 def delete_model(request):
     """Deletes a model and its matching associated data."""
     model_id = request.matchdict['model_id']
-    request.db.delete_model(model_id)
+    try:
+        request.db.delete_model(model_id)
+    except ModelNotFound:
+        request.response.status = "404 Not Found"
+        return {"msg": "%s: model not found" % model_id}
+    return {"msg": "ok"}
 
 
 @model.get(permission='get_model')
@@ -116,7 +120,8 @@ def get_model(request):
     try:
         definition = request.db.get_model_definition(model_id),
     except ModelNotFound:
-        raise HTTPNotFound()
+        request.response.status = "404 Not Found"
+        return {"msg": "%s: model not found" % model_id}
 
     return {'definition': definition,
             'data': request.db.get_data_items(model_id),
@@ -142,4 +147,4 @@ def put_model(request):
     for data_item in request.validated['data']:
         request.db.put_data_item(model_id, data_item, [request.user['name']])
 
-    return {"msg": "ok"}
+    return {"id": model_id}

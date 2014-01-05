@@ -18,7 +18,7 @@ $(INSTALL_STAMP): $(PYTHON)
 
 install-dev: $(DEV_STAMP)
 $(DEV_STAMP): $(PYTHON)
-	$(VENV)/bin/pip install -r dev-requirements.txt --use-mirrors
+	$(VENV)/bin/pip install -r dev-requirements.txt
 	touch $(DEV_STAMP)
 
 virtualenv: $(PYTHON)
@@ -31,5 +31,5 @@ clean:
 tests:
 	tox
 
-serve: $(DEV_STAMP)
+serve: install install-dev
 	$(VENV)/bin/pserve development.ini --reload

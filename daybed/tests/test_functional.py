@@ -536,7 +536,7 @@ class MushroomsModelTest(FunctionalTest, BaseWebTest):
 
     def test_data_geojson_retrieval(self):
         resp = self.create_definition()
-        self.assertIn('ok', resp.body.decode('utf-8'))
+        self.assertIn('id', resp.body.decode('utf-8'))
         resp = self.create_data()
         self.assertIn('id', resp.body.decode('utf-8'))
 

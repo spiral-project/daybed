@@ -8,6 +8,7 @@ publish data that complies to these models.
 Let's say we want to have a daybed managed todo list. First, we put
 a definition under the name "todo".
 
+
 Authentication
 --------------
 
@@ -15,9 +16,10 @@ You need to be authenticated to be able to run this curl commands.
 
 You can use REST Console in Chrome to use your Persona credentials.
 
-If you are using the REMOTE_USER Authentication backend, you can add
-`` -H "REMOTE_USER: admin@example.com"`` to each curl request to get
-rid of the 403 error.
+I command line, you will have to use the BasicAuthAuthenticationPolicy
+backend, you can add `` -u admin@example.com:apikey`` to each curl
+request to get rid of the 403 error.
+
 
 Model management
 ----------------
@@ -52,17 +54,17 @@ like this:
       }
     }'
 
-    curl -XPUT http://localhost:8000/models/todo -d "${model}"
+    curl -XPUT http://localhost:8000/models/todo -d "${model}" -u admin@example.com:apikey
 
 And we get back::
 
-    "ok"
+    {"id": "todo"}
 
 **GET /models**
 
 We can now get our models back::
 
-    curl http://localhost:8000/models/todo
+    curl http://localhost:8000/models/todo -u admin@example.com:apikey | python -m json.tool
 
     {
         "definition": [{
@@ -90,7 +92,7 @@ We can now get our models back::
 
 We can also post on ``http://localhost:8000/models`` and we get back an id::
 
-    curl -XPOST http://localhost:8000/models -d "${model}"
+    curl -XPOST http://localhost:8000/models -d "${model}" -u admin@example.com:apikey
 
     {
         "id": "a8e6c80dcd3b4aeb847b423ffc399fcc"
@@ -106,7 +108,7 @@ Pushing data
 Now that we defined the schema, we want to push some real data there::
 
     data='{"item": "finish the documentation", "status": "todo"}'
-    curl -XPOST http://localhost:8000/models/todo/data -d "$data"
+    curl -XPOST http://localhost:8000/models/todo/data -d "$data" -u admin@example.com:apikey
 
 And we get this in exchange, which is the id of the created document.::
 
@@ -121,7 +123,7 @@ And we get this in exchange, which is the id of the created document.::
 
 Using the GET method, you can get back the data you just POST::
 
-    curl http://localhost:8000/models/todo/data/c429ab7c1f0f49a99cade9b76b9e6311
+    curl http://localhost:8000/models/todo/data/c429ab7c1f0f49a99cade9b76b9e6311 -u admin@example.com:apikey
 
     {
         "status": "todo",
@@ -136,7 +138,7 @@ Get back a definition
 
 ::
 
-    curl http://localhost:8000/models/todo/definition
+    curl http://localhost:8000/models/todo/definition -u admin@example.com:apikey | python -m json.tool
 
     {
         "description": "A list of my stuff to do", 
@@ -159,6 +161,7 @@ Get back a definition
         "title": "todo"
     }
 
+
 Get back all the data you pushed to a model
 -------------------------------------------
 
@@ -166,7 +169,7 @@ Get back all the data you pushed to a model
 
 ::
 
-    curl http://localhost:8000/models/todo/data
+    curl http://localhost:8000/models/todo/data -u admin@example.com:apikey | python -m json.tool
 
     {
         "data": [{
@@ -198,3 +201,21 @@ Get policy list
 This means::
 
     {
+        "role:admins": 0xFFFF,
+        "others:": 0x4400
+    }
+
+ - People with the role admins, can do everything on the model and it data.
+ - Other people can read Definition and Data but not Users and Policy
+
++-----------------+------------+------+--------+--------+
+| Right example   | Definition | Data | Users  | Policy |
++=================+============+======+========+========+
+| 0xFFFF - 65535  |    CRUD    | CRUD |  CRUD  |  CRUD  |
++-----------------+------------+------+--------+--------+
+| 0x4400 - 17408  |     R      |  R   |        |        |
++-----------------+------------+------+--------+--------+
+| 0x4400 - 17408  |      X     |   X  |        |        |
++-----------------+------------+------+--------+--------+
+| 0x4400 - 17408  |      X     |   X  |        |        |
++-----------------+------------+------+--------+--------+

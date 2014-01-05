@@ -1,6 +1,5 @@
 import json
 from cornice import Service
-from pyramid.httpexceptions import HTTPNotFound
 
 from daybed.backends.exceptions import DataItemNotFound
 from daybed.validators import schema_validator, validate_against_schema
@@ -19,15 +18,16 @@ data_item = Service(name='data_item',
                     renderer="jsonp")
 
 
-@data.get(permission='get_data')
-@data.get(accept='application/geojson', renderer='geojson')
+@data.get(accept='application/geojson', renderer='geojson',
+          permission='get_data')
 def get_data(request):
     """Retrieves all model records."""
     model_id = request.matchdict['model_id']
     # Check that model is defined
     exists = request.db.get_model_definition(model_id)
     if not exists:
-        raise HTTPNotFound(detail="Unknown model %s" % model_id)
+        request.response.status = "404 Not Found"
+        return {"msg": "%s: model not found" % model_id}
     # Return array of records
     results = request.db.get_data_items(model_id)
     return {'data': results}
@@ -51,7 +51,7 @@ def post_data(request):
     created = u'%s/models/%s/data/%s' % (request.application_url, model_id,
                                          data_id)
     request.response.status = "201 Created"
-    request.response.headers['location'] = created
+    request.response.headers['location'] = str(created)
     return {'id': data_id}
 
 
@@ -59,6 +59,7 @@ def post_data(request):
 def delete_data(request):
     model_id = request.matchdict['model_id']
     request.db.delete_data_items(model_id)
+    return {"msg": "ok"}
 
 
 @data_item.get(permission='get_data_item')
@@ -69,8 +70,8 @@ def get(request):
     try:
         return request.db.get_data_item(model_id, data_item_id)
     except DataItemNotFound:
-        raise HTTPNotFound("Unknown data_item %s: %s" %
-                           (model_id, data_item_id))
+        request.response.status = "404 Not Found"
+        return {"msg": "%s: data_item not found %s" % (model_id, data_item_id)}
 
 
 @data_item.put(validators=schema_validator, permission='put_data_item')
@@ -92,9 +93,9 @@ def patch(request):
     try:
         data = request.db.get_data_item(model_id, data_item_id)
     except DataItemNotFound:
-        raise HTTPNotFound(
-            "Unknown data_item %s: %s" % (model_id, data_item_id)
-        )
+        request.response.status = "404 Not Found"
+        return {"msg": "%s: data_item not found %s" % (model_id, data_item_id)}
+
     data.update(json.loads(request.body.decode('utf-8')))
     definition = request.db.get_model_definition(model_id)
     validate_against_schema(request, SchemaValidator(definition), data)
@@ -112,5 +113,6 @@ def delete(request):
 
     deleted = request.db.delete_data_item(model_id, data_item_id)
     if not deleted:
-        raise HTTPNotFound("Unknown data_item %s: %s" % (model_id,
-                                                         data_item_id))
+        request.response.status = "404 Not Found"
+        return {"msg": "%s: data_item not found %s" % (model_id, data_item_id)}
+    return {"msg": "ok"}
