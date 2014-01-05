@@ -14,7 +14,7 @@ policy = Service(name='policy', path='/policies/{policy_id}',
 
 
 def policy_validator(request):
-    policy = json.loads(request.body)
+    policy = json.loads(request.body.decode('utf-8'))
     validate_against_schema(request, PolicyValidator(policy), policy)
     request.validated['policy'] = policy
 

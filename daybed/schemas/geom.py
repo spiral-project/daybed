@@ -1,3 +1,4 @@
+import six
 import json
 
 from colander import (
@@ -25,10 +26,10 @@ class JSONSequence(Sequence):
             return cstruct
         try:
             appstruct = cstruct
-            if isinstance(cstruct, basestring):
+            if isinstance(cstruct, six.string_types):
                 appstruct = json.loads(cstruct)
-        except ValueError, e:
-            raise Invalid(self, str(e), cstruct)
+        except ValueError as e:
+            raise Invalid(self, six.text_type(e), cstruct)
         return super(JSONSequence, self).deserialize(node, appstruct, **kwargs)
 
 
@@ -61,10 +62,10 @@ class PointType(SchemaType):
             return null
         try:
             appstruct = cstruct
-            if isinstance(cstruct, basestring):
+            if isinstance(cstruct, six.string_types):
                 appstruct = json.loads(cstruct)
-        except ValueError, e:
-            raise Invalid(node, str(e), cstruct)
+        except ValueError as e:
+            raise Invalid(node, six.text_type(e), cstruct)
         return PointNode(name=node.name, gps=self.gps).deserialize(appstruct)
 
 

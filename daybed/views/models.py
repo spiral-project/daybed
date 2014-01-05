@@ -22,7 +22,7 @@ def model_validator(request):
     eventually populates it if there is a need to.
     """
     try:
-        body = json.loads(request.body)
+        body = json.loads(request.body.decode('utf-8'))
     except ValueError:
         request.errors.add('body', 'json value error', "body malformed")
         return
@@ -45,7 +45,11 @@ def model_validator(request):
             request.validated['data'].append(data_item)
 
     # Check that roles are valid.
-    default_roles = {'admins': [request.user['name']]}
+    if request.user:
+        user = request.user['name']
+    else:
+        user = 'others:'
+    default_roles = {'admins': [user]}
     roles = body.get('roles', default_roles)
     validate_against_schema(request, RolesValidator(), roles)
 

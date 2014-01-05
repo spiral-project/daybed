@@ -1,3 +1,4 @@
+import six
 import collections
 try:
     import unittest2 as unittest
@@ -36,10 +37,11 @@ class BaseWebTest(unittest.TestCase):
         except UserAlreadyExist:
             pass
 
-        auth_password = base64.b64encode('admin:foo').strip().decode('ascii')
+        auth_password = base64.b64encode(
+            u'admin:foo'.encode('ascii')).strip().decode('ascii')
         self.headers = {
             'Content-Type': 'application/json',
-            'Authorization': 'Basic {}'.format(auth_password),
+            'Authorization': 'Basic {0}'.format(auth_password),
         }
 
     def tearDown(self):
@@ -58,12 +60,12 @@ def force_unicode(data):
     """ Recursively force unicode.
 
     Works for dict keys, list values etc.
-    (source: http://stackoverflow.com/questions/1254454/fastest-way-to-convert-a-dicts-keys-values-from-unicode-to-str)
+    (source: http://stackoverflow.com/questions/1254454/)
     """
-    if isinstance(data, basestring):
-        return unicode(data)
+    if isinstance(data, six.string_types):
+        return six.text_type(data)
     elif isinstance(data, collections.Mapping):
-        return dict(map(force_unicode, data.iteritems()))
+        return dict(map(force_unicode, six.iteritems(data)))
     elif isinstance(data, collections.Iterable):
         return type(data)(map(force_unicode, data))
     else:

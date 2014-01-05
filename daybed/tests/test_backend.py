@@ -1,4 +1,8 @@
-from unittest2 import TestCase
+import six
+try:
+    from unittest2 import TestCase
+except ImportError:
+    from unittest import TestCase
 from uuid import uuid4
 
 from couchdb.client import Server
@@ -56,13 +60,13 @@ class BackendTestBase(object):
         # Test that when we add an user to an existing role they get merged.
         self.db.put_roles('modelname', self.roles)
         self.db.add_role('modelname', 'admins', ['Benoit'])
-        roles = self.roles.copy()
-        roles['admins'].append('Benoit')
-        self.assertDictEqual(self.db.get_roles('modelname'), roles)
+        self.assertIn('Benoit', self.db.get_roles('modelname')['admins'])
 
         # test that if we add it twice it's present just once.
         self.db.add_role('modelname', 'admins', ['Benoit'])
-        self.assertDictEqual(self.db.get_roles('modelname'), roles)
+        self.assertEqual(len([a for a in
+                              self.db.get_roles('modelname')['admins']
+                              if a == 'Benoit']), 1)
 
     def test_add_group_works(self):
         self.db.add_user({'name': 'Remy'})
@@ -178,7 +182,7 @@ class TestCouchDBBackend(BackendTestBase, TestCase):
 
         db = self.server[self.db_name]
         ViewDefinition.sync_many(db, couchdb_views)
-        self.db = CouchDBDatabase(db, lambda: str(uuid4()))
+        self.db = CouchDBDatabase(db, lambda: six.text_type(uuid4()))
         super(TestCouchDBBackend, self).setUp()
 
     def tearDown(self):

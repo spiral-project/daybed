@@ -1,3 +1,4 @@
+import six
 import json
 from uuid import uuid4
 
@@ -9,6 +10,11 @@ from daybed.schemas import registry
 
 
 class DaybedViewsTest(BaseWebTest):
+
+    def __init__(self, *args, **kwargs):
+        super(DaybedViewsTest, self).__init__(*args, **kwargs)
+        if not hasattr(self, 'assertCountEqual'):
+            self.assertCountEqual = self.assertItemsEqual
 
     def test_hello(self):
         response = self.app.get('/', headers=self.headers)
@@ -22,7 +28,7 @@ class DaybedViewsTest(BaseWebTest):
         response = self.app.get('/fields')
         fields = response.json
         names = [f.get('name') for f in fields]
-        self.assertItemsEqual(names, registry.names)
+        self.assertCountEqual(names, registry.names)
         # String field has no parameters
         stringfield = [f for f in fields if f.get('name') == 'string'][0]
         self.assertIsNone(stringfield.get('parameters'))
@@ -32,7 +38,7 @@ class DaybedViewsTest(BaseWebTest):
         self.assertEqual('string', _type)
         # Point field describes GPS with default True
         pointfield = [f for f in fields if f.get('name') == 'point'][0]
-        self.assertItemsEqual(pointfield['parameters'],
+        self.assertCountEqual(pointfield['parameters'],
                               [dict(name="gps",
                                     default=True,
                                     type="boolean",
@@ -42,7 +48,7 @@ class DaybedViewsTest(BaseWebTest):
         resp = self.app.post_json('/models/unknown/data', {},
                                   headers={'Content-Type': 'application/json'},
                                   status=404)
-        self.assertIn('"status": "error"', resp.body)
+        self.assertIn('"status": "error"', resp.body.decode('utf-8'))
 
 
 class PolicyTest(BaseWebTest):
@@ -60,7 +66,7 @@ class PolicyTest(BaseWebTest):
         # Test Get
         resp = self.app.get('/policies/%s' % policy_id,
                             headers=self.headers, status=200)
-        self.assertDictEqual(json.loads(resp.body), policy)
+        self.assertDictEqual(json.loads(resp.body.decode('utf-8')), policy)
 
         # Test Create another time with the same name
         self.app.put_json('/policies/%s' % policy_id,
@@ -102,7 +108,7 @@ class PolicyTest(BaseWebTest):
 
     def test_policies_list(self):
         resp = self.app.get('/policies', headers=self.headers, status=200)
-        self.assertDictEqual(json.loads(resp.body),
+        self.assertDictEqual(json.loads(resp.body.decode('utf-8')),
                              {"policies": ["admin-only", "read-only"]})
 
 
@@ -124,6 +130,9 @@ class FunctionalTest(object):
         self.definition_without_title = self.valid_definition.copy()
         self.definition_without_title.pop('title')
         self.malformed_definition = '{"test":"toto", "titi": "tutu'
+
+        if not hasattr(self, 'assertCountEqual'):
+            self.assertCountEqual = self.assertItemsEqual
 
     @property
     def valid_definition(self):
@@ -219,14 +228,14 @@ class FunctionalTest(object):
                                  {'definition': self.definition_without_title},
                                  headers=self.headers,
                                  status=400)
-        self.assertIn('"name": "title"', resp.body)
+        self.assertIn('"name": "title"', resp.body.decode('utf-8'))
 
     def test_definition_creation_rejects_malformed_data(self):
         resp = self.app.put('/models/%s' % self.model_id,
                             {'definition': self.malformed_definition},
                             headers=self.headers,
                             status=400)
-        self.assertIn('"status": "error"', resp.body)
+        self.assertIn('"status": "error"', resp.body.decode('utf-8'))
 
     def test_definition_retrieval(self):
         self.create_definition()
@@ -253,7 +262,7 @@ class FunctionalTest(object):
         # Put data against this definition
         resp = self.app.post_json('/models/%s/data' % self.model_id,
                                   self.valid_data, headers=self.headers)
-        self.assertIn('id', resp.body)
+        self.assertIn('id', resp.body.decode('utf-8'))
 
     def test_invalid_data_validation(self):
         self.create_definition()
@@ -263,14 +272,14 @@ class FunctionalTest(object):
                                   self.invalid_data,
                                   headers=self.headers,
                                   status=400)
-        self.assertIn('"status": "error"', resp.body)
+        self.assertIn('"status": "error"', resp.body.decode('utf-8'))
 
     def test_data_retrieval(self):
         self.create_definition()
         resp = self.create_data()
 
         # Put valid data against this definition
-        self.assertIn('id', resp.body)
+        self.assertIn('id', resp.body.decode('utf-8'))
 
         data_item_id = resp.json['id']
         resp = self.app.get('/models/%s/data/%s' % (self.model_id,
@@ -294,7 +303,7 @@ class FunctionalTest(object):
                                                          data_item_id),
                                  entry,
                                  headers=self.headers)
-        self.assertIn('id', resp.body)
+        self.assertIn('id', resp.body.decode('utf-8'))
         data_items = self.db.get_data_items(self.model_id)
         self.assertEqual(len(data_items), 1)
 
@@ -311,7 +320,7 @@ class FunctionalTest(object):
         resp = self.app.patch_json('/models/%s/data/%s' % (self.model_id,
                                                            data_item_id),
                                    entry, headers=self.headers)
-        self.assertIn('id', resp.body)
+        self.assertIn('id', resp.body.decode('utf-8'))
 
         # Check that we only have one value in the db (e.g that PATCH didn't
         # created a new data item)
@@ -326,15 +335,17 @@ class FunctionalTest(object):
         resp = self.create_data()
         data_item_id = resp.json['id']
         self.app.delete(
-            str('/models/%s/data/%s' % (self.model_id, data_item_id)),
+            six.text_type('/models/%s/data/%s' % (self.model_id,
+                                                  data_item_id)),
             headers=self.headers)
         self.assertRaises(DataItemNotFound, self.db.get_data_item,
                           self.model_id, data_item_id)
 
     def test_unknown_data_returns_404(self):
         self.create_definition()
-        self.app.get(str('/models/%s/data/%s' % (self.model_id, 1234)),
-                     headers=self.headers, status=404)
+        self.app.get(
+            six.text_type('/models/%s/data/%s' % (self.model_id, 1234)),
+            headers=self.headers, status=404)
 
     def test_data_validation(self):
         self.create_definition()
@@ -375,7 +386,8 @@ class SimpleModelTest(FunctionalTest, BaseWebTest):
         return {
             "title": "simple",
             "description": "One optional field",
-            "fields": [{"name": "age", "type": "int", "required": False, "description": ""}]
+            "fields": [{"name": "age", "type": "int", "required": False,
+                        "description": ""}]
         }
 
     @property
@@ -524,9 +536,9 @@ class MushroomsModelTest(FunctionalTest, BaseWebTest):
 
     def test_data_geojson_retrieval(self):
         resp = self.create_definition()
-        self.assertIn('ok', resp.body)
+        self.assertIn('ok', resp.body.decode('utf-8'))
         resp = self.create_data()
-        self.assertIn('id', resp.body)
+        self.assertIn('id', resp.body.decode('utf-8'))
 
         headers = self.headers.copy()
         headers['Accept'] = 'application/json'
@@ -546,7 +558,7 @@ class MushroomsModelTest(FunctionalTest, BaseWebTest):
         self.assertIsNone(feature['properties'].get('location'))
         self.assertEquals(feature['geometry']['type'], 'Polygon')
         # after update
-        self.assertItemsEqual(feature['geometry']['coordinates'],
+        self.assertCountEqual(feature['geometry']['coordinates'],
                               [[[0, 0], [0, 1], [1, 1], [0, 0]]])
 
 

@@ -42,7 +42,7 @@ def post_data(request):
     created = u'%s/models/%s/data/%s' % (request.application_url, model_id,
                                          data_id)
     request.response.status = "201 Created"
-    request.response.headers['location'] = created.encode('utf-8')
+    request.response.headers['location'] = created
     return {'id': data_id}
 
 

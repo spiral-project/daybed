@@ -1,3 +1,4 @@
+import six
 import re
 import json
 import datetime
@@ -154,7 +155,7 @@ class RolesValidator(SchemaNode):
 class PolicyValidator(SchemaNode):
     def __init__(self, policy):
         super(PolicyValidator, self).__init__(Mapping(unknown='preserve'))
-        for key in policy.iterkeys():
+        for key in six.iterkeys(policy):
             self.add(SchemaNode(Int(), name=key,
                                 validator=Range(min=0, max=0xFFFF)))
 
@@ -216,7 +217,7 @@ class JSONList(List):
             return cstruct
         try:
             appstruct = cstruct
-            if isinstance(cstruct, basestring):
+            if isinstance(cstruct, six.string_types):
                 # Try JSON format
                 appstruct = json.loads(cstruct)
         except ValueError:
@@ -296,10 +297,12 @@ class URLField(TypeField):
     @classmethod
     def validation(cls, **kwargs):
         # This one comes from Django
-        # https://github.com/django/django/blob/273b96/django/core/validators.py#L45-L52
+        # https://github.com/django/django/blob/273b96/
+        # django/core/validators.py#L45-L52
         urlpattern = re.compile(
             r'^(?:http|ftp)s?://'  # http:// or https://
-            r'(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+(?:[A-Z]{2,6}\.?|[A-Z0-9-]{2,}\.?)|'  # domain...
+            r'(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+'
+            r'(?:[A-Z]{2,6}\.?|[A-Z0-9-]{2,}\.?)|'  # domain...
             r'localhost|'  # localhost...
             r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}|'  # ...or ipv4
             r'\[?[A-F0-9]*:[A-F0-9:]+\]?)'  # ...or ipv6

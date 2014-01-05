@@ -1,5 +1,7 @@
-[report]
+[run]
 omit =
     */tests*
     lib/*
     src/*
+source = daybed
+include = daybed/*
