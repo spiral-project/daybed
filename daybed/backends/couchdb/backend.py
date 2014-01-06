@@ -1,4 +1,5 @@
 import os
+import socket
 
 from couchdb.client import Server
 from couchdb.http import PreconditionFailed
@@ -24,7 +25,12 @@ class CouchDBBackend(object):
         generator = config.maybe_dotted(settings['daybed.id_generator'])
         self._generate_id = generator(config)
 
-        self.create_db_if_not_exist()
+        try:
+            self.create_db_if_not_exist()
+        except socket.error:
+            raise Exception("Unable to connect to the CouchDB server. "
+                            "Check it's installed and running.")
+
         self.sync_views()
 
     def delete_db(self):
