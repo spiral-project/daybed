@@ -15,7 +15,7 @@ class RelationTest(BaseWebTest):
                                  {'definition': fakedef},
                                  headers=self.headers)
 
-    def _create_data_item(self, **kwargs):
+    def _create_record(self, **kwargs):
         fakedata = {'key': 'value'}
         fakedata.update(**kwargs)
         response = self.app.post_json('/models/simple/data',
@@ -24,7 +24,7 @@ class RelationTest(BaseWebTest):
 
     def _create_model(self):
         self._create_definition()
-        return self._create_data_item()
+        return self._create_record()
 
 
 class OneOfFieldTest(RelationTest):
@@ -43,7 +43,7 @@ class OneOfFieldTest(RelationTest):
                                          'model': 'simple'})
         self.assertTrue(isinstance(definition, dict))
 
-    def test_unknown_data_item(self):
+    def test_unknown_record(self):
         self._create_model()
         schema = schemas.OneOfField.definition()
         definition = schema.deserialize({'name': 'foo',
@@ -53,7 +53,7 @@ class OneOfFieldTest(RelationTest):
         self.assertRaises(DataItemNotFound, validator.deserialize,
                           'unknown_id')
 
-    def test_existing_data_item(self):
+    def test_existing_record(self):
         data_id = self._create_model()
         schema = schemas.OneOfField.definition()
         definition = schema.deserialize({'name': 'foo',
@@ -79,7 +79,7 @@ class AnyOfFieldTest(RelationTest):
                                          'model': 'simple'})
         self.assertTrue(isinstance(definition, dict))
 
-    def test_unknown_data_item(self):
+    def test_unknown_record(self):
         self._create_model()
         schema = schemas.AnyOfField.definition()
         definition = schema.deserialize({'name': 'foo',
@@ -89,9 +89,9 @@ class AnyOfFieldTest(RelationTest):
         self.assertRaises(DataItemNotFound,
                           validator.deserialize, 'unknown_id')
 
-    def test_one_unknown_data_item(self):
+    def test_one_unknown_record(self):
         self._create_definition()
-        known_id = self._create_data_item()
+        known_id = self._create_record()
         schema = schemas.AnyOfField.definition()
         definition = schema.deserialize({'name': 'foo',
                                          'type': 'anyof',
@@ -100,10 +100,10 @@ class AnyOfFieldTest(RelationTest):
         self.assertRaises(DataItemNotFound, validator.deserialize,
                           '["%s","unknown_id"]' % known_id)
 
-    def test_existing_data_item(self):
+    def test_existing_record(self):
         self._create_definition()
-        known_id = self._create_data_item()
-        known_id2 = self._create_data_item()
+        known_id = self._create_record()
+        known_id2 = self._create_record()
         schema = schemas.AnyOfField.definition()
         definition = schema.deserialize({'name': 'foo',
                                          'type': 'anyof',

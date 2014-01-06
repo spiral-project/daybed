@@ -71,10 +71,10 @@ def permission_mask(permission):
         'put_data': 0x0B00,          # C+U+D
         'delete_data': 0x0100,       # D
 
-        'get_data_item': 0x0400,     # R
-        'put_data_item': 0x0B00,     # C+U+D
-        'patch_data_item': 0x0200,   # U
-        'delete_data_item': 0x0100,  # D
+        'get_record': 0x0400,        # R
+        'put_record': 0x0B00,        # C+U+D
+        'patch_record': 0x0200,      # U
+        'delete_record': 0x0100,     # D
     }
     # XXX Add users / policy management.
     return mapping[permission]
@@ -86,7 +86,7 @@ class RootFactory(object):
         self.default_policy = request.registry.default_policy
         matchdict = request.matchdict or {}
         self.model_id = matchdict.get('model_id')
-        self.data_item_id = matchdict.get('data_item_id')
+        self.record_id = matchdict.get('record_id')
         self.request = request
 
 
@@ -98,7 +98,7 @@ def build_user_principals(user, request):
     'group:readers', 'role:curator' and 'author:'.
     """
     model_id = request.matchdict.get('model_id')
-    data_item_id = request.matchdict.get('data_item_id')
+    record_id = request.matchdict.get('record_id')
 
     try:
         groups = [u'group:%s' % g for g in request.db.get_groups(user)]
@@ -124,9 +124,9 @@ def build_user_principals(user, request):
                     if user == acc:
                         principals.add(u'role:%s' % role_name)
 
-    if data_item_id is not None:
+    if record_id is not None:
         try:
-            authors = request.db.get_data_item_authors(model_id, data_item_id)
+            authors = request.db.get_record_authors(model_id, record_id)
         except DataItemNotFound:
             pass
         else:

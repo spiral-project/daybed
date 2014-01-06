@@ -26,29 +26,29 @@ class Database(object):
     def get_model_definition(self, model_id):
         return self.__get_model(model_id)['definition']
 
-    def __get_data_items(self, model_id):
+    def __get_records(self, model_id):
         return views.model_data(self._db)[model_id]
 
-    def get_data_items(self, model_id):
-        data_items = []
-        for item in self.__get_data_items(model_id):
+    def get_records(self, model_id):
+        records = []
+        for item in self.__get_records(model_id):
             item.value['data']['id'] = item.value['_id'].split('-')[1]
-            data_items.append(item.value['data'])
-        return data_items
+            records.append(item.value['data'])
+        return records
 
-    def __get_data_item(self, model_id, data_item_id):
-        key = u'-'.join((model_id, data_item_id))
+    def __get_record(self, model_id, record_id):
+        key = u'-'.join((model_id, record_id))
         try:
-            return views.model_data_items(self._db)[key].rows[0].value
+            return views.model_records(self._db)[key].rows[0].value
         except IndexError:
-            raise DataItemNotFound(u'(%s, %s)' % (model_id, data_item_id))
+            raise DataItemNotFound(u'(%s, %s)' % (model_id, record_id))
 
-    def get_data_item(self, model_id, data_item_id):
-        doc = self.__get_data_item(model_id, data_item_id)
+    def get_record(self, model_id, record_id):
+        doc = self.__get_record(model_id, record_id)
         return doc['data']
 
-    def get_data_item_authors(self, model_id, data_item_id):
-        doc = self.__get_data_item(model_id, data_item_id)
+    def get_record_authors(self, model_id, record_id):
+        doc = self.__get_record(model_id, record_id)
         return doc['authors']
 
     def put_model(self, definition, roles, policy_id, model_id=None):
@@ -78,7 +78,7 @@ class Database(object):
             serializable[key] = value
         return serializable
 
-    def put_data_item(self, model_id, data, authors, data_item_id=None):
+    def put_record(self, model_id, data, authors, record_id=None):
         doc = {
             'type': 'data',
             'authors': authors,
@@ -86,31 +86,31 @@ class Database(object):
 
         doc['data'] = self._prepare_data(data)
 
-        if data_item_id is not None:
+        if record_id is not None:
             try:
-                old_doc = self.__get_data_item(model_id, data_item_id)
+                old_doc = self.__get_record(model_id, record_id)
             except DataItemNotFound:
-                doc['_id'] = '-'.join((model_id, data_item_id))
+                doc['_id'] = '-'.join((model_id, record_id))
             else:
                 authors = list(set(authors) | set(old_doc['authors']))
                 doc['authors'] = authors
                 old_doc.update(doc)
                 doc = old_doc
         else:
-            data_item_id = self.generate_id()
-            doc['_id'] = '-'.join((model_id, data_item_id))
+            record_id = self.generate_id()
+            doc['_id'] = '-'.join((model_id, record_id))
 
         self._db.save(doc)
-        return data_item_id
+        return record_id
 
-    def delete_data_item(self, model_id, data_item_id):
-        doc = self.__get_data_item(model_id, data_item_id)
+    def delete_record(self, model_id, record_id):
+        doc = self.__get_record(model_id, record_id)
         if doc:
             self._db.delete(doc)
         return doc
 
-    def delete_data_items(self, model_id):
-        results = self.__get_data_items(model_id)
+    def delete_records(self, model_id):
+        results = self.__get_records(model_id)
         for result in results:
             self._db.delete(result.value)
         return results
@@ -119,7 +119,7 @@ class Database(object):
         """DELETE ALL THE THINGS"""
 
         # Delete the associated data if any.
-        self.delete_data_items(model_id)
+        self.delete_records(model_id)
 
         try:
             doc = views.model_definitions(self._db)[model_id].rows[0].value

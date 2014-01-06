@@ -214,7 +214,7 @@ class FunctionalTest(object):
                                    'data': [self.valid_data, self.valid_data]},
                                   headers=self.headers)
         model_id = resp.json['id']
-        self.assertEquals(len(self.db.get_data_items(model_id)), 2)
+        self.assertEquals(len(self.db.get_records(model_id)), 2)
 
     def test_put_model_definition_without_data(self):
         resp = self.app.post_json('/models',
@@ -227,7 +227,7 @@ class FunctionalTest(object):
                                  {'definition': self.valid_definition},
                                  headers=self.headers)
 
-        self.assertEquals(len(self.db.get_data_items(model_id)), 0)
+        self.assertEquals(len(self.db.get_records(model_id)), 0)
 
     def test_put_model_definition_with_data(self):
         resp = self.app.post_json('/models',
@@ -241,7 +241,7 @@ class FunctionalTest(object):
                                   'data': [self.valid_data]},
                                  headers=self.headers)
 
-        self.assertEquals(len(self.db.get_data_items(model_id)), 1)
+        self.assertEquals(len(self.db.get_records(model_id)), 1)
 
     def create_definition(self, data=None):
         if not data:
@@ -292,10 +292,10 @@ class FunctionalTest(object):
     def test_model_deletion(self):
         resp = self.create_definition()
         resp = self.create_data()
-        data_item_id = resp.json['id']
+        record_id = resp.json['id']
         self.app.delete('/models/%s' % self.model_id, headers=self.headers)
         self.assertRaises(DataItemNotFound,
-                          self.db.get_data_item, self.model_id, data_item_id)
+                          self.db.get_record, self.model_id, record_id)
         self.assertRaises(ModelNotFound, self.db.get_model_definition,
                           self.model_id)
 
@@ -324,31 +324,31 @@ class FunctionalTest(object):
         # Put valid data against this definition
         self.assertIn('id', resp.body.decode('utf-8'))
 
-        data_item_id = resp.json['id']
+        record_id = resp.json['id']
         resp = self.app.get('/models/%s/data/%s' % (self.model_id,
-                                                    data_item_id),
+                                                    record_id),
                             headers=self.headers)
         self.assertDataCorrect(resp.json, force_unicode(self.valid_data))
 
     def assertDataCorrect(self, data, entry):
         self.assertEqual(data, entry)
 
-    def test_data_item_update(self):
+    def test_record_update(self):
         self.create_definition()
         # Put data against this definition
         entry = self.valid_data.copy()
         resp = self.create_data(entry)
-        data_item_id = resp.json['id']
+        record_id = resp.json['id']
 
         # Update this data
         self.update_data(entry)
         resp = self.app.put_json('/models/%s/data/%s' % (self.model_id,
-                                                         data_item_id),
+                                                         record_id),
                                  entry,
                                  headers=self.headers)
         self.assertIn('id', resp.body.decode('utf-8'))
-        data_items = self.db.get_data_items(self.model_id)
-        self.assertEqual(len(data_items), 1)
+        records = self.db.get_records(self.model_id)
+        self.assertEqual(len(records), 1)
 
     def test_data_partial_update(self):
         self.create_definition()
@@ -356,33 +356,33 @@ class FunctionalTest(object):
         # Put data against this definition
         entry = self.valid_data.copy()
         resp = self.create_data(entry)
-        data_item_id = resp.json['id']
+        record_id = resp.json['id']
 
         # Update this data
         self.update_data(entry)
         resp = self.app.patch_json('/models/%s/data/%s' % (self.model_id,
-                                                           data_item_id),
+                                                           record_id),
                                    entry, headers=self.headers)
         self.assertIn('id', resp.body.decode('utf-8'))
 
         # Check that we only have one value in the db (e.g that PATCH didn't
         # created a new data item)
-        data_item = self.db.get_data_item(self.model_id, data_item_id)
+        record = self.db.get_record(self.model_id, record_id)
 
         new_item = self.valid_data.copy()
         new_item.update(entry)
-        self.assertEquals(data_item, new_item)
+        self.assertEquals(record, new_item)
 
     def test_data_deletion(self):
         self.create_definition()
         resp = self.create_data()
-        data_item_id = resp.json['id']
+        record_id = resp.json['id']
         self.app.delete(
             six.text_type('/models/%s/data/%s' % (self.model_id,
-                                                  data_item_id)),
+                                                  record_id)),
             headers=self.headers)
-        self.assertRaises(DataItemNotFound, self.db.get_data_item,
-                          self.model_id, data_item_id)
+        self.assertRaises(DataItemNotFound, self.db.get_record,
+                          self.model_id, record_id)
 
     def test_unknown_data_returns_404(self):
         self.create_definition()
