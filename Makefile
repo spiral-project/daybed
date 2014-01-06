@@ -29,7 +29,7 @@ clean:
 	rm -fr $(OBJECTS) $(DEV_STAMP) $(INSTALL_STAMP)
 
 tests:
-	tox
+	bin/tox
 
 tests-failfast: .tox/py27/
 	.tox/py27/bin/nosetests --with-coverage --cover-package=daybed -x -s
