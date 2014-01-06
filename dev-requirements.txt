@@ -9,3 +9,4 @@ pyramid_multiauth
 pyramid_persona
 pyramid_mako
 tox
+flake8
