@@ -1,8 +1,6 @@
 import os
 import logging
 
-from pyramid.events import NewRequest
-
 from couchdb.client import Server
 from couchdb.http import PreconditionFailed
 from couchdb.design import ViewDefinition
@@ -15,9 +13,8 @@ logger = logging.getLogger(__name__)
 
 
 class CouchDBBackend(object):
-    @property
     def db(self):
-        return self.server[self.db_name]
+        return Database(self.server[self.db_name], self._generate_id)
 
     def __init__(self, config):
         settings = config.registry.settings
@@ -32,8 +29,6 @@ class CouchDBBackend(object):
 
         self.create_db_if_not_exist()
         self.sync_views()
-        self._db = Database(self.db, self._generate_id)
-        self.config.add_subscriber(self.add_db_to_request, NewRequest)
 
     def delete_db(self):
         del self.server[self.db_name]
@@ -46,7 +41,4 @@ class CouchDBBackend(object):
             logger.debug('Using db "%s".' % self.db_name)
 
     def sync_views(self):
-        ViewDefinition.sync_many(self.db, docs)
-
-    def add_db_to_request(self, event):
-        event.request.db = self._db
+        ViewDefinition.sync_many(self.server[self.db_name], docs)

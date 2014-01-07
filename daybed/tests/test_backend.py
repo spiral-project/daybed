@@ -13,6 +13,7 @@ from daybed.backends.exceptions import (
 )
 from daybed.backends.couchdb.database import Database as CouchDBDatabase
 from daybed.backends.couchdb.views import docs as couchdb_views
+from daybed.backends.memory.database import Database as MemoryDatabase
 
 
 class BackendTestBase(object):
@@ -180,3 +181,16 @@ class TestCouchDBBackend(BackendTestBase, TestCase):
 
     def tearDown(self):
         del self.server[self.db_name]
+
+
+class TestMemoryBackend(BackendTestBase, TestCase):
+
+    def setUp(self):
+        empty = {
+            'models': {},
+            'data': {},
+            'users': {},
+            'policies': {}
+        }
+        self.db = MemoryDatabase(empty, lambda: six.text_type(uuid4()))
+        super(TestMemoryBackend, self).setUp()

@@ -10,6 +10,7 @@ import json
 
 from cornice import Service
 from pyramid.config import Configurator
+from pyramid.events import NewRequest
 from pyramid.renderers import JSONP
 from pyramid.authentication import (
     AuthTktAuthenticationPolicy, BasicAuthAuthenticationPolicy
@@ -118,8 +119,11 @@ def main(global_config, **settings):
 
     # backend initialisation
     backend_class = config.maybe_dotted(settings['daybed.backend'])
-    backend = backend_class(config)
-    config.registry.backend = backend
+    config.registry.backend = backend = backend_class(config)
+
+    def add_db_to_request(event):
+        event.request.db = config.registry.backend.db()
+    config.add_subscriber(add_db_to_request, NewRequest)
 
     config.add_renderer('jsonp', JSONP(param_name='callback'))
 
