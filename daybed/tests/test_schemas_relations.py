@@ -1,3 +1,5 @@
+import colander
+
 from daybed import schemas
 from daybed.tests.support import BaseWebTest
 from daybed.backends.exceptions import (
@@ -50,7 +52,7 @@ class OneOfFieldTest(RelationTest):
                                          'type': 'oneof',
                                          'model': 'simple'})
         validator = schemas.OneOfField.validation(**definition)
-        self.assertRaises(DataItemNotFound, validator.deserialize,
+        self.assertRaises(colander.Invalid, validator.deserialize,
                           'unknown_id')
 
     def test_existing_record(self):
@@ -86,7 +88,7 @@ class AnyOfFieldTest(RelationTest):
                                          'type': 'anyof',
                                          'model': 'simple'})
         validator = schemas.AnyOfField.validation(**definition)
-        self.assertRaises(DataItemNotFound,
+        self.assertRaises(colander.Invalid,
                           validator.deserialize, 'unknown_id')
 
     def test_one_unknown_record(self):
@@ -97,7 +99,7 @@ class AnyOfFieldTest(RelationTest):
                                          'type': 'anyof',
                                          'model': 'simple'})
         validator = schemas.AnyOfField.validation(**definition)
-        self.assertRaises(DataItemNotFound, validator.deserialize,
+        self.assertRaises(colander.Invalid, validator.deserialize,
                           '["%s","unknown_id"]' % known_id)
 
     def test_existing_record(self):

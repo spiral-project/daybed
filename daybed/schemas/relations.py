@@ -1,6 +1,8 @@
 import six
 from pyramid.config import global_registries
 from colander import (String, SchemaNode, Invalid)
+
+from daybed.backends.exceptions import DataItemNotFound
 from .base import registry, TypeField, JSONList
 
 
@@ -24,8 +26,9 @@ class DataItemsExist(object):
         if isinstance(value, six.string_types):
             value = [value]
         for record_id in value:
-            record = self.db.get_record(self.model_id, record_id)
-            if not record:
+            try:
+                self.db.get_record(self.model_id, record_id)
+            except DataItemNotFound:
                 msg = u"Record '%s' of model '%s' not found." % (record_id,
                                                                  self.model_id)
                 raise Invalid(node, msg)
