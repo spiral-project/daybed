@@ -43,7 +43,7 @@ def model_validator(request):
         validate_against_schema(request, DefinitionValidator(), definition)
     request.validated['definition'] = definition
 
-    # Check that the data items are valid according to the definition.
+    # Check that the records are valid according to the definition.
     data = body.get('data')
     request.validated['data'] = []
     if data:

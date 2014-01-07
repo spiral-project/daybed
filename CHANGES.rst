@@ -7,7 +7,7 @@ Changelog
 
 - Add ACL management
 - Change API endpoints to clean the code and be more RESTful
-- Implement PATCH on data items
+- Implement PATCH on records
 - Add authorization policies
 - Add GeoJSON renderer
 - Add Multiple choices relation field

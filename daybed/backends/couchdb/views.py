@@ -29,7 +29,7 @@ function(doc) {
   }
 }""")
 
-""" Data item, by id."""
+""" Record, by id."""
 model_records = ViewDefinition('records_all', 'all', """
 function(doc) {
   if (doc.type == "data") {

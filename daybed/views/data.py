@@ -81,7 +81,7 @@ def get(request):
 
 @record.put(validators=schema_validator, permission='put_record')
 def put(request):
-    """Update or create a data item."""
+    """Update or create a record."""
     model_id = request.matchdict['model_id']
     record_id = request.matchdict['record_id']
 
@@ -97,7 +97,7 @@ def put(request):
 
 @record.patch(permission='patch_record')
 def patch(request):
-    """Update or create a data item."""
+    """Update or create a record."""
     model_id = request.matchdict['model_id']
     record_id = request.matchdict['record_id']
 
@@ -122,7 +122,7 @@ def patch(request):
 
 @record.delete(permission='delete_record')
 def delete(request):
-    """Delete the data item."""
+    """Delete the record."""
     model_id = request.matchdict['model_id']
     record_id = request.matchdict['record_id']
 

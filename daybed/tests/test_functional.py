@@ -366,7 +366,7 @@ class FunctionalTest(object):
         self.assertIn('id', resp.body.decode('utf-8'))
 
         # Check that we only have one value in the db (e.g that PATCH didn't
-        # created a new data item)
+        # created a new record)
         record = self.db.get_record(self.model_id, record_id)
 
         new_item = self.valid_data.copy()
