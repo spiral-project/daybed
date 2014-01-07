@@ -130,14 +130,15 @@ def main(global_config, **settings):
     config.add_renderer('jsonp', JSONP(param_name='callback'))
 
     # Here, define the default users / policies etc.
+    database = backend.db()
     try:
-        backend._db.set_policy('read-only', {'role:admins': 0xFFFF,
-                                             'system.Authenticated': 0x8888,
-                                             'system.Everyone': 0x4400})
+        database.set_policy('read-only', {'role:admins': 0xFFFF,
+                                          'system.Authenticated': 0x8888,
+                                          'system.Everyone': 0x4400})
     except PolicyAlreadyExist:
         pass
     try:
-        backend._db.set_policy('anonymous', {'system.Everyone': 0xFFFF})
+        database.set_policy('anonymous', {'system.Everyone': 0xFFFF})
     except PolicyAlreadyExist:
         pass
     config.registry.default_policy = settings.get('daybed.default_policy',

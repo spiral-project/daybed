@@ -40,7 +40,7 @@ class OneOfField(TypeField):
 
     @classmethod
     def definition(cls, **kwargs):
-        db = global_registries.last.backend._db
+        db = global_registries.last.backend.db()
         schema = super(OneOfField, cls).definition(**kwargs)
         schema.add(SchemaNode(String(), name='model',
                    validator=ModelExist(db)))
@@ -48,7 +48,7 @@ class OneOfField(TypeField):
 
     @classmethod
     def validation(cls, **kwargs):
-        db = global_registries.last.backend._db
+        db = global_registries.last.backend.db()
         kwargs['validator'] = RecordsExist(db, kwargs['model'])
         return super(OneOfField, cls).validation(**kwargs)
 
@@ -59,7 +59,7 @@ class AnyOfField(TypeField):
 
     @classmethod
     def definition(cls, **kwargs):
-        db = global_registries.last.backend._db
+        db = global_registries.last.backend.db()
         schema = super(AnyOfField, cls).definition(**kwargs)
         schema.add(SchemaNode(String(), name='model',
                    validator=ModelExist(db)))
@@ -67,6 +67,6 @@ class AnyOfField(TypeField):
 
     @classmethod
     def validation(cls, **kwargs):
-        db = global_registries.last.backend._db
+        db = global_registries.last.backend.db()
         kwargs['validator'] = RecordsExist(db, kwargs['model'])
         return super(AnyOfField, cls).validation(**kwargs)
