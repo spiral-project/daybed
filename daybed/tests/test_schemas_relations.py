@@ -2,9 +2,7 @@ import colander
 
 from daybed import schemas
 from daybed.tests.support import BaseWebTest
-from daybed.backends.exceptions import (
-    ModelNotFound, RecordNotFound
-)
+from daybed.backends.exceptions import ModelNotFound
 
 
 class RelationTest(BaseWebTest):
