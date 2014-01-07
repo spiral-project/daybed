@@ -1,9 +1,9 @@
 import pyramid.testing
 import colander
 
-from daybed import schemas
 from daybed.schemas import (TypeRegistry, NotRegisteredError,
                             AlreadyRegisteredError, UnknownFieldTypeError)
+from daybed.schemas.validators import RolesValidator
 from daybed.tests.support import unittest
 
 
@@ -44,7 +44,7 @@ class TypeRegistryTests(unittest.TestCase):
 
 class RolesValidatorTests(unittest.TestCase):
     def test_roles(self):
-        schema = schemas.RolesValidator()
+        schema = RolesValidator()
         self.assertRaises(colander.Invalid, schema.deserialize, {})
         self.assertRaises(colander.Invalid, schema.deserialize,
                           {'admins': 'not-a-sequence'})

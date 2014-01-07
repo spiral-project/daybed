@@ -1,5 +1,5 @@
 from colander import (SchemaType, SchemaNode, Mapping, null, String,
-                      Sequence, Length, Boolean, OneOf, Int, Range)
+                      OneOf, Boolean)
 
 
 class AlreadyRegisteredError(Exception):
@@ -98,41 +98,6 @@ class TypeFieldNode(SchemaType):
         except UnknownFieldTypeError:
             schema = TypeField.definition()
         return schema.deserialize(cstruct)
-
-
-class DefinitionValidator(SchemaNode):
-    def __init__(self):
-        super(DefinitionValidator, self).__init__(Mapping())
-        self.add(SchemaNode(String(), name='title'))
-        self.add(SchemaNode(String(), name='description'))
-        self.add(SchemaNode(Sequence(), SchemaNode(TypeFieldNode()),
-                            name='fields', validator=Length(min=1)))
-
-
-class RolesValidator(SchemaNode):
-    def __init__(self):
-        super(RolesValidator, self).__init__(Mapping(unknown='preserve'))
-        self.add(SchemaNode(Sequence(), SchemaNode(String()),
-                            name='admins', validator=Length(min=1)))
-
-        # XXX Control that the values of the sequence are valid users.
-        # (we need to merge master to fix this. see #86)
-
-
-class PolicyValidator(SchemaNode):
-    def __init__(self, policy):
-        super(PolicyValidator, self).__init__(Mapping(unknown='preserve'))
-        for key in six.iterkeys(policy):
-            self.add(SchemaNode(Int(), name=key,
-                                validator=Range(min=0, max=0xFFFF)))
-
-
-class RecordValidator(SchemaNode):
-    def __init__(self, definition):
-        super(RecordValidator, self).__init__(Mapping())
-        for field in definition['fields']:
-            fieldtype = field.pop('type')
-            self.add(registry.validation(fieldtype, **field))
 
 
 from .base import *  # flake8: noqa

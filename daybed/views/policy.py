@@ -1,22 +1,15 @@
-import json
-
 from cornice import Service
 from pyramid.httpexceptions import HTTPNotFound, HTTPConflict, HTTPForbidden
 
-from daybed.validators import validate_against_schema
-from daybed.schemas import PolicyValidator
+from daybed.schemas.validators import policy_validator
+
 from daybed.backends.exceptions import PolicyAlreadyExist, PolicyNotFound
+
 
 policies = Service(name='policies', path='/policies')
 
 policy = Service(name='policy', path='/policies/{policy_id}',
                  description='Policy', renderer="jsonp", cors_origins=('*',))
-
-
-def policy_validator(request):
-    policy = json.loads(request.body.decode('utf-8'))
-    validate_against_schema(request, PolicyValidator(policy), policy)
-    request.validated['policy'] = policy
 
 
 @policies.get()

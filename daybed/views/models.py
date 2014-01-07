@@ -1,10 +1,7 @@
-import json
-
 from cornice import Service
 
-from daybed.validators import validate_against_schema
-from daybed.schemas import DefinitionValidator, RecordValidator, RolesValidator
-from daybed.backends.exceptions import ModelNotFound, PolicyNotFound
+from daybed.backends.exceptions import ModelNotFound
+from daybed.schemas.validators import model_validator
 
 
 models = Service(name='models', path='/models', description='Models',
@@ -23,53 +20,6 @@ definition = Service(name='model-definition',
                      description='Model Definitions',
                      renderer="jsonp",
                      cors_origins=('*',))
-
-
-def model_validator(request):
-    """Verify that the model is okay (that we have the right fields) and
-    eventually populates it if there is a need to.
-    """
-    try:
-        body = json.loads(request.body.decode('utf-8'))
-    except ValueError:
-        request.errors.add('body', 'json value error', "body malformed")
-        return
-
-    # Check the definition is valid.
-    definition = body.get('definition')
-    if not definition:
-        request.errors.add('body', 'definition', 'definition is required')
-    else:
-        validate_against_schema(request, DefinitionValidator(), definition)
-    request.validated['definition'] = definition
-
-    # Check that the records are valid according to the definition.
-    data = body.get('data')
-    request.validated['data'] = []
-    if data:
-        definition_validator = RecordValidator(definition)
-        for record in data:
-            validate_against_schema(request, definition_validator, record)
-            request.validated['data'].append(record)
-
-    # Check that roles are valid.
-    if request.user:
-        default_roles = {'admins': [request.user['name']]}
-    else:
-        default_roles = {'admins': ["system.Everyone"]}
-    roles = body.get('roles', default_roles)
-    validate_against_schema(request, RolesValidator(), roles)
-
-    request.validated['roles'] = roles
-    policy_id = body.get('policy_id', request.registry.default_policy)
-
-    # Check that the policy exists in our db.
-    try:
-        request.db.get_policy(policy_id)
-    except PolicyNotFound:
-        request.errors.add('body', 'policy_id',
-                           "policy '%s' doesn't exist" % policy_id)
-    request.validated['policy_id'] = policy_id
 
 
 @definition.get(permission='get_definition')
