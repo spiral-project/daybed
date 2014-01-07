@@ -98,8 +98,9 @@ class Database(object):
 
     def delete_records(self, model_id):
         results = self.__get_records(model_id)
-        for result in results:
-            self.delete_record(model_id, result['_id'])
+        records_ids = [r['_id'] for r in results]
+        for record_id in records_ids:
+            self.delete_record(model_id, record_id)
         return results
 
     def delete_model(self, model_id):
