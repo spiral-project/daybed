@@ -1,15 +1,12 @@
 import os
-import logging
 
 from couchdb.client import Server
 from couchdb.http import PreconditionFailed
 from couchdb.design import ViewDefinition
 
+from daybed import logger
 from .views import docs
 from .database import Database
-
-
-logger = logging.getLogger(__name__)
 
 
 class CouchDBBackend(object):
@@ -36,9 +33,9 @@ class CouchDBBackend(object):
     def create_db_if_not_exist(self):
         try:
             self.server.create(self.db_name)
-            logger.debug('Creating and using db "%s"' % self.db_name)
+            logger.info('Creating and using db "%s"' % self.db_name)
         except PreconditionFailed:
-            logger.debug('Using db "%s".' % self.db_name)
+            logger.info('Using db "%s".' % self.db_name)
 
     def sync_views(self):
         ViewDefinition.sync_many(self.server[self.db_name], docs)

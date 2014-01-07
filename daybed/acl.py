@@ -1,12 +1,13 @@
 import six
 from uuid import uuid4
+
 from pyramid.interfaces import IAuthorizationPolicy
 from zope.interface import implementer
 
 from daybed.backends.exceptions import (
     ModelNotFound, RecordNotFound, UserNotFound
 )
-from daybed.log import logger
+from daybed import logger
 
 
 @implementer(IAuthorizationPolicy)

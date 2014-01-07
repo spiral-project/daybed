@@ -1,10 +1,13 @@
 """Main entry point
 """
+import logging
 import pkg_resources
 
 
 #: Module version, as defined in PEP-0396.
 __version__ = pkg_resources.get_distribution(__package__).version
+
+logger = logging.getLogger(__name__)
 
 import json
 
@@ -33,6 +36,7 @@ from daybed.acl import (
 
 from daybed.backends.exceptions import PolicyAlreadyExist
 from daybed.views.errors import unauthorized_view
+from daybed.renderers import GeoJSON
 
 
 def home(request):
@@ -43,8 +47,6 @@ def get_user(request):
     userid = unauthenticated_userid(request)
     if userid is not None:
         return request.db.get_user(userid)
-
-from daybed.renderers import GeoJSON
 
 
 def main(global_config, **settings):
