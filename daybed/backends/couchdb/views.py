@@ -22,7 +22,7 @@ function(doc) {
 """)
 
 """ Model data, by model name."""
-model_data = ViewDefinition('data_items', 'by_model', """
+model_data = ViewDefinition('records', 'by_model', """
 function(doc) {
   if (doc.type == "data") {
     emit(doc.model_id, doc);
@@ -30,7 +30,7 @@ function(doc) {
 }""")
 
 """ Data item, by id."""
-model_data_items = ViewDefinition('data_items_all', 'all', """
+model_records = ViewDefinition('records_all', 'all', """
 function(doc) {
   if (doc.type == "data") {
     emit(doc._id, doc);

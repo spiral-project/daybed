@@ -34,7 +34,7 @@ class BackendTestBase(object):
         }
         self.policy = {'role:admins': 0xFFFF}
 
-        self.data_item = {'age': 7}
+        self.record = {'age': 7}
 
     def _create_model(self, name='modelname'):
         self.db.set_policy('admin-only', self.policy)
@@ -103,49 +103,45 @@ class BackendTestBase(object):
         self.assertEqual(self.db.get_model_policy_id('modelname'),
                          'admin-only')
 
-    def test_put_data_item(self):
+    def test_put_record(self):
         self._create_model()
-        self.db.put_data_item('modelname', self.data_item, ['Alexis'])
+        self.db.put_record('modelname', self.record, ['Alexis'])
 
         # When we put a new version of a data item, we should keep the list of
         # authors.
-        item_id = self.db.put_data_item('modelname', self.data_item, ['Remy'])
-        self.db.put_data_item('modelname', self.data_item, ['Alexis'], item_id)
+        item_id = self.db.put_record('modelname', self.record, ['Remy'])
+        self.db.put_record('modelname', self.record, ['Alexis'], item_id)
 
-        authors = self.db.get_data_item_authors('modelname', item_id)
+        authors = self.db.get_record_authors('modelname', item_id)
         self.assertEquals(set(authors), set(['Alexis', 'Remy']))
 
-    def test_get_data_items(self):
+    def test_get_records(self):
         self._create_model()
-        self.db.put_data_item('modelname', self.data_item, ['author'])
-        self.assertEqual(len(self.db.get_data_items('modelname')), 1)
+        self.db.put_record('modelname', self.record, ['author'])
+        self.assertEqual(len(self.db.get_records('modelname')), 1)
 
-    def test_get_data_items_empty(self):
+    def test_get_records_empty(self):
         self._create_model()
-        self.assertEqual(self.db.get_data_items('modelname'), [])
+        self.assertEqual(self.db.get_records('modelname'), [])
 
-    def test_get_data_item(self):
+    def test_get_record(self):
         self._create_model()
-        self.db.put_data_item('modelname', self.data_item, ['author'],
-                              'dataitem')
-        self.assertEqual(self.db.get_data_item('modelname', 'dataitem'),
-                         self.data_item)
+        self.db.put_record('modelname', self.record, ['author'], 'record')
+        self.assertEqual(self.db.get_record('modelname', 'record'),
+                         self.record)
 
-    def test_get_data_item_authors(self):
+    def test_get_record_authors(self):
         self._create_model()
-        self.db.put_data_item('modelname', self.data_item, ['author'],
-                              'dataitem')
-        self.assertEqual(self.db.get_data_item_authors('modelname',
-                                                       'dataitem'),
+        self.db.put_record('modelname', self.record, ['author'], 'record')
+        self.assertEqual(self.db.get_record_authors('modelname', 'record'),
                          ['author'])
 
-    def test_delete_data_item(self):
+    def test_delete_record(self):
         self._create_model()
-        self.db.put_data_item('modelname', self.data_item, ['author'],
-                              'dataitem')
-        self.db.delete_data_item('modelname', 'dataitem')
-        self.assertRaises(DataItemNotFound, self.db.get_data_item,
-                          'modelname', 'dataitem')
+        self.db.put_record('modelname', self.record, ['author'], 'record')
+        self.db.delete_record('modelname', 'record')
+        self.assertRaises(DataItemNotFound, self.db.get_record,
+                          'modelname', 'record')
 
     def test_put_model_raises_if_policy_unknown(self):
         self.assertRaises(PolicyNotFound, self.db.put_model, self.definition,

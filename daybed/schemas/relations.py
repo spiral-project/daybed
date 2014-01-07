@@ -24,7 +24,7 @@ class DataItemsExist(object):
         if isinstance(value, six.string_types):
             value = [value]
         for record_id in value:
-            record = self.db.get_data_item(self.model_id, record_id)
+            record = self.db.get_record(self.model_id, record_id)
             if not record:
                 msg = u"Record '%s' of model '%s' not found." % (record_id,
                                                                  self.model_id)

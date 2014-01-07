@@ -12,10 +12,10 @@ data = Service(name='data',
                renderer='jsonp')
 
 
-data_item = Service(name='data_item',
-                    path='/models/{model_id}/data/{data_item_id}',
-                    description='Model',
-                    renderer="jsonp")
+record = Service(name='record',
+                 path='/models/{model_id}/data/{record_id}',
+                 description='Model',
+                 renderer="jsonp")
 
 
 @data.get(permission='get_data')
@@ -30,7 +30,7 @@ def get_data(request):
         request.response.status = "404 Not Found"
         return {"msg": "%s: model not found" % model_id}
     # Return array of records
-    results = request.db.get_data_items(model_id)
+    results = request.db.get_records(model_id)
     return {'data': results}
 
 
@@ -51,8 +51,8 @@ def post_data(request):
         username = request.user['name']
     else:
         username = 'system.Everyone'
-    data_id = request.db.put_data_item(model_id, request.data_clean,
-                                       username)
+    data_id = request.db.put_record(model_id, request.data_clean,
+                                    username)
     created = u'%s/models/%s/data/%s' % (request.application_url, model_id,
                                          data_id)
     request.response.status = "201 Created"
@@ -63,44 +63,43 @@ def post_data(request):
 @data.delete(permission='delete_data')
 def delete_data(request):
     model_id = request.matchdict['model_id']
-    request.db.delete_data_items(model_id)
+    request.db.delete_records(model_id)
     return {"msg": "ok"}
 
 
-@data_item.get(permission='get_data_item')
+@record.get(permission='get_record')
 def get(request):
     """Retrieves all model records."""
     model_id = request.matchdict['model_id']
-    data_item_id = request.matchdict['data_item_id']
+    record_id = request.matchdict['record_id']
     try:
-        return request.db.get_data_item(model_id, data_item_id)
+        return request.db.get_record(model_id, record_id)
     except DataItemNotFound:
         request.response.status = "404 Not Found"
-        return {"msg": "%s: data_item not found %s" % (model_id, data_item_id)}
+        return {"msg": "%s: record not found %s" % (model_id, record_id)}
 
 
-@data_item.put(validators=schema_validator, permission='put_data_item')
+@record.put(validators=schema_validator, permission='put_record')
 def put(request):
     """Update or create a data item."""
     model_id = request.matchdict['model_id']
-    data_item_id = request.matchdict['data_item_id']
+    record_id = request.matchdict['record_id']
 
     if request.user:
         username = request.user['name']
     else:
         username = 'system.Everyone'
 
-    data_id = request.db.put_data_item(model_id, request.data_clean,
-                                       [username],
-                                       data_item_id=data_item_id)
+    data_id = request.db.put_record(model_id, request.data_clean,
+                                    [username], record_id=record_id)
     return {'id': data_id}
 
 
-@data_item.patch(permission='patch_data_item')
+@record.patch(permission='patch_record')
 def patch(request):
     """Update or create a data item."""
     model_id = request.matchdict['model_id']
-    data_item_id = request.matchdict['data_item_id']
+    record_id = request.matchdict['record_id']
 
     if request.user:
         username = request.user['name']
@@ -108,28 +107,27 @@ def patch(request):
         username = 'system.Everyone'
 
     try:
-        data = request.db.get_data_item(model_id, data_item_id)
+        data = request.db.get_record(model_id, record_id)
     except DataItemNotFound:
         request.response.status = "404 Not Found"
-        return {"msg": "%s: data_item not found %s" % (model_id, data_item_id)}
+        return {"msg": "%s: record not found %s" % (model_id, record_id)}
 
     data.update(json.loads(request.body.decode('utf-8')))
     definition = request.db.get_model_definition(model_id)
     validate_against_schema(request, SchemaValidator(definition), data)
     if not request.errors:
-        request.db.put_data_item(model_id, data, [username],
-                                 data_item_id)
-    return {'id': data_item_id}
+        request.db.put_record(model_id, data, [username], record_id)
+    return {'id': record_id}
 
 
-@data_item.delete(permission='delete_data_item')
+@record.delete(permission='delete_record')
 def delete(request):
     """Delete the data item."""
     model_id = request.matchdict['model_id']
-    data_item_id = request.matchdict['data_item_id']
+    record_id = request.matchdict['record_id']
 
-    deleted = request.db.delete_data_item(model_id, data_item_id)
+    deleted = request.db.delete_record(model_id, record_id)
     if not deleted:
         request.response.status = "404 Not Found"
-        return {"msg": "%s: data_item not found %s" % (model_id, data_item_id)}
+        return {"msg": "%s: record not found %s" % (model_id, record_id)}
     return {"msg": "ok"}

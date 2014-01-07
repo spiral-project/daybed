@@ -13,12 +13,12 @@ class TestACL(TestCase):
     def _get_request(self):
         request = mock.MagicMock()
         request.matchdict = {'model_id': 'modelname',
-                             'data_item_id': 'data_item_id'}
+                             'record_id': 'record_id'}
 
         db = mock.MagicMock()
         db.get_groups.return_value = ['dumb-people']
         db.get_roles.return_value = {'admins': ['group:dumb-people', 'Benoit']}
-        db.get_data_item_authors.return_value = ['Alexis', 'Remy']
+        db.get_record_authors.return_value = ['Alexis', 'Remy']
         request.db = db
         return request
 

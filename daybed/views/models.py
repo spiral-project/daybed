@@ -48,9 +48,9 @@ def model_validator(request):
     request.validated['data'] = []
     if data:
         definition_validator = SchemaValidator(definition)
-        for data_item in data:
-            validate_against_schema(request, definition_validator, data_item)
-            request.validated['data'].append(data_item)
+        for record in data:
+            validate_against_schema(request, definition_validator, record)
+            request.validated['data'].append(record)
 
     # Check that roles are valid.
     if request.user:
@@ -96,8 +96,8 @@ def post_models(request):
     else:
         username = 'system.Everyone'
 
-    for data_item in request.validated['data']:
-        request.db.put_data_item(model_id, data_item, [username])
+    for record in request.validated['data']:
+        request.db.put_record(model_id, record, [username])
 
     request.response.status = "201 Created"
     location = '%s/models/%s' % (request.application_url, model_id)
@@ -129,7 +129,7 @@ def get_model(request):
         return {"msg": "%s: model not found" % model_id}
 
     return {'definition': definition,
-            'data': request.db.get_data_items(model_id),
+            'data': request.db.get_records(model_id),
             'policy_id': request.db.get_model_policy_id(model_id),
             'roles': request.db.get_roles(model_id)}
 
@@ -154,7 +154,7 @@ def put_model(request):
                          request.validated['policy_id'],
                          model_id)
 
-    for data_item in request.validated['data']:
-        request.db.put_data_item(model_id, data_item, [username])
+    for record in request.validated['data']:
+        request.db.put_record(model_id, record, [username])
 
     return {"id": model_id}
