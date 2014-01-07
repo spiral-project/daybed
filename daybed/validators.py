@@ -1,6 +1,7 @@
 import six
 from functools import partial
 import json
+import datetime
 
 import colander
 from daybed.schemas import DefinitionValidator, SchemaValidator
@@ -38,10 +39,29 @@ def schema_validator(request):
 
 def validate_against_schema(request, schema, data):
     try:
-        request.data_clean = schema.deserialize(data) if data else {}
+        data_pure = schema.deserialize(data)
+        data_clean = post_serialize(data_pure)
+        # Attach data_clean to request: see usage in views.
+        request.data_clean = data_clean
     except colander.Invalid as e:
         for error in e.children:
             # here we transform the errors we got from colander into cornice
             # errors
             for field, error in error.asdict().items():
                 request.errors.add('body', field, error)
+
+
+def post_serialize(data):
+    """Returns the most agnostic version
+    of specified data.
+    (remove colander notions, datetimes in ISO, ...)
+    """
+    clean = dict()
+    for k, v in data.items():
+        if isinstance(v, (datetime.date, datetime.datetime)):
+            clean[k] = v.isoformat()
+        elif v is colander.null:
+            pass
+        else:
+            clean[k] = v
+    return clean
