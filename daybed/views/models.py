@@ -3,7 +3,7 @@ import json
 from cornice import Service
 
 from daybed.validators import validate_against_schema
-from daybed.schemas import DefinitionValidator, SchemaValidator, RolesValidator
+from daybed.schemas import DefinitionValidator, RecordValidator, RolesValidator
 from daybed.backends.exceptions import ModelNotFound, PolicyNotFound
 
 
@@ -47,7 +47,7 @@ def model_validator(request):
     data = body.get('data')
     request.validated['data'] = []
     if data:
-        definition_validator = SchemaValidator(definition)
+        definition_validator = RecordValidator(definition)
         for record in data:
             validate_against_schema(request, definition_validator, record)
             request.validated['data'].append(record)

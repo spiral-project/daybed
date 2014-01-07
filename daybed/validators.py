@@ -4,7 +4,7 @@ import json
 import datetime
 
 import colander
-from daybed.schemas import DefinitionValidator, SchemaValidator
+from daybed.schemas import DefinitionValidator, RecordValidator
 from daybed.backends.exceptions import ModelNotFound
 
 
@@ -22,14 +22,14 @@ def validator(request, schema):
 definition_validator = partial(validator, schema=DefinitionValidator())
 
 
-def schema_validator(request):
+def record_validator(request):
     """Validates a request body according to its model definition.
     """
     model_id = request.matchdict['model_id']
 
     try:
         definition = request.db.get_model_definition(model_id)
-        schema = SchemaValidator(definition)
+        schema = RecordValidator(definition)
         validator(request, schema)
     except ModelNotFound:
         request.errors.add('path', 'modelname',

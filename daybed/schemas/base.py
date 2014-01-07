@@ -27,7 +27,7 @@ from colander import (
 
 
 __all__ = ['registry', 'TypeField',
-           'DefinitionValidator', 'SchemaValidator',
+           'DefinitionValidator', 'RecordValidator',
            'IntField', 'StringField', 'RangeField',
            'RegexField', 'EmailField', 'URLField',
            'EnumField', 'ChoicesField', 'DecimalField',
@@ -160,9 +160,9 @@ class PolicyValidator(SchemaNode):
                                 validator=Range(min=0, max=0xFFFF)))
 
 
-class SchemaValidator(SchemaNode):
+class RecordValidator(SchemaNode):
     def __init__(self, definition):
-        super(SchemaValidator, self).__init__(Mapping())
+        super(RecordValidator, self).__init__(Mapping())
         for field in definition['fields']:
             fieldtype = field.pop('type')
             self.add(registry.validation(fieldtype, **field))

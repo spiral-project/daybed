@@ -2,8 +2,8 @@ import json
 from cornice import Service
 
 from daybed.backends.exceptions import DataItemNotFound
-from daybed.validators import schema_validator, validate_against_schema
-from daybed.schemas import SchemaValidator
+from daybed.validators import record_validator, validate_against_schema
+from daybed.schemas import RecordValidator
 
 
 data = Service(name='data',
@@ -34,7 +34,7 @@ def get_data(request):
     return {'data': results}
 
 
-@data.post(validators=schema_validator, permission='post_data')
+@data.post(validators=record_validator, permission='post_data')
 def post_data(request):
     """Saves a model data.
 
@@ -79,7 +79,7 @@ def get(request):
         return {"msg": "%s: record not found %s" % (model_id, record_id)}
 
 
-@record.put(validators=schema_validator, permission='put_record')
+@record.put(validators=record_validator, permission='put_record')
 def put(request):
     """Update or create a record."""
     model_id = request.matchdict['model_id']
@@ -114,7 +114,7 @@ def patch(request):
 
     data.update(json.loads(request.body.decode('utf-8')))
     definition = request.db.get_model_definition(model_id)
-    validate_against_schema(request, SchemaValidator(definition), data)
+    validate_against_schema(request, RecordValidator(definition), data)
     if not request.errors:
         request.db.put_record(model_id, data, [username], record_id)
     return {'id': record_id}
