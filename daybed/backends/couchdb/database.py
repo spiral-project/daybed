@@ -21,7 +21,7 @@ class Database(object):
             doc = views.model_definitions(self._db)[model_id].rows[0]
             return doc.value
         except IndexError:
-            raise ModelNotFound()
+            raise ModelNotFound(model_id)
 
     def get_model_definition(self, model_id):
         return self.__get_model(model_id)['definition']
