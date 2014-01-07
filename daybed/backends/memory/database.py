@@ -169,7 +169,7 @@ class Database(object):
         policies = []
         for item in self._db['policies'].values():
             policies.append(item['name'])
-        return policies
+        return sorted(policies)
 
     def __get_policy(self, policy_name):
         try:
