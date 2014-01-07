@@ -2,7 +2,7 @@ import six
 from pyramid.config import global_registries
 from colander import (String, SchemaNode, Invalid)
 
-from daybed.backends.exceptions import DataItemNotFound
+from daybed.backends.exceptions import RecordNotFound
 from .base import registry, TypeField, JSONList
 
 
@@ -17,7 +17,7 @@ class ModelExist(object):
             raise Invalid(node, msg)
 
 
-class DataItemsExist(object):
+class RecordsExist(object):
     def __init__(self, db, model_id):
         self.db = db
         self.model_id = model_id
@@ -28,7 +28,7 @@ class DataItemsExist(object):
         for record_id in value:
             try:
                 self.db.get_record(self.model_id, record_id)
-            except DataItemNotFound:
+            except RecordNotFound:
                 msg = u"Record '%s' of model '%s' not found." % (record_id,
                                                                  self.model_id)
                 raise Invalid(node, msg)
@@ -49,7 +49,7 @@ class OneOfField(TypeField):
     @classmethod
     def validation(cls, **kwargs):
         db = global_registries.last.backend._db
-        kwargs['validator'] = DataItemsExist(db, kwargs['model'])
+        kwargs['validator'] = RecordsExist(db, kwargs['model'])
         return super(OneOfField, cls).validation(**kwargs)
 
 
@@ -68,5 +68,5 @@ class AnyOfField(TypeField):
     @classmethod
     def validation(cls, **kwargs):
         db = global_registries.last.backend._db
-        kwargs['validator'] = DataItemsExist(db, kwargs['model'])
+        kwargs['validator'] = RecordsExist(db, kwargs['model'])
         return super(AnyOfField, cls).validation(**kwargs)

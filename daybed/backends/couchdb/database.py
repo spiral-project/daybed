@@ -1,7 +1,7 @@
 from . import views
 from daybed.backends.exceptions import (
     UserAlreadyExist, UserNotFound, ModelNotFound,
-    PolicyNotFound, PolicyAlreadyExist, DataItemNotFound
+    PolicyNotFound, PolicyAlreadyExist, RecordNotFound
 )
 
 
@@ -37,7 +37,7 @@ class Database(object):
         try:
             return views.model_records(self._db)[key].rows[0].value
         except IndexError:
-            raise DataItemNotFound(u'(%s, %s)' % (model_id, record_id))
+            raise RecordNotFound(u'(%s, %s)' % (model_id, record_id))
 
     def get_record(self, model_id, record_id):
         doc = self.__get_record(model_id, record_id)
@@ -72,7 +72,7 @@ class Database(object):
         if record_id is not None:
             try:
                 old_doc = self.__get_record(model_id, record_id)
-            except DataItemNotFound:
+            except RecordNotFound:
                 doc['_id'] = '-'.join((model_id, record_id))
             else:
                 authors = list(set(authors) | set(old_doc['authors']))

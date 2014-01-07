@@ -52,8 +52,7 @@ def validate_against_schema(request, schema, data):
 
 
 def post_serialize(data):
-    """Returns the most agnostic version
-    of specified data.
+    """Returns the most agnostic version of specified data.
     (remove colander notions, datetimes in ISO, ...)
     """
     clean = dict()

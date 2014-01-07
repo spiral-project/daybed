@@ -3,7 +3,7 @@ import colander
 from daybed import schemas
 from daybed.tests.support import BaseWebTest
 from daybed.backends.exceptions import (
-    ModelNotFound, DataItemNotFound
+    ModelNotFound, RecordNotFound
 )
 
 

@@ -9,7 +9,7 @@ from couchdb.client import Server
 from couchdb.design import ViewDefinition
 
 from daybed.backends.exceptions import (
-    UserAlreadyExist, PolicyNotFound, ModelNotFound, DataItemNotFound,
+    UserAlreadyExist, PolicyNotFound, ModelNotFound, RecordNotFound,
 )
 from daybed.backends.couchdb.database import Database as CouchDBDatabase
 from daybed.backends.couchdb.views import docs as couchdb_views
@@ -141,7 +141,7 @@ class BackendTestBase(object):
         self._create_model()
         self.db.put_record('modelname', self.record, ['author'], 'record')
         self.db.delete_record('modelname', 'record')
-        self.assertRaises(DataItemNotFound, self.db.get_record,
+        self.assertRaises(RecordNotFound, self.db.get_record,
                           'modelname', 'record')
 
     def test_put_model_raises_if_policy_unknown(self):

@@ -1,7 +1,7 @@
 import json
 from cornice import Service
 
-from daybed.backends.exceptions import DataItemNotFound
+from daybed.backends.exceptions import RecordNotFound
 from daybed.validators import record_validator, validate_against_schema
 from daybed.schemas import RecordValidator
 
@@ -74,7 +74,7 @@ def get(request):
     record_id = request.matchdict['record_id']
     try:
         return request.db.get_record(model_id, record_id)
-    except DataItemNotFound:
+    except RecordNotFound:
         request.response.status = "404 Not Found"
         return {"msg": "%s: record not found %s" % (model_id, record_id)}
 
@@ -108,7 +108,7 @@ def patch(request):
 
     try:
         data = request.db.get_record(model_id, record_id)
-    except DataItemNotFound:
+    except RecordNotFound:
         request.response.status = "404 Not Found"
         return {"msg": "%s: record not found %s" % (model_id, record_id)}
 

@@ -6,7 +6,7 @@ import base64
 from daybed import __version__ as VERSION
 
 from daybed.backends.exceptions import (
-    DataItemNotFound, ModelNotFound, UserNotFound
+    RecordNotFound, ModelNotFound, UserNotFound
 )
 from daybed.tests.support import BaseWebTest, force_unicode
 from daybed.schemas import registry
@@ -294,7 +294,7 @@ class FunctionalTest(object):
         resp = self.create_data()
         record_id = resp.json['id']
         self.app.delete('/models/%s' % self.model_id, headers=self.headers)
-        self.assertRaises(DataItemNotFound,
+        self.assertRaises(RecordNotFound,
                           self.db.get_record, self.model_id, record_id)
         self.assertRaises(ModelNotFound, self.db.get_model_definition,
                           self.model_id)
@@ -381,7 +381,7 @@ class FunctionalTest(object):
             six.text_type('/models/%s/data/%s' % (self.model_id,
                                                   record_id)),
             headers=self.headers)
-        self.assertRaises(DataItemNotFound, self.db.get_record,
+        self.assertRaises(RecordNotFound, self.db.get_record,
                           self.model_id, record_id)
 
     def test_unknown_data_returns_404(self):

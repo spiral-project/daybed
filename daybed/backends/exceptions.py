@@ -10,7 +10,7 @@ class ModelNotFound(Exception):
     pass
 
 
-class DataItemNotFound(Exception):
+class RecordNotFound(Exception):
     pass
 
 

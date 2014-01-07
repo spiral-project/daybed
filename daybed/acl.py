@@ -4,7 +4,7 @@ from pyramid.interfaces import IAuthorizationPolicy
 from zope.interface import implementer
 
 from daybed.backends.exceptions import (
-    ModelNotFound, DataItemNotFound, UserNotFound
+    ModelNotFound, RecordNotFound, UserNotFound
 )
 from daybed.log import logger
 
@@ -127,7 +127,7 @@ def build_user_principals(user, request):
     if record_id is not None:
         try:
             authors = request.db.get_record_authors(model_id, record_id)
-        except DataItemNotFound:
+        except RecordNotFound:
             pass
         else:
             if user in authors:
