@@ -2,7 +2,9 @@ import six
 try:
     from unittest2 import TestCase
 except ImportError:
-    from unittest import TestCase  # flake8: noqa
+    from unittest import TestCase
+from collections import defaultdict
+import mock
 from uuid import uuid4
 
 from couchdb.client import Server
@@ -10,6 +12,9 @@ from couchdb.design import ViewDefinition
 
 from daybed.backends.exceptions import (
     UserAlreadyExist, PolicyNotFound, ModelNotFound, RecordNotFound,
+)
+from daybed.backends.couchdb.backend import (
+    CouchDBBackendConnectionError, CouchDBBackend
 )
 from daybed.backends.couchdb.database import Database as CouchDBDatabase
 from daybed.backends.couchdb.views import docs as couchdb_views
@@ -181,6 +186,16 @@ class TestCouchDBBackend(BackendTestBase, TestCase):
 
     def tearDown(self):
         del self.server[self.db_name]
+
+    def test_server_unreachable(self):
+        config = mock.Mock()
+        config.registry = mock.Mock()
+        config.registry.settings = defaultdict(str)
+        config.registry.settings['backend.db_host'] = 'http://unreachable/'
+        config.registry.settings['backend.db_name'] = 'daybed'
+
+        with self.assertRaises(CouchDBBackendConnectionError):
+            CouchDBBackend(config)
 
 
 class TestMemoryBackend(BackendTestBase, TestCase):

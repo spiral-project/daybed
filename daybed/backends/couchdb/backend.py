@@ -10,6 +10,10 @@ from .views import docs
 from .database import Database
 
 
+class CouchDBBackendConnectionError(Exception):
+    pass
+
+
 class CouchDBBackend(object):
     def db(self):
         return Database(self.server[self.db_name], self._generate_id)
@@ -27,9 +31,10 @@ class CouchDBBackend(object):
 
         try:
             self.create_db_if_not_exist()
-        except socket.error:
-            raise Exception("Unable to connect to the CouchDB server. "
-                            "Check it's installed and running.")
+        except socket.error as e:
+            raise CouchDBBackendConnectionError(
+                "Unable to connect to the CouchDB server: %s - %s" % (
+                    settings['backend.db_host'], e))
 
         self.sync_views()
 
