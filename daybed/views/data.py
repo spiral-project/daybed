@@ -2,8 +2,8 @@ import json
 from cornice import Service
 
 from daybed.backends.exceptions import RecordNotFound
-from daybed.validators import record_validator, validate_against_schema
-from daybed.schemas import RecordValidator
+from daybed.schemas.validators import (RecordValidator, record_validator,
+                                       validate_against_schema)
 
 
 data = Service(name='data',
