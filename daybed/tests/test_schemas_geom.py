@@ -12,21 +12,24 @@ class PointFieldTests(unittest.TestCase):
              'type': 'point'})
         self.validator = schemas.PointField.validation(**definition)
 
-    def test_coordinates_as_float_or_integer(self):
+    def test_coordinates_are_deserialized_as_float_or_integer(self):
         self.assertEquals([0.4, 45.0],
                           self.validator.deserialize('[0.4, 45.0]'))
         self.assertEquals([0, 45],
                           self.validator.deserialize('[0, 45]'))
 
-    def test_with_third_coordinate(self):
+    def test_coordinates_can_have_several_dimensions(self):
         self.assertEquals([0.4, 45.0, 1280],
                           self.validator.deserialize('[0.4, 45.0, 1280]'))
+        self.assertEquals([0.4, 45.0, 1280, 2048],
+                          self.validator.deserialize(
+                              '[0.4, 45.0, 1280, 2048]'))
 
-    def test_fails_with_null_if_required(self):
+    def test_coordinates_cannot_be_null_if_required(self):
         self.assertRaises(colander.Invalid,
                           self.validator.deserialize, colander.null)
 
-    def test_works_with_null_if_not_required(self):
+    def test_coordinates_can_be_null_if_not_required(self):
         definition = self.schema.deserialize(
             {'name': 'location',
              'type': 'point',
@@ -35,11 +38,11 @@ class PointFieldTests(unittest.TestCase):
         self.assertEquals(colander.null,
                           validator.deserialize(colander.null))
 
-    def test_fails_with_invalid_json(self):
+    def test_coordinates_must_be_valid_json(self):
         self.assertRaises(colander.Invalid,
                           self.validator.deserialize, '[0.4,,45.0]')
 
-    def test_fails_with_invalid_coordinates(self):
+    def test_coordinates_cannot_be_invalid_data(self):
         self.assertRaises(colander.Invalid,
                           self.validator.deserialize, '[0.4]')
         self.assertRaises(colander.Invalid,
@@ -49,7 +52,7 @@ class PointFieldTests(unittest.TestCase):
         self.assertRaises(colander.Invalid,
                           self.validator.deserialize, '["a", "b"]')
 
-    def test_fails_with_coordinates_exceeding_earth(self):
+    def test_coordinates_cannot_exceed_earth(self):
         self.assertRaises(colander.Invalid,
                           self.validator.deserialize, '[181.0, 91.0]')
         self.assertRaises(colander.Invalid,
@@ -78,7 +81,7 @@ class LineFieldTests(unittest.TestCase):
              'type': 'line'})
         self.validator = schemas.LineField.validation(**definition)
 
-    def test_works_with_at_least_two_points(self):
+    def test_lines_have_at_least_two_points(self):
         self.assertEquals([[0.4, 45.0], [0.6, 65.0]],
                           self.validator.deserialize(
                               '[[0.4, 45.0], [0.6, 65.0]]'))
@@ -86,11 +89,11 @@ class LineFieldTests(unittest.TestCase):
                           self.validator.deserialize(
                               '[[0.4, 45.0], [0.6, 65.0], [0.8, 85.0]]'))
 
-    def test_fails_with_null_if_required(self):
+    def test_lines_cannot_be_null_if_required(self):
         self.assertRaises(colander.Invalid,
                           self.validator.deserialize, colander.null)
 
-    def test_works_with_null_if_not_required(self):
+    def test_lines_can_be_null_if_not_required(self):
         definition = self.schema.deserialize(
             {'name': 'along',
              'type': 'line',
@@ -99,15 +102,15 @@ class LineFieldTests(unittest.TestCase):
         self.assertEquals(colander.null,
                           validator.deserialize(colander.null))
 
-    def test_fails_with_one_point(self):
+    def test_lines_must_have_at_least_two_points(self):
         self.assertRaises(colander.Invalid,
                           self.validator.deserialize, '[[0.4, 45.0]]')
 
-    def test_fails_if_not_a_list(self):
+    def test_lines_must_be_a_list_of_coordinates(self):
         self.assertRaises(colander.Invalid,
                           self.validator.deserialize, '[0.4, 45.0]')
 
-    def test_fails_with_invalid_json(self):
+    def test_lines_must_be_valid_json(self):
         self.assertRaises(colander.Invalid,
                           self.validator.deserialize, '[[4,4],[4,,5]]')
 
@@ -120,19 +123,19 @@ class PolygonFieldTests(unittest.TestCase):
              'type': 'polygon'})
         self.validator = schemas.PolygonField.validation(**definition)
 
-    def test_works_with_a_linear_ring(self):
+    def test_polygones_are_linear_ring(self):
         self.assertEquals(
             [[[0.4, 45.0], [0.6, 65.0], [0.8, 85.0], [0.4, 45.0]]],
             self.validator.deserialize(
                 '[[[0.4, 45.0], [0.6, 65.0], [0.8, 85.0], [0.4, 45.0]]]'))
 
-    def test_non_linear_ring_are_automatically_closed(self):
+    def test_polygones_are_automatically_closed(self):
         self.assertEquals(
             [[[0.4, 45.0], [0.6, 65.0], [0.8, 85.0], [0.4, 45.0]]],
             self.validator.deserialize(
                 '[[[0.4, 45.0], [0.6, 65.0], [0.8, 85.0]]]'))
 
-    def test_works_with_hole_in_polygon(self):
+    def test_polygones_can_have_holes(self):
         self.assertEquals(
             [[[0.4, 45.0], [0.6, 65.0], [0.8, 85.0], [0.4, 45.0]],
              [[0.4, 45.0], [0.6, 65.0], [0.8, 85.0], [0.4, 45.0]]],
@@ -140,7 +143,7 @@ class PolygonFieldTests(unittest.TestCase):
                 """[[[0.4, 45.0], [0.6, 65.0], [0.8, 85.0]],
                    [[0.4, 45.0], [0.6, 65.0], [0.8, 85.0]]]"""))
 
-    def test_fails_if_not_enough_points(self):
+    def test_polygones_must_have_enough_points(self):
         self.assertRaises(colander.Invalid,
                           self.validator.deserialize, '[[[0.4, 45.0]]]')
         self.assertRaises(colander.Invalid,
