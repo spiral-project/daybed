@@ -129,7 +129,8 @@ class PolygonFieldTests(unittest.TestCase):
     def test_non_linear_ring_are_automatically_closed(self):
         self.assertEquals(
             [[[0.4, 45.0], [0.6, 65.0], [0.8, 85.0], [0.4, 45.0]]],
-            self.validator.deserialize('[[[0.4, 45.0], [0.6, 65.0], [0.8, 85.0]]]'))
+            self.validator.deserialize(
+                '[[[0.4, 45.0], [0.6, 65.0], [0.8, 85.0]]]'))
 
     def test_works_with_hole_in_polygon(self):
         self.assertEquals(
