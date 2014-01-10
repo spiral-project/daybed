@@ -2,7 +2,7 @@ import six
 from pyramid.config import global_registries
 from colander import (String, SchemaNode, Invalid)
 
-from daybed.backends.exceptions import RecordNotFound
+from daybed.backends.exceptions import ModelNotFound, RecordNotFound
 from .base import registry, TypeField, JSONList
 
 
@@ -11,8 +11,9 @@ class ModelExist(object):
         self.db = db
 
     def __call__(self, node, value):
-        model = self.db.get_model_definition(value)
-        if not model:
+        try:
+            self.db.get_model_definition(value)
+        except ModelNotFound:
             msg = u"Model '%s' not found." % value
             raise Invalid(node, msg)
 
