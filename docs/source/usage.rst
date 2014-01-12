@@ -102,13 +102,13 @@ We can also post on ``http://localhost:8000/models`` and we get back an id::
 Pushing data
 ------------
 
-**POST /models/{modelname}/data**
-**PUT /models/{modelname}/data/{id}**
+**POST /models/{modelname}/records**
+**PUT /models/{modelname}/records/{id}**
 
 Now that we defined the schema, we want to push some real data there::
 
     data='{"item": "finish the documentation", "status": "todo"}'
-    curl -XPOST http://localhost:8000/models/todo/data -d "$data" -u admin@example.com:apikey
+    curl -XPOST http://localhost:8000/models/todo/records -d "$data" -u admin@example.com:apikey
 
 And we get this in exchange, which is the id of the created document.::
 
@@ -119,11 +119,11 @@ And we get this in exchange, which is the id of the created document.::
     `X-Daybed-Validate-Only`, which will allow you to only validate the
     resource you are sending, without actually recording it to the database.
 
-**GET /models/{modelname}/data/{id}**
+**GET /models/{modelname}/records/{id}**
 
 Using the GET method, you can get back the data you just POST::
 
-    curl http://localhost:8000/models/todo/data/c429ab7c1f0f49a99cade9b76b9e6311 -u admin@example.com:apikey
+    curl http://localhost:8000/models/todo/records/c429ab7c1f0f49a99cade9b76b9e6311 -u admin@example.com:apikey
 
     {
         "status": "todo",
@@ -165,11 +165,11 @@ Get back a definition
 Get back all the data you pushed to a model
 -------------------------------------------
 
-**GET /models/{modelname}/data**
+**GET /models/{modelname}/records**
 
 ::
 
-    curl http://localhost:8000/models/todo/data -u admin@example.com:apikey | python -m json.tool
+    curl http://localhost:8000/models/todo/records -u admin@example.com:apikey | python -m json.tool
 
     {
         "data": [{

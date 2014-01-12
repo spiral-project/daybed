@@ -9,13 +9,13 @@ from daybed.acl import USER_EVERYONE
 
 
 data = Service(name='data',
-               path='/models/{model_id}/data',
+               path='/models/{model_id}/records',
                description='Model data',
                renderer='jsonp')
 
 
 record = Service(name='record',
-                 path='/models/{model_id}/data/{record_id}',
+                 path='/models/{model_id}/records/{record_id}',
                  description='Model',
                  renderer="jsonp")
 
@@ -55,7 +55,7 @@ def post_data(request):
         username = USER_EVERYONE
     data_id = request.db.put_record(model_id, request.data_clean,
                                     username)
-    created = u'%s/models/%s/data/%s' % (request.application_url, model_id,
+    created = u'%s/models/%s/records/%s' % (request.application_url, model_id,
                                          data_id)
     request.response.status = "201 Created"
     request.response.headers['location'] = str(created)

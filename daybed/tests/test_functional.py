@@ -103,13 +103,13 @@ class FunctionalTest(object):
     def create_data(self, data=None):
         if not data:
             data = self.valid_data
-        return self.app.post_json('/models/%s/data' % self.model_id,
+        return self.app.post_json('/models/%s/records' % self.model_id,
                                   data, headers=self.headers)
 
     def create_data_resp(self, data=None):
         if not data:
             data = self.valid_data
-        return self.app.post_json('/models/%s/data' % self.model_id,
+        return self.app.post_json('/models/%s/records' % self.model_id,
                                   data,
                                   headers=self.headers)
 
@@ -153,7 +153,7 @@ class FunctionalTest(object):
         self.create_definition()
 
         # Put data against this definition
-        resp = self.app.post_json('/models/%s/data' % self.model_id,
+        resp = self.app.post_json('/models/%s/records' % self.model_id,
                                   self.valid_data, headers=self.headers)
         self.assertIn('id', resp.body.decode('utf-8'))
 
@@ -161,7 +161,7 @@ class FunctionalTest(object):
         self.create_definition()
 
         # Try to put invalid data to this definition
-        resp = self.app.post_json('/models/%s/data' % self.model_id,
+        resp = self.app.post_json('/models/%s/records' % self.model_id,
                                   self.invalid_data,
                                   headers=self.headers,
                                   status=400)
@@ -175,7 +175,7 @@ class FunctionalTest(object):
         self.assertIn('id', resp.body.decode('utf-8'))
 
         record_id = resp.json['id']
-        resp = self.app.get('/models/%s/data/%s' % (self.model_id,
+        resp = self.app.get('/models/%s/records/%s' % (self.model_id,
                                                     record_id),
                             headers=self.headers)
         self.assertDataCorrect(resp.json, force_unicode(self.valid_data))
@@ -192,7 +192,7 @@ class FunctionalTest(object):
 
         # Update this data
         self.update_data(entry)
-        resp = self.app.put_json('/models/%s/data/%s' % (self.model_id,
+        resp = self.app.put_json('/models/%s/records/%s' % (self.model_id,
                                                          record_id),
                                  entry,
                                  headers=self.headers)
@@ -210,7 +210,7 @@ class FunctionalTest(object):
 
         # Update this data
         self.update_data(entry)
-        resp = self.app.patch_json('/models/%s/data/%s' % (self.model_id,
+        resp = self.app.patch_json('/models/%s/records/%s' % (self.model_id,
                                                            record_id),
                                    entry, headers=self.headers)
         self.assertIn('id', resp.body.decode('utf-8'))
@@ -229,7 +229,7 @@ class FunctionalTest(object):
         record_id = resp.json['id']
         # Test 200
         resp = self.app.delete(
-            six.text_type('/models/%s/data/%s' % (self.model_id,
+            six.text_type('/models/%s/records/%s' % (self.model_id,
                                                   record_id)),
             headers=self.headers)
         self.assertIn('id', resp.body.decode('utf-8'))
@@ -237,30 +237,30 @@ class FunctionalTest(object):
                           self.model_id, record_id)
         # Test 404
         self.app.delete(
-            six.text_type('/models/%s/data/%s' % (self.model_id,
+            six.text_type('/models/%s/records/%s' % (self.model_id,
                                                   record_id)),
             headers=self.headers, status=404)
 
     def test_unknown_data_returns_404(self):
         self.create_definition()
         self.app.get(
-            six.text_type('/models/%s/data/%s' % (self.model_id, 1234)),
+            six.text_type('/models/%s/records/%s' % (self.model_id, 1234)),
             headers=self.headers, status=404)
 
     def test_data_validation(self):
         self.create_definition()
         headers = self.headers.copy()
         headers['X-Daybed-Validate-Only'] = 'true'
-        self.app.post_json('/models/%s/data' % self.model_id,
+        self.app.post_json('/models/%s/records' % self.model_id,
                            self.valid_data,
                            headers=headers, status=200)
 
         # no data should be added
-        response = self.app.get('/models/%s/data' % self.model_id,
+        response = self.app.get('/models/%s/records' % self.model_id,
                                 headers=self.headers)
         self.assertEquals(0, len(response.json['data']))
         # of course, pushing weird data should tell what's wrong
-        response = self.app.post_json('/models/%s/data' % self.model_id,
+        response = self.app.post_json('/models/%s/records' % self.model_id,
                                       self.invalid_data,
                                       headers=headers, status=400)
         # make sure the field name in cause is provided
@@ -442,12 +442,12 @@ class MushroomsModelTest(FunctionalTest, BaseWebTest):
 
         headers = self.headers.copy()
         headers['Accept'] = 'application/json'
-        resp = self.app.get('/models/%s/data' % self.model_id,
+        resp = self.app.get('/models/%s/records' % self.model_id,
                             headers=headers)
         self.assertIn('data', resp.json)
 
         headers['Accept'] = 'application/geojson'
-        resp = self.app.get('/models/%s/data' % (self.model_id),
+        resp = self.app.get('/models/%s/records' % (self.model_id),
                             headers=headers)
         self.assertIn('features', resp.json)
 
