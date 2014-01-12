@@ -150,3 +150,11 @@ class PolicyTest(BaseWebTest):
         self.assertDictEqual(
             json.loads(resp.body.decode('utf-8')),
             {"policies": ["admin-only", "anonymous", "read-only"]})
+
+
+class SporeTest(BaseWebTest):
+
+    def test_spore_get(self):
+        resp = self.app.get('/spore',
+                            headers=self.headers, status=200)
+        self.assertEqual(resp.json['name'], 'daybed')

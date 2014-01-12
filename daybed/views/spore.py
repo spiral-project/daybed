@@ -4,6 +4,7 @@ from cornice.service import get_services
 
 from daybed import __version__ as VERSION
 
+
 spore = Service(name="spore",
                 path='/spore',
                 description="Spore endpoint",
