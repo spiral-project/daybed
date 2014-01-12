@@ -6,6 +6,7 @@ import six
 from colander import (SchemaNode, Mapping, Sequence, Length, String, Int,
                       Range, null, Invalid)
 
+from daybed._compat import to_unicode
 from daybed.acl import USER_EVERYONE
 from daybed.backends.exceptions import ModelNotFound, PolicyNotFound
 from . import registry, TypeFieldNode
@@ -78,8 +79,8 @@ def post_serialize(data):
 def validator(request, schema):
     """Validates the request according to the given schema"""
     try:
-        body = request.body.decode('utf-8')
-        dictbody = json.loads(body) if body else {}
+        body = to_unicode(request.body, 'utf-8')
+        dictbody = json.loads(body) if request.body else {}
         validate_against_schema(request, schema, dictbody)
     except ValueError as e:
         request.errors.add('body', 'body', six.text_type(e))
@@ -105,7 +106,7 @@ def record_validator(request):
 
 
 def policy_validator(request):
-    policy = json.loads(request.body.decode('utf-8'))
+    policy = json.loads(to_unicode(request.body, 'utf-8'))
     validate_against_schema(request, PolicyValidator(policy), policy)
     request.validated['policy'] = policy
 
@@ -115,7 +116,7 @@ def model_validator(request):
     eventually populates it if there is a need to.
     """
     try:
-        body = json.loads(request.body.decode('utf-8'))
+        body = json.loads(to_unicode(request.body, 'utf-8'))
     except ValueError:
         request.errors.add('body', 'json value error', "body malformed")
         return
