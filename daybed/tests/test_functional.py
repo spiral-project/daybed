@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import six
 
 from daybed._compat import to_unicode
@@ -284,10 +285,10 @@ class SimpleModelTest(FunctionalTest, BaseWebTest):
     @property
     def valid_definition(self):
         return {
-            "title": "simple",
+            "title": u"simple — with unicode data in it",
             "description": "One optional field",
             "fields": [{"name": "age", "type": "int", "required": False,
-                        "description": ""}]
+                        "description": u"Put your âge"}]
         }
 
     @property
@@ -490,7 +491,8 @@ class CityModelTest(FunctionalTest, BaseWebTest):
 
     @property
     def valid_data(self):
-        return {'name': 'La Paz', 'location': [-16.5, -68.15, 3500]}
+        return {'name': u'Nuestra Señora de La Paz',  # Add some unicode data
+                'location': [-16.5, -68.15, 3500]}
 
     @property
     def invalid_data(self):
