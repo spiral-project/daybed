@@ -105,7 +105,9 @@ class Database(object):
 
     def delete_model(self, model_id):
         self.delete_records(model_id)
+        doc = self._db['models'][model_id]
         del self._db['models'][model_id]
+        return doc
 
     def put_roles(self, model_id, roles):
         doc = self.__get_model(model_id)
