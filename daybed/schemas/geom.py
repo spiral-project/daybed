@@ -1,6 +1,6 @@
-import six
 import json
 
+import six
 from colander import (
     SchemaNode,
     Sequence,

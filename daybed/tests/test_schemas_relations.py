@@ -2,7 +2,6 @@ import colander
 
 from daybed import schemas
 from daybed.tests.support import BaseWebTest
-from daybed.backends.exceptions import ModelNotFound
 
 
 class RelationTest(BaseWebTest):
@@ -30,7 +29,7 @@ class RelationTest(BaseWebTest):
 class OneOfFieldTest(RelationTest):
     def test_unknown_model(self):
         schema = schemas.OneOfField.definition()
-        self.assertRaises(ModelNotFound,
+        self.assertRaises(colander.Invalid,
                           schema.deserialize, {'name': 'foo',
                                                'type': 'oneof',
                                                'model': 'unknown'})
@@ -66,7 +65,7 @@ class OneOfFieldTest(RelationTest):
 class AnyOfFieldTest(RelationTest):
     def test_unknown_model(self):
         schema = schemas.AnyOfField.definition()
-        self.assertRaises(ModelNotFound,
+        self.assertRaises(colander.Invalid,
                           schema.deserialize, {'name': 'foo',
                                                'type': 'anyof',
                                                'model': 'unknown'})

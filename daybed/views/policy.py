@@ -2,7 +2,6 @@ from cornice import Service
 from pyramid.httpexceptions import HTTPNotFound, HTTPConflict, HTTPForbidden
 
 from daybed.schemas.validators import policy_validator
-
 from daybed.backends.exceptions import PolicyAlreadyExist, PolicyNotFound
 
 

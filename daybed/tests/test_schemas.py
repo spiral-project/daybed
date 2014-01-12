@@ -1,6 +1,9 @@
+import mock
+import colander
 import pyramid.testing
 
 from daybed.schemas import (TypeRegistry, NotRegisteredError,
+                            TypeField, TypeFieldNode, registry,
                             AlreadyRegisteredError, UnknownFieldTypeError)
 from daybed.tests.support import unittest
 
@@ -38,3 +41,27 @@ class TypeRegistryTests(unittest.TestCase):
         self.types.register('foo', None)
         self.assertRaises(AlreadyRegisteredError,
                           self.types.register, 'foo', None)
+
+
+class TypeFieldNodeTests(unittest.TestCase):
+    def setUp(self):
+        class FooField(TypeField):
+            @classmethod
+            def definition(self):
+                mocked = mock.Mock()
+                mocked.deserialize.return_value = 'blah'
+                return mocked
+
+        registry.register('foo', FooField)
+
+    def tearDown(self):
+        registry.unregister('foo')
+
+    def test_node_returns_definition(self):
+        fieldnode = TypeFieldNode()
+        self.assertEqual('blah', fieldnode.deserialize(None, {'type': 'foo'}))
+
+    def test_unknown_type_is_invalid(self):
+        fieldnode = TypeFieldNode()
+        self.assertRaises(colander.Invalid,
+                          fieldnode.deserialize, None, {'type': 'unk'})

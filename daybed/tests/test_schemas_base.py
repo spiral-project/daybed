@@ -1,4 +1,5 @@
 import datetime
+
 import colander
 
 from daybed import schemas
@@ -135,6 +136,18 @@ class DateFieldTests(unittest.TestCase):
                           '2012-04-31')  # April has 30 days only
         self.assertEquals(validator.deserialize('2012-04-30T13:37Z'),
                           datetime.date(2012, 4, 30))
+
+    def test_date_auto_today(self):
+        schema = schemas.DateField.definition()
+        definition = schema.deserialize(
+            {'name': 'birth',
+             'type': 'date',
+             'auto_now': True})
+        validator = schemas.DateField.validation(**definition)
+        defaulted = validator.deserialize(None)
+        self.assertEqual(datetime.date.today(), defaulted)
+        defaulted = validator.deserialize('')
+        self.assertEqual(datetime.date.today(), defaulted)
 
     def test_datetime(self):
         schema = schemas.DateTimeField.definition()

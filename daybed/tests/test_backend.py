@@ -1,12 +1,12 @@
-import six
 try:
     from unittest2 import TestCase
 except ImportError:
-    from unittest import TestCase
+    from unittest import TestCase  # flake8: noqa
 from collections import defaultdict
-import mock
 from uuid import uuid4
 
+import mock
+import six
 from couchdb.client import Server
 from couchdb.design import ViewDefinition
 
