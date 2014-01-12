@@ -11,7 +11,7 @@ from daybed.tests.support import unittest
 class ValidatorTests(unittest.TestCase):
     def test_adds_body_error_if_json_invalid(self):
         request = DummyRequest()
-        request.body = six.text_type('{wrong,"format"}')
+        request.body = b'{wrong,"format"}'
         request.errors = Errors()
         validator(request, mock.Mock())
         self.assertEqual('body', request.errors[0]['location'])
