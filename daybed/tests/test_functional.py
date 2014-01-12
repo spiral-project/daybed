@@ -61,7 +61,8 @@ class FunctionalTest(object):
     def test_post_model_definition_with_data(self):
         resp = self.app.post_json('/models',
                                   {'definition': self.valid_definition,
-                                   'records': [self.valid_data, self.valid_data]},
+                                   'records': [self.valid_data,
+                                               self.valid_data]},
                                   headers=self.headers)
         model_id = resp.json['id']
         self.assertEquals(len(self.db.get_records(model_id)), 2)
@@ -69,7 +70,8 @@ class FunctionalTest(object):
     def test_put_model_definition_without_data(self):
         resp = self.app.post_json('/models',
                                   {'definition': self.valid_definition,
-                                   'records': [self.valid_data, self.valid_data]},
+                                   'records': [self.valid_data,
+                                               self.valid_data]},
                                   headers=self.headers)
         model_id = resp.json['id']
 
@@ -82,7 +84,8 @@ class FunctionalTest(object):
     def test_put_model_definition_with_data(self):
         resp = self.app.post_json('/models',
                                   {'definition': self.valid_definition,
-                                   'records': [self.valid_data, self.valid_data]},
+                                   'records': [self.valid_data,
+                                               self.valid_data]},
                                   headers=self.headers)
         model_id = resp.json['id']
 
@@ -176,7 +179,7 @@ class FunctionalTest(object):
 
         record_id = resp.json['id']
         resp = self.app.get('/models/%s/records/%s' % (self.model_id,
-                                                    record_id),
+                                                       record_id),
                             headers=self.headers)
         self.assertDataCorrect(resp.json, force_unicode(self.valid_data))
 
@@ -193,7 +196,7 @@ class FunctionalTest(object):
         # Update this data
         self.update_data(entry)
         resp = self.app.put_json('/models/%s/records/%s' % (self.model_id,
-                                                         record_id),
+                                                            record_id),
                                  entry,
                                  headers=self.headers)
         self.assertIn('id', resp.body.decode('utf-8'))
@@ -211,7 +214,7 @@ class FunctionalTest(object):
         # Update this data
         self.update_data(entry)
         resp = self.app.patch_json('/models/%s/records/%s' % (self.model_id,
-                                                           record_id),
+                                                              record_id),
                                    entry, headers=self.headers)
         self.assertIn('id', resp.body.decode('utf-8'))
 
@@ -230,7 +233,7 @@ class FunctionalTest(object):
         # Test 200
         resp = self.app.delete(
             six.text_type('/models/%s/records/%s' % (self.model_id,
-                                                  record_id)),
+                                                     record_id)),
             headers=self.headers)
         self.assertIn('id', resp.body.decode('utf-8'))
         self.assertRaises(RecordNotFound, self.db.get_record,
@@ -238,7 +241,7 @@ class FunctionalTest(object):
         # Test 404
         self.app.delete(
             six.text_type('/models/%s/records/%s' % (self.model_id,
-                                                  record_id)),
+                                                     record_id)),
             headers=self.headers, status=404)
 
     def test_unknown_data_returns_404(self):
