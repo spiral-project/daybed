@@ -10,6 +10,19 @@ from daybed.backends.exceptions import (
 from daybed import logger
 
 
+USER_EVERYONE = 'system.Everyone'
+USER_AUTHENTICATED = 'system.Authenticated'
+
+POLICY_READONLY = {'role:admins': 0xFFFF,
+                   USER_AUTHENTICATED: 0x8888,
+                   USER_EVERYONE: 0x4400}
+POLICY_ANONYMOUS = {USER_EVERYONE: 0xFFFF}
+POLICY_ADMINONLY = {'group:admins': 0xFFFF,
+                    'role:admins': 0xFFFF,
+                    'authors:': 0x0F00,
+                    USER_AUTHENTICATED: 0x4000}
+
+
 @implementer(IAuthorizationPolicy)
 class DaybedAuthorizationPolicy(object):
     # THIS THING IS SO COOL YOU MAY WANT TO READ IT TWICE.

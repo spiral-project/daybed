@@ -8,7 +8,7 @@ except ImportError:
 import base64
 import webtest
 
-from daybed.backends.exceptions import PolicyAlreadyExist, UserAlreadyExist
+from daybed.backends.exceptions import UserAlreadyExist
 
 
 class BaseWebTest(unittest.TestCase):
@@ -21,15 +21,6 @@ class BaseWebTest(unittest.TestCase):
         self.app = webtest.TestApp("config:tests.ini", relative_to='.')
         self.backend = self.app.app.registry.backend
         self.db = self.backend.db()
-
-        try:
-            self.db.set_policy('admin-only', {
-                'group:admins': 0xFFFF,
-                'role:admins': 0xFFFF,
-                'authors:': 0x0F00,
-                'system.Authenticated:': 0x4000})
-        except PolicyAlreadyExist:
-            pass
 
         try:
             self.db.add_user({'name': 'admin', 'groups': ['admins'],
