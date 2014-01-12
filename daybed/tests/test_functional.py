@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 import six
 
-from daybed._compat import to_unicode
 from daybed.backends.exceptions import RecordNotFound, ModelNotFound
 from daybed.tests.support import BaseWebTest, force_unicode
 
@@ -122,14 +121,14 @@ class FunctionalTest(object):
                                  {'definition': self.definition_without_title},
                                  headers=self.headers,
                                  status=400)
-        self.assertIn('"name": "title"', to_unicode(resp.body, 'utf-8'))
+        self.assertIn('"name": "title"', resp.body.decode('utf-8'))
 
     def test_definition_creation_rejects_malformed_data(self):
         resp = self.app.put('/models/%s' % self.model_id,
                             {'definition': self.malformed_definition},
                             headers=self.headers,
                             status=400)
-        self.assertIn('"status": "error"', to_unicode(resp.body, 'utf-8'))
+        self.assertIn('"status": "error"', resp.body.decode('utf-8'))
 
     def test_definition_retrieval(self):
         self.create_definition()
@@ -156,7 +155,7 @@ class FunctionalTest(object):
         # Put data against this definition
         resp = self.app.post_json('/models/%s/data' % self.model_id,
                                   self.valid_data, headers=self.headers)
-        self.assertIn('id', to_unicode(resp.body, 'utf-8'))
+        self.assertIn('id', resp.body.decode('utf-8'))
 
     def test_invalid_data_validation(self):
         self.create_definition()
@@ -166,14 +165,14 @@ class FunctionalTest(object):
                                   self.invalid_data,
                                   headers=self.headers,
                                   status=400)
-        self.assertIn('"status": "error"', to_unicode(resp.body, 'utf-8'))
+        self.assertIn('"status": "error"', resp.body.decode('utf-8'))
 
     def test_data_retrieval(self):
         self.create_definition()
         resp = self.create_data()
 
         # Put valid data against this definition
-        self.assertIn('id', to_unicode(resp.body, 'utf-8'))
+        self.assertIn('id', resp.body.decode('utf-8'))
 
         record_id = resp.json['id']
         resp = self.app.get('/models/%s/data/%s' % (self.model_id,
@@ -197,7 +196,7 @@ class FunctionalTest(object):
                                                          record_id),
                                  entry,
                                  headers=self.headers)
-        self.assertIn('id', to_unicode(resp.body, 'utf-8'))
+        self.assertIn('id', resp.body.decode('utf-8'))
         records = self.db.get_records(self.model_id)
         self.assertEqual(len(records), 1)
 
@@ -214,7 +213,7 @@ class FunctionalTest(object):
         resp = self.app.patch_json('/models/%s/data/%s' % (self.model_id,
                                                            record_id),
                                    entry, headers=self.headers)
-        self.assertIn('id', to_unicode(resp.body, 'utf-8'))
+        self.assertIn('id', resp.body.decode('utf-8'))
 
         # Check that we only have one value in the db (e.g that PATCH didn't
         # created a new record)
@@ -228,19 +227,12 @@ class FunctionalTest(object):
         self.create_definition()
         resp = self.create_data()
         record_id = resp.json['id']
-        # Test 200
         self.app.delete(
             six.text_type('/models/%s/data/%s' % (self.model_id,
                                                   record_id)),
             headers=self.headers)
         self.assertRaises(RecordNotFound, self.db.get_record,
                           self.model_id, record_id)
-
-        # Test 404
-        self.app.delete(
-            six.text_type('/models/%s/data/%s' % (self.model_id,
-                                                  record_id)),
-            headers=self.headers, status=404)
 
     def test_unknown_data_returns_404(self):
         self.create_definition()
@@ -437,9 +429,9 @@ class MushroomsModelTest(FunctionalTest, BaseWebTest):
 
     def test_data_geojson_retrieval(self):
         resp = self.create_definition()
-        self.assertIn('id', to_unicode(resp.body, 'utf-8'))
+        self.assertIn('id', resp.body.decode('utf-8'))
         resp = self.create_data()
-        self.assertIn('id', to_unicode(resp.body, 'utf-8'))
+        self.assertIn('id', resp.body.decode('utf-8'))
 
         headers = self.headers.copy()
         headers['Accept'] = 'application/json'

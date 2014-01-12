@@ -1,3 +1,4 @@
+import six
 import mock
 import colander
 from cornice.errors import Errors
