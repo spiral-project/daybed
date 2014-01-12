@@ -128,8 +128,9 @@ def delete(request):
     model_id = request.matchdict['model_id']
     record_id = request.matchdict['record_id']
 
-    deleted = request.db.delete_record(model_id, record_id)
-    if not deleted:
+    try:
+        deleted = request.db.delete_record(model_id, record_id)
+    except RecordNotFound:
         request.response.status = "404 Not Found"
         return {"msg": "%s: record not found %s" % (model_id, record_id)}
-    return {"msg": "ok"}
+    return deleted

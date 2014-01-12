@@ -227,12 +227,19 @@ class FunctionalTest(object):
         self.create_definition()
         resp = self.create_data()
         record_id = resp.json['id']
-        self.app.delete(
+        # Test 200
+        resp = self.app.delete(
             six.text_type('/models/%s/data/%s' % (self.model_id,
                                                   record_id)),
             headers=self.headers)
+        self.assertIn('id', resp.body.decode('utf-8'))
         self.assertRaises(RecordNotFound, self.db.get_record,
                           self.model_id, record_id)
+        # Test 404
+        self.app.delete(
+            six.text_type('/models/%s/data/%s' % (self.model_id,
+                                                  record_id)),
+            headers=self.headers, status=404)
 
     def test_unknown_data_returns_404(self):
         self.create_definition()
