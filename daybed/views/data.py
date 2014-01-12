@@ -2,7 +2,6 @@ import json
 
 from cornice import Service
 
-from daybed._compat import to_unicode
 from daybed.backends.exceptions import RecordNotFound
 from daybed.schemas.validators import (RecordValidator, record_validator,
                                        validate_against_schema)
@@ -115,7 +114,7 @@ def patch(request):
         request.response.status = "404 Not Found"
         return {"msg": "%s: record not found %s" % (model_id, record_id)}
 
-    data.update(json.loads(to_unicode(request.body, 'utf-8')))
+    data.update(json.loads(request.body.decode('utf-8')))
     definition = request.db.get_model_definition(model_id)
     validate_against_schema(request, RecordValidator(definition), data)
     if not request.errors:
@@ -130,8 +129,8 @@ def delete(request):
     record_id = request.matchdict['record_id']
 
     try:
-        request.db.delete_record(model_id, record_id)
+        deleted = request.db.delete_record(model_id, record_id)
     except RecordNotFound:
         request.response.status = "404 Not Found"
         return {"msg": "%s: record not found %s" % (model_id, record_id)}
-    return {"msg": "ok"}
+    return deleted

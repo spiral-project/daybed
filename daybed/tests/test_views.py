@@ -3,7 +3,6 @@ from uuid import uuid4
 import base64
 
 from daybed import __version__ as VERSION
-from daybed._compat import to_unicode
 from daybed.backends.exceptions import UserNotFound
 from daybed.tests.support import BaseWebTest
 from daybed.schemas import registry
@@ -49,7 +48,7 @@ class DaybedViewsTest(BaseWebTest):
         resp = self.app.post_json('/models/unknown/data', {},
                                   headers={'Content-Type': 'application/json'},
                                   status=404)
-        self.assertIn('"status": "error"', to_unicode(resp.body, 'utf-8'))
+        self.assertIn('"status": "error"', resp.body.decode('utf-8'))
 
 
 class BasicAuthRegistrationTest(BaseWebTest):
@@ -106,8 +105,7 @@ class PolicyTest(BaseWebTest):
         # Test Get
         resp = self.app.get('/policies/%s' % policy_id,
                             headers=self.headers, status=200)
-        self.assertDictEqual(json.loads(to_unicode(resp.body, 'utf-8')),
-                             policy)
+        self.assertDictEqual(json.loads(resp.body.decode('utf-8')), policy)
 
         # Test Create another time with the same name
         self.app.put_json('/policies/%s' % policy_id,
@@ -150,7 +148,7 @@ class PolicyTest(BaseWebTest):
     def test_policies_list(self):
         resp = self.app.get('/policies', headers=self.headers, status=200)
         self.assertDictEqual(
-            json.loads(to_unicode(resp.body, 'utf-8')),
+            json.loads(resp.body.decode('utf-8')),
             {"policies": ["admin-only", "anonymous", "read-only"]})
 
 
