@@ -61,7 +61,7 @@ class FunctionalTest(object):
     def test_post_model_definition_with_data(self):
         resp = self.app.post_json('/models',
                                   {'definition': self.valid_definition,
-                                   'data': [self.valid_data, self.valid_data]},
+                                   'records': [self.valid_data, self.valid_data]},
                                   headers=self.headers)
         model_id = resp.json['id']
         self.assertEquals(len(self.db.get_records(model_id)), 2)
@@ -69,7 +69,7 @@ class FunctionalTest(object):
     def test_put_model_definition_without_data(self):
         resp = self.app.post_json('/models',
                                   {'definition': self.valid_definition,
-                                   'data': [self.valid_data, self.valid_data]},
+                                   'records': [self.valid_data, self.valid_data]},
                                   headers=self.headers)
         model_id = resp.json['id']
 
@@ -82,13 +82,13 @@ class FunctionalTest(object):
     def test_put_model_definition_with_data(self):
         resp = self.app.post_json('/models',
                                   {'definition': self.valid_definition,
-                                   'data': [self.valid_data, self.valid_data]},
+                                   'records': [self.valid_data, self.valid_data]},
                                   headers=self.headers)
         model_id = resp.json['id']
 
         resp = self.app.put_json('/models/%s' % model_id,
                                  {'definition': self.valid_definition,
-                                  'data': [self.valid_data]},
+                                  'records': [self.valid_data]},
                                  headers=self.headers)
 
         self.assertEquals(len(self.db.get_records(model_id)), 1)

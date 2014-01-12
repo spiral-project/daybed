@@ -80,10 +80,9 @@ def permission_mask(permission):
 
         'get_definition': 0x4000,
 
-        'post_data': 0x0800,         # C
-        'get_data': 0x0400,          # R
-        'put_data': 0x0B00,          # C+U+D
-        'delete_data': 0x0100,       # D
+        'post_record': 0x0800,       # C
+        'get_records': 0x0400,       # R
+        'delete_records': 0x0100,    # D
 
         'get_record': 0x0400,        # R
         'put_record': 0x0B00,        # C+U+D

@@ -129,13 +129,13 @@ def model_validator(request):
     request.validated['definition'] = definition
 
     # Check that the records are valid according to the definition.
-    data = body.get('data')
-    request.validated['data'] = []
-    if data:
+    records = body.get('records')
+    request.validated['records'] = []
+    if records:
         definition_validator = RecordValidator(definition)
-        for record in data:
+        for record in records:
             validate_against_schema(request, definition_validator, record)
-            request.validated['data'].append(record)
+            request.validated['records'].append(record)
 
     # Check that roles are valid.
     if request.user:

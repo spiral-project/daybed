@@ -8,22 +8,22 @@ from daybed.schemas.validators import (RecordValidator, record_validator,
 from daybed.acl import USER_EVERYONE
 
 
-data = Service(name='data',
-               path='/models/{model_id}/records',
-               description='Model data',
-               renderer='jsonp')
+records = Service(name='records',
+                  path='/models/{model_id}/records',
+                  description='Collection of records',
+                  renderer='jsonp')
 
 
 record = Service(name='record',
                  path='/models/{model_id}/records/{record_id}',
-                 description='Model',
+                 description='Single record',
                  renderer="jsonp")
 
 
-@data.get(permission='get_data')
-@data.get(accept='application/geojson', renderer='geojson',
-          permission='get_data')
-def get_data(request):
+@records.get(permission='get_records')
+@records.get(accept='application/geojson', renderer='geojson',
+             permission='get_records')
+def get_records(request):
     """Retrieves all model records."""
     model_id = request.matchdict['model_id']
     # Check that model is defined
@@ -36,11 +36,11 @@ def get_data(request):
     return {'data': results}
 
 
-@data.post(validators=record_validator, permission='post_data')
-def post_data(request):
-    """Saves a model data.
+@records.post(validators=record_validator, permission='post_record')
+def post_record(request):
+    """Saves a single model record.
 
-    Posted data fields will be matched against their related model
+    Posted record attributes will be matched against the related model
     definition.
 
     """
@@ -53,17 +53,18 @@ def post_data(request):
         username = request.user['name']
     else:
         username = USER_EVERYONE
-    data_id = request.db.put_record(model_id, request.data_clean,
-                                    username)
+    record_id = request.db.put_record(model_id, request.data_clean,
+                                      username)
     created = u'%s/models/%s/records/%s' % (request.application_url, model_id,
-                                         data_id)
+                                            record_id)
     request.response.status = "201 Created"
     request.response.headers['location'] = str(created)
-    return {'id': data_id}
+    return {'id': record_id}
 
 
-@data.delete(permission='delete_data')
-def delete_data(request):
+@records.delete(permission='delete_records')
+def delete_records(request):
+    """Deletes all records of model."""
     model_id = request.matchdict['model_id']
     request.db.delete_records(model_id)
     return {"msg": "ok"}
@@ -71,7 +72,7 @@ def delete_data(request):
 
 @record.get(permission='get_record')
 def get(request):
-    """Retrieves all model records."""
+    """Retrieves a singe record."""
     model_id = request.matchdict['model_id']
     record_id = request.matchdict['record_id']
     try:
@@ -83,7 +84,7 @@ def get(request):
 
 @record.put(validators=record_validator, permission='put_record')
 def put(request):
-    """Update or create a record."""
+    """Updates or creates a record."""
     model_id = request.matchdict['model_id']
     record_id = request.matchdict['record_id']
 
@@ -92,14 +93,14 @@ def put(request):
     else:
         username = USER_EVERYONE
 
-    data_id = request.db.put_record(model_id, request.data_clean,
-                                    [username], record_id=record_id)
-    return {'id': data_id}
+    record_id = request.db.put_record(model_id, request.data_clean,
+                                      [username], record_id=record_id)
+    return {'id': record_id}
 
 
 @record.patch(permission='patch_record')
 def patch(request):
-    """Update or create a record."""
+    """Updates an existing record."""
     model_id = request.matchdict['model_id']
     record_id = request.matchdict['record_id']
 
@@ -124,7 +125,7 @@ def patch(request):
 
 @record.delete(permission='delete_record')
 def delete(request):
-    """Delete the record."""
+    """Deletes a record."""
     model_id = request.matchdict['model_id']
     record_id = request.matchdict['record_id']
 
