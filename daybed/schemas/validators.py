@@ -6,8 +6,9 @@ import datetime
 from colander import (SchemaNode, Mapping, Sequence, Length, String, Int,
                       Range, null, Invalid)
 
-from . import registry, TypeFieldNode
+from daybed.acl import USER_EVERYONE
 from daybed.backends.exceptions import ModelNotFound, PolicyNotFound
+from . import registry, TypeFieldNode
 
 
 class DefinitionValidator(SchemaNode):
@@ -140,7 +141,7 @@ def model_validator(request):
     if request.user:
         default_roles = {'admins': [request.user['name']]}
     else:
-        default_roles = {'admins': ["system.Everyone"]}
+        default_roles = {'admins': [USER_EVERYONE]}
     roles = body.get('roles', default_roles)
     validate_against_schema(request, RolesValidator(), roles)
 

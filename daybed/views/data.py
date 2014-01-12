@@ -4,6 +4,7 @@ from cornice import Service
 from daybed.backends.exceptions import RecordNotFound
 from daybed.schemas.validators import (RecordValidator, record_validator,
                                        validate_against_schema)
+from daybed.acl import USER_EVERYONE
 
 
 data = Service(name='data',
@@ -50,7 +51,7 @@ def post_data(request):
     if request.user:
         username = request.user['name']
     else:
-        username = 'system.Everyone'
+        username = USER_EVERYONE
     data_id = request.db.put_record(model_id, request.data_clean,
                                     username)
     created = u'%s/models/%s/data/%s' % (request.application_url, model_id,
@@ -88,7 +89,7 @@ def put(request):
     if request.user:
         username = request.user['name']
     else:
-        username = 'system.Everyone'
+        username = USER_EVERYONE
 
     data_id = request.db.put_record(model_id, request.data_clean,
                                     [username], record_id=record_id)
@@ -104,7 +105,7 @@ def patch(request):
     if request.user:
         username = request.user['name']
     else:
-        username = 'system.Everyone'
+        username = USER_EVERYONE
 
     try:
         data = request.db.get_record(model_id, record_id)

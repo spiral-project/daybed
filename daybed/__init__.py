@@ -31,7 +31,8 @@ from pyramid_multiauth import MultiAuthenticationPolicy
 
 from daybed.acl import (
     RootFactory, DaybedAuthorizationPolicy, build_user_principals,
-    check_api_token
+    check_api_token,
+    POLICY_READONLY, POLICY_ANONYMOUS, POLICY_ADMINONLY
 )
 
 from daybed.backends.exceptions import PolicyAlreadyExist
@@ -131,16 +132,14 @@ def main(global_config, **settings):
 
     # Here, define the default users / policies etc.
     database = backend.db()
-    try:
-        database.set_policy('read-only', {'role:admins': 0xFFFF,
-                                          'system.Authenticated': 0x8888,
-                                          'system.Everyone': 0x4400})
-    except PolicyAlreadyExist:
-        pass
-    try:
-        database.set_policy('anonymous', {'system.Everyone': 0xFFFF})
-    except PolicyAlreadyExist:
-        pass
+    for name, policy in [('read-only', POLICY_READONLY),
+                         ('anonymous', POLICY_ANONYMOUS),
+                         ('admin-only', POLICY_ADMINONLY)]:
+        try:
+            database.set_policy(name, policy)
+        except PolicyAlreadyExist:
+            pass
+
     config.registry.default_policy = settings.get('daybed.default_policy',
                                                   'read-only')
 
