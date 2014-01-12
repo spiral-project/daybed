@@ -1,4 +1,5 @@
 import mock
+import colander
 import pyramid.testing
 
 from daybed.schemas import (TypeRegistry, NotRegisteredError,
@@ -59,3 +60,8 @@ class TypeFieldNodeTests(unittest.TestCase):
     def test_node_returns_definition(self):
         fieldnode = TypeFieldNode()
         self.assertEqual('blah', fieldnode.deserialize(None, {'type': 'foo'}))
+
+    def test_unknown_type_is_invalid(self):
+        fieldnode = TypeFieldNode()
+        self.assertRaises(colander.Invalid,
+                          fieldnode.deserialize, None, {'type': 'unk'})

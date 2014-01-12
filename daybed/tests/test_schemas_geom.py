@@ -12,6 +12,10 @@ class PointFieldTests(unittest.TestCase):
              'type': 'point'})
         self.validator = schemas.PointField.validation(**definition)
 
+    def test_deserialization_is_idempotent(self):
+        self.assertEquals([0.4, 45.0],
+                          self.validator.deserialize([0.4, 45.0]))
+
     def test_coordinates_are_deserialized_as_float_or_integer(self):
         self.assertEquals([0.4, 45.0],
                           self.validator.deserialize('[0.4, 45.0]'))
