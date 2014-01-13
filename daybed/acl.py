@@ -10,14 +10,31 @@ from daybed.backends.exceptions import (
 from daybed import logger
 
 
-POLICY_READONLY = {'role:admins': 0xFFFF,
-                   'system.Authenticated': 0x8888,
-                   'system.Everyone': 0x4400}
-POLICY_ANONYMOUS = {'system.Everyone': 0xFFFF}
-POLICY_ADMINONLY = {'group:admins': 0xFFFF,
-                    'role:admins': 0xFFFF,
-                    'authors:': 0x0F00,
-                    'system.Authenticated': 0x4000}
+PERMISSION_CRUD = {'create': True,
+                   'read': True,
+                   'update': True,
+                   'delete': True}
+PERMISSION_FULL = {'definition': PERMISSION_CRUD,
+                   'records': PERMISSION_CRUD,
+                   'users': PERMISSION_CRUD,
+                   'policy': PERMISSION_CRUD}
+
+POLICY_READONLY = {'role:admins': PERMISSION_FULL,
+                  'system.Authenticated': {
+                       'definition': {'create': True},
+                       'records': {'create': True},
+                       'users': {'create': True},
+                       'policy': {'create': True},
+                   },
+                   'system.Everyone': {
+                        'definition': {'read': True},
+                        'records': {'read': True}
+                   }}
+POLICY_ANONYMOUS = {'system.Everyone': PERMISSION_FULL}
+POLICY_ADMINONLY = {'group:admins': PERMISSION_FULL,
+                    'role:admins': PERMISSION_FULL,
+                    'authors:': {'records': PERMISSION_CRUD},
+                    'system.Authenticated': {'definition': {'read': True}}}
 
 
 @implementer(IAuthorizationPolicy)
@@ -30,7 +47,7 @@ class DaybedAuthorizationPolicy(object):
         principals has access to the given permission.
         """
         allowed = 0
-        mask = permission_mask(permission)
+        mask = permission_required(permission)
 
         if context.model_id:
             try:
@@ -41,7 +58,8 @@ class DaybedAuthorizationPolicy(object):
         else:
             policy = context.db.get_policy(context.default_policy)
 
-        for role, permissions in policy.items():
+        for role, permissions_given in policy.items():
+            permissions = permission_mask(permissions_given)
             if role in principals:
                 allowed |= permissions
 
@@ -55,7 +73,7 @@ class DaybedAuthorizationPolicy(object):
         raise NotImplementedError()  # PRAGMA NOCOVER
 
 
-def permission_mask(permission):
+def permission_required(permission):
     """Returns the permission mask associated with a permission, so that it's
     possible to do boolean operations with them.
 
@@ -88,6 +106,29 @@ def permission_mask(permission):
     }
     # XXX Add users / policy management.
     return mapping[permission]
+
+
+def permission_mask(permission):
+    """Transforms the permission as ``dict`` into a binary mask."""
+    def singlemask(perm):
+        byte = 0
+        if perm.get('create'):
+            byte += 8
+        if perm.get('read'):
+            byte += 4
+        if perm.get('update'):
+            byte += 2
+        if perm.get('delete'):
+            byte += 1
+        return byte
+
+    result = 0x0
+    for i, name in enumerate(['policy', 'users', 'records', 'definition']):
+        shift = 4 * i
+        mask = singlemask(permission.get(name, {}))
+        result |= (mask << shift)
+    return result
+
 
 
 class RootFactory(object):

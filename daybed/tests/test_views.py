@@ -6,6 +6,7 @@ from daybed import __version__ as VERSION
 from daybed.backends.exceptions import UserNotFound
 from daybed.tests.support import BaseWebTest
 from daybed.schemas import registry
+from daybed.acl import PERMISSION_FULL
 
 
 class DaybedViewsTest(BaseWebTest):
@@ -93,8 +94,9 @@ class PolicyTest(BaseWebTest):
 
     def test_policy_put_get_delete_ok(self):
         policy_id = 'read-only%s' % uuid4()
-        policy = {'role:admins': 0xFFFF,
-                  'system.Authenticated': 0x4400}
+        policy = {'role:admins': PERMISSION_FULL,
+                  'system.Authenticated': {'definition': {'read': True},
+                                           'records': {'read': True}}}
 
         # Test Create
         self.app.put_json('/policies/%s' % policy_id,
