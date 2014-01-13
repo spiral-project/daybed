@@ -2,7 +2,6 @@ from cornice import Service
 
 from daybed.backends.exceptions import ModelNotFound
 from daybed.schemas.validators import model_validator
-from daybed.acl import USER_EVERYONE
 
 
 models = Service(name='models', path='/models', description='Models',
@@ -45,7 +44,7 @@ def post_models(request):
     if request.user:
         username = request.user['name']
     else:
-        username = USER_EVERYONE
+        username = 'system.Everyone'
 
     for record in request.validated['records']:
         request.db.put_record(model_id, record, [username])
@@ -97,7 +96,7 @@ def put_model(request):
     if request.user:
         username = request.user['name']
     else:
-        username = USER_EVERYONE
+        username = 'system.Everyone'
 
     request.db.put_model(request.validated['definition'],
                          request.validated['roles'],
