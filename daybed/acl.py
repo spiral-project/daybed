@@ -18,17 +18,16 @@ PERMISSION_FULL = {'definition': PERMISSION_CRUD,
                    'records': PERMISSION_CRUD,
                    'users': PERMISSION_CRUD,
                    'policy': PERMISSION_CRUD}
+PERMISSION_CREATE = {'definition': {'create': True},
+                     'records': {'create': True},
+                     'users': {'create': True},
+                     'policy': {'create': True}}
 
 POLICY_READONLY = {'role:admins': PERMISSION_FULL,
-                  'system.Authenticated': {
-                       'definition': {'create': True},
-                       'records': {'create': True},
-                       'users': {'create': True},
-                       'policy': {'create': True},
-                   },
+                   'system.Authenticated': PERMISSION_CREATE,
                    'system.Everyone': {
-                        'definition': {'read': True},
-                        'records': {'read': True}
+                       'definition': {'read': True},
+                       'records': {'read': True}
                    }}
 POLICY_ANONYMOUS = {'system.Everyone': PERMISSION_FULL}
 POLICY_ADMINONLY = {'group:admins': PERMISSION_FULL,
@@ -47,7 +46,8 @@ class DaybedAuthorizationPolicy(object):
         principals has access to the given permission.
         """
         allowed = 0
-        mask = permission_required(permission)
+        permissions_required = permission_required(permission)
+        mask = permission_mask(permissions_required)
 
         if context.model_id:
             try:
@@ -88,21 +88,30 @@ def permission_required(permission):
     # The order matters and is "Definition, Data, Users, Policy".
 
     mapping = {
-        'post_model': 0x8888,        # C on everything
-        'get_model': 0x4444,         # R on everything
-        'put_model': 0xBBBB,         # C+U+D on everything
-        'delete_model': 0x1111,      # D on everything
+        'post_model': PERMISSION_CREATE,
+        'get_model':  {'definition': {'read': True},
+                       'records':    {'read': True},
+                       'users':      {'read': True},
+                       'policy':     {'read': True}},
+        'put_model':  {'definition': PERMISSION_CRUD,
+                       'records':    PERMISSION_CRUD,
+                       'users':      PERMISSION_CRUD,
+                       'policy':     PERMISSION_CRUD},
+        'delete_model': {'definition': {'delete': True},
+                         'records':    {'delete': True},
+                         'users':      {'delete': True},
+                         'policy':     {'delete': True}},
 
-        'get_definition': 0x4000,
+        'get_definition': {'definition': {'read': True}},
 
-        'post_record': 0x0800,       # C
-        'get_records': 0x0400,       # R
-        'delete_records': 0x0100,    # D
+        'post_record': {'records': {'create': True}},
+        'get_records': {'records': {'read': True}},
+        'delete_records': {'records': {'delete': True}},
 
-        'get_record': 0x0400,        # R
-        'put_record': 0x0B00,        # C+U+D
-        'patch_record': 0x0200,      # U
-        'delete_record': 0x0100,     # D
+        'get_record': {'records': {'read': True}},
+        'put_record': {'records': PERMISSION_CRUD},
+        'patch_record': {'records': {'update': True}},
+        'delete_record': {'records': {'delete': True}}
     }
     # XXX Add users / policy management.
     return mapping[permission]
@@ -128,7 +137,6 @@ def permission_mask(permission):
         mask = singlemask(permission.get(name, {}))
         result |= (mask << shift)
     return result
-
 
 
 class RootFactory(object):
