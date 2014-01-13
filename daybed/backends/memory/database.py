@@ -65,12 +65,12 @@ class Database(object):
         self._db['data'][model_id] = {}
         return model_id
 
-    def put_record(self, model_id, data, authors, record_id=None):
+    def put_record(self, model_id, record, authors, record_id=None):
         doc = {
             'type': 'data',
             'authors': authors,
             'model_id': model_id,
-            'data': data
+            'data': record
         }
 
         if record_id is not None:

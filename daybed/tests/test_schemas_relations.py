@@ -17,7 +17,7 @@ class RelationTest(BaseWebTest):
     def _create_record(self, **kwargs):
         fakedata = {'key': 'value'}
         fakedata.update(**kwargs)
-        response = self.app.post_json('/models/simple/data',
+        response = self.app.post_json('/models/simple/records',
                                       fakedata, headers=self.headers)
         return response.json['id']
 

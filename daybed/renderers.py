@@ -21,7 +21,7 @@ class GeoJSON(JSON):
                 if definition:
                     geom_fields = self._geomFields(definition)
 
-            # Transform data records into GeoJSON feature collection
+            # Transform records into GeoJSON feature collection
             records = value.get('data')
 
             if records:

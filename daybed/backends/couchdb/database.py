@@ -23,7 +23,7 @@ class Database(object):
         return self.__get_model(model_id)['definition']
 
     def __get_records(self, model_id):
-        return views.model_data(self._db)[model_id]
+        return views.records(self._db)[model_id]
 
     def get_records(self, model_id):
         records = []
@@ -35,7 +35,7 @@ class Database(object):
     def __get_record(self, model_id, record_id):
         key = u'-'.join((model_id, record_id))
         try:
-            return views.model_records(self._db)[key].rows[0].value
+            return views.records_all(self._db)[key].rows[0].value
         except IndexError:
             raise RecordNotFound(u'(%s, %s)' % (model_id, record_id))
 
@@ -62,12 +62,12 @@ class Database(object):
             'policy_id': policy_id})
         return definition_id
 
-    def put_record(self, model_id, data, authors, record_id=None):
+    def put_record(self, model_id, record, authors, record_id=None):
         doc = {
             'type': 'data',
             'authors': authors,
             'model_id': model_id,
-            'data': data}
+            'data': record}
 
         if record_id is not None:
             try:

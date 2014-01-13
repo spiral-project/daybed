@@ -21,8 +21,8 @@ function(doc) {
 }
 """)
 
-""" Model data, by model name."""
-model_data = ViewDefinition('records', 'by_model', """
+""" Model records, by model name."""
+records = ViewDefinition('records', 'by_model', """
 function(doc) {
   if (doc.type == "data") {
     emit(doc.model_id, doc);
@@ -30,7 +30,7 @@ function(doc) {
 }""")
 
 """ Record, by id."""
-model_records = ViewDefinition('records_all', 'all', """
+records_all = ViewDefinition('records_all', 'all', """
 function(doc) {
   if (doc.type == "data") {
     emit(doc._id, doc);

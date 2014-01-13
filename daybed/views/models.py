@@ -25,7 +25,7 @@ definition = Service(name='model-definition',
 
 @definition.get(permission='get_definition')
 def get_definition(request):
-    """Retrieves a model definition"""
+    """Retrieves a model definition."""
     model_id = request.matchdict['model_id']
     try:
         return request.db.get_model_definition(model_id)
@@ -36,7 +36,7 @@ def get_definition(request):
 
 @models.post(permission='post_model', validators=(model_validator,))
 def post_models(request):
-    """creates a model with the given definition and data, if any."""
+    """Creates a model with the given definition and records, if any."""
     model_id = request.db.put_model(
         definition=request.validated['definition'],
         roles=request.validated['roles'],
@@ -47,7 +47,7 @@ def post_models(request):
     else:
         username = USER_EVERYONE
 
-    for record in request.validated['data']:
+    for record in request.validated['records']:
         request.db.put_record(model_id, record, [username])
 
     request.response.status = "201 Created"
@@ -58,7 +58,7 @@ def post_models(request):
 
 @model.delete(permission='delete_model')
 def delete_model(request):
-    """Deletes a model and its matching associated data."""
+    """Deletes a model and its records."""
     model_id = request.matchdict['model_id']
     try:
         request.db.delete_model(model_id)
@@ -70,9 +70,8 @@ def delete_model(request):
 
 @model.get(permission='get_model')
 def get_model(request):
-    """Returns the full model definition."""
+    """Retrieves the full model, definition and records."""
     model_id = request.matchdict['model_id']
-
     try:
         definition = request.db.get_model_definition(model_id),
     except ModelNotFound:
@@ -80,7 +79,7 @@ def get_model(request):
         return {"msg": "%s: model not found" % model_id}
 
     return {'definition': definition,
-            'data': request.db.get_records(model_id),
+            'records': request.db.get_records(model_id),
             'policy_id': request.db.get_model_policy_id(model_id),
             'roles': request.db.get_roles(model_id)}
 
@@ -105,7 +104,7 @@ def put_model(request):
                          request.validated['policy_id'],
                          model_id)
 
-    for record in request.validated['data']:
+    for record in request.validated['records']:
         request.db.put_record(model_id, record, [username])
 
     return {"id": model_id}
