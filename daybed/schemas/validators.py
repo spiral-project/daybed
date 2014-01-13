@@ -4,8 +4,8 @@ import json
 import datetime
 
 import six
-from colander import (SchemaNode, Mapping, Sequence, Length, String, Int,
-                      Range, null, Invalid)
+from colander import (SchemaNode, Mapping, Sequence, Length, String,
+                      null, drop, Invalid, Boolean)
 
 from daybed.backends.exceptions import ModelNotFound, PolicyNotFound
 from . import registry, TypeFieldNode
@@ -31,11 +31,27 @@ class RolesValidator(SchemaNode):
 
 
 class PolicyValidator(SchemaNode):
-    def __init__(self, policy):
+    def __init__(self):
         super(PolicyValidator, self).__init__(Mapping(unknown='preserve'))
-        for key in six.iterkeys(policy):
-            self.add(SchemaNode(Int(), name=key,
-                                validator=Range(min=0, max=0xFFFF)))
+
+    def _crudSchema(self, domain):
+        crudSchema = SchemaNode(Mapping(unknown='raise'),
+                                name=domain, missing=drop)
+        crudSchema.add(SchemaNode(Boolean(), name='create', missing=drop))
+        crudSchema.add(SchemaNode(Boolean(), name='read', missing=drop))
+        crudSchema.add(SchemaNode(Boolean(), name='update', missing=drop))
+        crudSchema.add(SchemaNode(Boolean(), name='delete', missing=drop))
+        return crudSchema
+
+    def deserialize(self, cstruct=null):
+        if cstruct:
+            self.children = []
+            for key in six.iterkeys(cstruct):
+                permSchema = SchemaNode(Mapping(unknown='raise'), name=key)
+                for domain in ('definition', 'records', 'users', 'policy'):
+                    permSchema.add(self._crudSchema(domain))
+                self.add(permSchema)
+        return super(PolicyValidator, self).deserialize(cstruct)
 
 
 class RecordValidator(SchemaNode):
@@ -104,10 +120,7 @@ def record_validator(request):
         request.errors.status = 404
 
 
-def policy_validator(request):
-    policy = json.loads(request.body.decode('utf-8'))
-    validate_against_schema(request, PolicyValidator(policy), policy)
-    request.validated['policy'] = policy
+policy_validator = partial(validator, schema=PolicyValidator())
 
 
 def model_validator(request):
