@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 import json
 
 import six
@@ -14,23 +15,10 @@ from colander import (
 )
 
 from .base import registry, TypeField
+from .json import JSONSequence
 
 
 __all__ = ['PointField', 'LineField', 'PolygonField']
-
-
-class JSONSequence(Sequence):
-    """A sequence of items in JSON-like format"""
-    def deserialize(self, node, cstruct, **kwargs):
-        if cstruct is null:
-            return cstruct
-        try:
-            appstruct = cstruct
-            if isinstance(cstruct, six.string_types):
-                appstruct = json.loads(cstruct)
-        except ValueError as e:
-            raise Invalid(self, six.text_type(e), cstruct)
-        return super(JSONSequence, self).deserialize(node, appstruct, **kwargs)
 
 
 class PointNode(SchemaNode):

@@ -27,8 +27,9 @@ class TypeRegistry(object):
 
     def register(self, name, klass):
         if name in self._registry:
-            raise AlreadyRegisteredError('The type %s is already registered' %
-                                         name)
+            error_msg = 'The type %s is already registered (%s)' % (name,
+                                                                    self._registry[name])
+            raise AlreadyRegisteredError(error_msg)
         self._registry[name] = klass
 
     def unregister(self, name):
@@ -102,4 +103,5 @@ class TypeFieldNode(SchemaType):
 
 from .base import *  # flake8: noqa
 from .geom import *  # flake8: noqa
+from .json import *  # flake8: noqa
 from .relations import *  # flake8: noqa
