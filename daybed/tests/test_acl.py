@@ -5,8 +5,7 @@ except ImportError:
 import mock
 
 
-from daybed.acl import (DaybedAuthorizationPolicy, build_user_principals,
-                        USER_AUTHENTICATED)
+from daybed.acl import DaybedAuthorizationPolicy, build_user_principals
 
 
 class TestACL(TestCase):
@@ -30,11 +29,11 @@ class TestACL(TestCase):
         context = mock.MagicMock()
         policy = {'group:admins': 0xFFFF,
                   'authors:': 0x0F00,
-                  USER_AUTHENTICATED: 0x4000}
+                  'system.Authenticated': 0x4000}
         context.db.get_model_policy.return_value = policy
 
         self.assertFalse(permits(context, ['Alexis'], 'get_definition'))
-        self.assertTrue(permits(context, ['Alexis', USER_AUTHENTICATED],
+        self.assertTrue(permits(context, ['Alexis', 'system.Authenticated'],
                                 'get_definition'))
 
     def test_build_user_principals_resolve_group(self):

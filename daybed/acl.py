@@ -10,17 +10,14 @@ from daybed.backends.exceptions import (
 from daybed import logger
 
 
-USER_EVERYONE = 'system.Everyone'
-USER_AUTHENTICATED = 'system.Authenticated'
-
 POLICY_READONLY = {'role:admins': 0xFFFF,
-                   USER_AUTHENTICATED: 0x8888,
-                   USER_EVERYONE: 0x4400}
-POLICY_ANONYMOUS = {USER_EVERYONE: 0xFFFF}
+                   'system.Authenticated': 0x8888,
+                   'system.Everyone': 0x4400}
+POLICY_ANONYMOUS = {'system.Everyone': 0xFFFF}
 POLICY_ADMINONLY = {'group:admins': 0xFFFF,
                     'role:admins': 0xFFFF,
                     'authors:': 0x0F00,
-                    USER_AUTHENTICATED: 0x4000}
+                    'system.Authenticated': 0x4000}
 
 
 @implementer(IAuthorizationPolicy)
