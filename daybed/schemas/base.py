@@ -20,7 +20,7 @@ from colander import (
 )
 
 from . import registry, TypeField
-from .jayson import JSONList
+from .json import JSONList
 
 
 __all__ = ['IntField', 'StringField', 'RangeField',

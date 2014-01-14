@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 import json
 
 import six
@@ -14,7 +15,7 @@ from colander import (
 )
 
 from .base import registry, TypeField
-from .jayson import JSONSequence
+from .json import JSONSequence
 
 
 __all__ = ['PointField', 'LineField', 'PolygonField']

@@ -103,5 +103,5 @@ class TypeFieldNode(SchemaType):
 
 from .base import *  # flake8: noqa
 from .geom import *  # flake8: noqa
-from .jayson import *  # flake8: noqa
+from .json import *  # flake8: noqa
 from .relations import *  # flake8: noqa
