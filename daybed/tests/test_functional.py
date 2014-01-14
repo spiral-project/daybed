@@ -146,7 +146,9 @@ class FunctionalTest(object):
         resp = self.create_definition()
         resp = self.create_data()
         record_id = resp.json['id']
-        self.app.delete('/models/%s' % self.model_id, headers=self.headers)
+        resp = self.app.delete('/models/%s' % self.model_id,
+                               headers=self.headers)
+        self.assertIn('name', resp.body.decode('utf-8'))
         self.assertRaises(RecordNotFound,
                           self.db.get_record, self.model_id, record_id)
         self.assertRaises(ModelNotFound, self.db.get_model_definition,

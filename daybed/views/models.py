@@ -61,11 +61,11 @@ def delete_model(request):
     """Deletes a model and its records."""
     model_id = request.matchdict['model_id']
     try:
-        request.db.delete_model(model_id)
+        model = request.db.delete_model(model_id)
     except ModelNotFound:
         request.response.status = "404 Not Found"
         return {"msg": "%s: model not found" % model_id}
-    return {"msg": "ok"}
+    return model
 
 
 @model.get(permission='get_model')
