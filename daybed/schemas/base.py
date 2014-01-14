@@ -1,8 +1,6 @@
 import re
-import json
 import datetime
 
-import six
 from colander import (
     deferred,
     SchemaNode,
@@ -11,9 +9,7 @@ from colander import (
     Range,
     Sequence,
     Length,
-    List,
     ContainsOnly,
-    null,
     Int,
     Decimal,
     Boolean,
@@ -24,6 +20,7 @@ from colander import (
 )
 
 from . import registry, TypeField
+from .jayson import JSONList
 
 
 __all__ = ['IntField', 'StringField', 'RangeField',
@@ -72,22 +69,6 @@ class EnumField(TypeField):
     def validation(cls, **kwargs):
         kwargs['validator'] = OneOf(kwargs['choices'])
         return super(EnumField, cls).validation(**kwargs)
-
-
-class JSONList(List):
-    """Pure JSON or string, as serialized JSON or comma-separated values"""
-    def deserialize(self, node, cstruct, **kwargs):
-        if cstruct is null:
-            return cstruct
-        try:
-            appstruct = cstruct
-            if isinstance(cstruct, six.string_types):
-                # Try JSON format
-                appstruct = json.loads(cstruct)
-        except ValueError:
-            cstruct = re.sub(r'^\s*\[(.*)\]\s*', r'\1', cstruct)
-            appstruct = re.split(r'\s*,\s*', cstruct)
-        return super(JSONList, self).deserialize(node, appstruct, **kwargs)
 
 
 @registry.add('choices')
