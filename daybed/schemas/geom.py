@@ -12,13 +12,14 @@ from colander import (
     Range,
     null,
     Invalid,
+    OneOf
 )
 
 from .base import registry, TypeField
-from .json import JSONSequence
+from .json import JSONSequence, JSONType, JSONField, JSONList
 
 
-__all__ = ['PointField', 'LineField', 'PolygonField']
+__all__ = ['PointField', 'LineField', 'PolygonField', 'GeoJSONField']
 
 
 class PointNode(SchemaNode):
@@ -69,8 +70,9 @@ class LinearRingNode(SchemaNode):
     def __init__(self, *args, **kwargs):
         defaults = dict(validator=Length(min=3))
         defaults.update(**kwargs)
-        super(LinearRingNode, self).__init__(
-            Sequence(), PointNode(gps=self.gps), **defaults)
+        super(LinearRingNode, self).__init__(Sequence(),
+                                             PointNode(gps=self.gps),
+                                             **defaults)
 
     def deserialize(self, cstruct=null):
         deserialized = super(LinearRingNode, self).deserialize(cstruct)
@@ -155,3 +157,56 @@ class PolygonField(GeometryField):
     :ref:`GeometryField`
     """
     subnode = LinearRingNode
+
+
+class GeoJSONType(JSONType):
+    """This JSON follows a specific profile : GeoJSON (http://geojson.org).
+
+    According to the type of geometry provided, we check the coordinates
+    validity, using the deserializers implemented for ``GeometryField``.
+
+    :note:
+
+        This field does not accept ``Feature`` and ``FeatureCollection`` yet.
+    """
+    def deserialize(self, node, cstruct=null):
+        appstruct = super(GeoJSONType, self).deserialize(node, cstruct)
+
+        geom_type = appstruct.get('type')
+        self._check_geom_type(node, geom_type)
+
+        if geom_type == 'GeometryCollection':
+            geometries = appstruct.get('geometries')
+            self._check_collection(node, geometries)
+        else:
+            coordinates = appstruct.get('coordinates')
+            self._check_coordinates(node, geom_type, coordinates)
+        return appstruct
+
+    def _check_geom_type(self, node, geom_type):
+        geom_types = ('Point', 'LineString', 'Polygon', 'GeometryCollection',
+                      'MultiPoint', 'MultiLineString', 'MultiPolygon')
+        OneOf(geom_types)(node, geom_type)
+
+    def _check_collection(self, node, geometries):
+        subnodes = JSONList().deserialize(node, geometries)
+        for subnode in subnodes:
+            GeoJSONType().deserialize(node, subnode)
+
+    def _check_coordinates(self, node, geom_type, coordinates):
+        serializers = {
+            'Point': PointNode(gps=False),
+            'LineString': SchemaNode(Sequence(), PointNode(gps=False)),
+            'Polygon': SchemaNode(Sequence(), LinearRingNode(gps=False))
+        }
+        single_serializers = [kv for kv in serializers.items()]
+        for singletype, serializer in single_serializers:
+            multitype = 'Multi' + singletype
+            serializers[multitype] = SchemaNode(Sequence(), serializer)
+        # Match coordinates by type. Can raise ``colander.Invalid``
+        serializers[geom_type].deserialize(coordinates)
+
+
+@registry.add('geojson')
+class GeoJSONField(JSONField):
+    node = GeoJSONType

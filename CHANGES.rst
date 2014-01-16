@@ -10,6 +10,8 @@ Changelog
 - Implement PATCH on records
 - Add authorization policies
 - Add GeoJSON renderer
+- Add GeoJSON field type
+- Add JSON field type
 - Add Multiple choices relation field
 - Add multi backends tests
 - Add BasicAuth and Person authentication

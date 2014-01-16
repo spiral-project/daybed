@@ -153,3 +153,97 @@ class PolygonFieldTests(unittest.TestCase):
         self.assertRaises(colander.Invalid,
                           self.validator.deserialize,
                           '[[[0.4, 45.0], [0.6, 65.0]]]')
+
+
+class GeoJSONFieldTests(unittest.TestCase):
+    def setUp(self):
+        schema = schemas.GeoJSONField.definition()
+        definition = schema.deserialize(
+            {'name': 'webmap',
+             'type': 'geojson'})
+        self.validator = schemas.GeoJSONField.validation(**definition)
+
+    def test_geojson_can_be_a_point(self):
+        deserialized = self.validator.deserialize("""
+           {"type": "Point",
+            "coordinates": [100.0, 0.0] }""")
+        self.assertDictEqual({"type": "Point",
+                              "coordinates": [100.0, 0.0]}, deserialized)
+
+    def test_geojson_can_be_a_linestring(self):
+        deserialized = self.validator.deserialize("""
+           {"type": "LineString",
+            "coordinates": [[1, 2], [2, 3]] }""")
+        self.assertDictEqual({"type": "LineString",
+                              "coordinates": [[1, 2], [2, 3]]}, deserialized)
+
+    def test_geojson_can_be_a_polygon(self):
+        deserialized = self.validator.deserialize("""
+           {"type": "Polygon",
+            "coordinates": [[[1, 2], [2, 3], [1, 2]]] }""")
+        self.assertDictEqual({"type": "Polygon",
+                              "coordinates": [[[1, 2], [2, 3], [1, 2]]]},
+                             deserialized)
+
+    def test_geojson_can_be_a_collection(self):
+        deserialized = self.validator.deserialize("""
+           {"type": "GeometryCollection",
+            "geometries": [{"type": "Point",
+                            "coordinates": [100.0, 0.0] }]}""")
+        self.assertDictEqual({"type": "Point",
+                              "coordinates": [100.0, 0.0]},
+                             deserialized['geometries'][0])
+
+    def test_geojson_must_have_type(self):
+        self.assertRaises(colander.Invalid,
+                          self.validator.deserialize,
+                          '{"coordinates": [1, 2] }')
+        self.assertRaises(colander.Invalid,
+                          self.validator.deserialize,
+                          '{"type": null, "coordinates": [1, 2] }')
+
+    def test_geojson_cannot_have_unknown_type(self):
+        self.assertRaises(colander.Invalid,
+                          self.validator.deserialize,
+                          '{"type": "Triangle", "coordinates": [1, 2] }')
+
+    def test_geojson_collection_items_cannot_have_unknown_type(self):
+        self.assertRaises(colander.Invalid,
+                          self.validator.deserialize,
+                          """{"type": "GeometryCollection",
+                              "geometries": [{"type": "Triangle",
+                                              "coordinates": [1, 0] }]}""")
+
+    def test_geojson_collection_must_have_geometries(self):
+        self.assertRaises(colander.Invalid,
+                          self.validator.deserialize,
+                          """{"type": "GeometryCollection"}""")
+        self.assertRaises(colander.Invalid,
+                          self.validator.deserialize,
+                          """{"type": "GeometryCollection",
+                              "geometries": true}""")
+
+    def test_geojson_collection_can_be_empty(self):
+        deserialized = self.validator.deserialize("""
+            {"type": "GeometryCollection",
+             "geometries": []}""")
+        self.assertDictEqual({"type": "GeometryCollection",
+                              "geometries": []},
+                             deserialized)
+
+    def test_geojson_point_must_have_valid_coordinates(self):
+        self.assertRaises(colander.Invalid,
+                          self.validator.deserialize,
+                          """{"type": "Point"}""")
+        self.assertRaises(colander.Invalid,
+                          self.validator.deserialize,
+                          """{"type": "Point",
+                              "coordinates": ["a", "b"]}""")
+
+    def test_geojson_can_be_multipoints(self):
+        deserialized = self.validator.deserialize("""
+            {"type": "MultiPoint",
+             "coordinates": [[1.0, 0.0], [2.0, 1.0]]}""")
+        self.assertDictEqual({"type": "MultiPoint",
+                              "coordinates": [[1.0, 0.0], [2.0, 1.0]]},
+                             deserialized)

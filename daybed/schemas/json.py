@@ -3,7 +3,7 @@ import re
 import json
 
 import six
-from colander import Sequence, null, Invalid, List, SchemaType
+from colander import Sequence, null, Invalid, List, Mapping
 
 from .base import registry, TypeField
 
@@ -23,8 +23,8 @@ def parse_json(node, cstruct):
     return appstruct
 
 
-class JSONType(SchemaType):
-    """A """
+class JSONType(Mapping):
+    """A simple node type for JSON content."""
     def deserialize(self, node, cstruct=null):
         return parse_json(node, cstruct)
 
