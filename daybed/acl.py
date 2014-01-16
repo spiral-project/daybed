@@ -2,6 +2,7 @@ from uuid import uuid4
 
 import six
 from pyramid.interfaces import IAuthorizationPolicy
+from pyramid.security import Authenticated, Everyone
 from zope.interface import implementer
 
 from daybed.backends.exceptions import (
@@ -28,16 +29,16 @@ PERMISSION_CREATE = {'definition': {'create': True},
                      'policy': {'create': True}}
 
 POLICY_READONLY = {'role:admins': PERMISSION_FULL,
-                   'system.Authenticated': PERMISSION_CREATE,
-                   'system.Everyone': {
+                   Authenticated: PERMISSION_CREATE,
+                   Everyone: {
                        'definition': {'read': True},
                        'records': {'read': True}
                    }}
-POLICY_ANONYMOUS = {'system.Everyone': PERMISSION_FULL}
+POLICY_ANONYMOUS = {Everyone: PERMISSION_FULL}
 POLICY_ADMINONLY = {'group:admins': PERMISSION_FULL,
                     'role:admins': PERMISSION_FULL,
                     'authors:': {'records': CRUD},
-                    'system.Authenticated': {'definition': {'read': True}}}
+                    Authenticated: {'definition': {'read': True}}}
 
 VIEWS_PERMISSIONS_REQUIRED = {
     'post_model': PERMISSION_CREATE,

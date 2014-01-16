@@ -1,6 +1,7 @@
 import json
 
 from cornice import Service
+from pyramid.security import Everyone
 
 from daybed.backends.exceptions import RecordNotFound
 from daybed.schemas.validators import (RecordValidator, record_validator,
@@ -51,7 +52,7 @@ def post_record(request):
     if request.user:
         username = request.user['name']
     else:
-        username = 'system.Everyone'
+        username = Everyone
     record_id = request.db.put_record(model_id, request.data_clean,
                                       username)
     created = u'%s/models/%s/records/%s' % (request.application_url, model_id,
@@ -90,7 +91,7 @@ def put(request):
     if request.user:
         username = request.user['name']
     else:
-        username = 'system.Everyone'
+        username = Everyone
 
     record_id = request.db.put_record(model_id, request.data_clean,
                                       [username], record_id=record_id)
@@ -106,7 +107,7 @@ def patch(request):
     if request.user:
         username = request.user['name']
     else:
-        username = 'system.Everyone'
+        username = Everyone
 
     try:
         data = request.db.get_record(model_id, record_id)

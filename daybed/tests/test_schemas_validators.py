@@ -2,6 +2,7 @@ import mock
 import colander
 from cornice.errors import Errors
 from pyramid.testing import DummyRequest
+from pyramid.security import Authenticated
 
 from daybed.schemas.validators import (validator, RolesValidator,
                                        PolicyValidator)
@@ -53,8 +54,8 @@ class PolicyValidatorTests(unittest.TestCase):
 
     def test_policy_apply_to_several_roles(self):
         policy = {'role:admins': PERMISSION_FULL,
-                  'system.Authenticated': {'definition': {'read': True},
-                                           'records': {'read': True}}}
+                  Authenticated: {'definition': {'read': True},
+                                  'records': {'read': True}}}
         self.assertEquals(policy, self.schema.deserialize(policy))
 
     def test_empty_is_valid(self):

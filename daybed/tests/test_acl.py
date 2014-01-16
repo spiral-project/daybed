@@ -4,6 +4,7 @@ except ImportError:
     from unittest import TestCase  # flake8: noqa
 import mock
 
+from pyramid.security import Authenticated
 
 from daybed.acl import (DaybedAuthorizationPolicy, build_user_principals,
                         PERMISSION_FULL, CRUD, get_binary_mask)
@@ -30,11 +31,11 @@ class TestACL(TestCase):
         context = mock.MagicMock()
         policy = {'group:admins': PERMISSION_FULL,
                   'authors:': {'records': CRUD},
-                  'system.Authenticated': {'definition': {'read': True}}}
+                  Authenticated: {'definition': {'read': True}}}
         context.db.get_model_policy.return_value = policy
 
         self.assertFalse(permits(context, ['Alexis'], 'get_definition'))
-        self.assertTrue(permits(context, ['Alexis', 'system.Authenticated'],
+        self.assertTrue(permits(context, ['Alexis', Authenticated],
                                 'get_definition'))
 
     def test_build_user_principals_resolve_group(self):

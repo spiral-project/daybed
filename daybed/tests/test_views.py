@@ -2,6 +2,8 @@ import json
 from uuid import uuid4
 import base64
 
+from pyramid.security import Authenticated
+
 from daybed import __version__ as VERSION
 from daybed.backends.exceptions import UserNotFound
 from daybed.tests.support import BaseWebTest
@@ -95,8 +97,8 @@ class PolicyTest(BaseWebTest):
     def test_policy_put_get_delete_ok(self):
         policy_id = 'read-only%s' % uuid4()
         policy = {'role:admins': PERMISSION_FULL,
-                  'system.Authenticated': {'definition': {'read': True},
-                                           'records': {'read': True}}}
+                  Authenticated: {'definition': {'read': True},
+                                  'records': {'read': True}}}
 
         # Test Create
         self.app.put_json('/policies/%s' % policy_id,
