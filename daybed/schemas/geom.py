@@ -16,7 +16,7 @@ from colander import (
 )
 
 from .base import registry, TypeField
-from .json import JSONSequence, JSONType, JSONField
+from .json import JSONSequence, JSONType, JSONField, JSONList
 
 
 __all__ = ['PointField', 'LineField', 'PolygonField', 'GeoJSONField']
@@ -166,6 +166,12 @@ class GeoJSONType(JSONType):
                       'MultiPoint', 'MultiLineString', 'MultiPolygon')
         geom_type = appstruct.get('type')
         OneOf(geom_types)(node, geom_type)
+
+        if geom_type == 'GeometryCollection':
+            geometries = JSONList().deserialize(node,
+                                                appstruct.get('geometries'))
+            for geometry in geometries:
+                GeoJSONType().deserialize(node, geometry)
 
         return appstruct
 

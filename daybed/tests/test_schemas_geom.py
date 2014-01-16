@@ -191,3 +191,23 @@ class GeoJSONFieldTests(unittest.TestCase):
         self.assertRaises(colander.Invalid,
                           self.validator.deserialize,
                           '{"type": "Triangle", "coordinates": [1, 2] }')
+
+    def test_geojson_collection_items_cannot_have_unknown_type(self):
+        self.assertRaises(colander.Invalid,
+                          self.validator.deserialize,
+                          """{"type": "GeometryCollection",
+                              "geometries": [{"type": "Triangle",
+                                              "coordinates": [1, 0] }]}""")
+
+    def test_geojson_collection_must_have_geometries(self):
+        self.assertRaises(colander.Invalid,
+                          self.validator.deserialize,
+                          """{"type": "GeometryCollection"}""")
+
+    def test_geojson_collection_can_be_empty(self):
+        deserialized = self.validator.deserialize("""
+            {"type": "GeometryCollection",
+             "geometries": []}""")
+        self.assertDictEqual({"type": "GeometryCollection",
+                              "geometries": []},
+                             deserialized)
