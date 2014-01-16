@@ -159,7 +159,7 @@ def build_user_principals(user, request):
         groups = [u'group:%s' % g for g in request.db.get_groups(user)]
     except UserNotFound:
         token = six.text_type(uuid4())
-        user = request.db.add_user({'name': user, 'api-token': token})
+        user = request.db.add_user({'name': user, 'apitoken': token})
         groups = user['groups']
     principals = set(groups)
 

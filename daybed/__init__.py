@@ -2,6 +2,7 @@
 """
 import logging
 import pkg_resources
+from collections import defaultdict
 
 
 #: Module version, as defined in PEP-0396.
@@ -34,19 +35,22 @@ from daybed.acl import (
     check_api_token,
     POLICY_READONLY, POLICY_ANONYMOUS, POLICY_ADMINONLY
 )
-from daybed.backends.exceptions import PolicyAlreadyExist
+from daybed.backends.exceptions import PolicyAlreadyExist, UserNotFound
 from daybed.views.errors import unauthorized_view
 from daybed.renderers import GeoJSON
 
 
 def home(request):
-    return {'user': get_user(request)}
+    try:
+        user = get_user(request)
+    except UserNotFound:
+        user = defaultdict(str)
+    return {'user': user}
 
 
 def get_user(request):
     userid = unauthenticated_userid(request)
-    if userid is not None:
-        return request.db.get_user(userid)
+    return request.db.get_user(userid)
 
 
 def main(global_config, **settings):
