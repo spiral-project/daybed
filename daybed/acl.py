@@ -10,14 +10,62 @@ from daybed.backends.exceptions import (
 from daybed import logger
 
 
-POLICY_READONLY = {'role:admins': 0xFFFF,
-                   'system.Authenticated': 0x8888,
-                   'system.Everyone': 0x4400}
-POLICY_ANONYMOUS = {'system.Everyone': 0xFFFF}
-POLICY_ADMINONLY = {'group:admins': 0xFFFF,
-                    'role:admins': 0xFFFF,
-                    'authors:': 0x0F00,
-                    'system.Authenticated': 0x4000}
+CRUD = {'create': True,
+        'read': True,
+        'update': True,
+        'delete': True}
+C_UD = {'create': True,
+        'update': True,
+        'delete': True}
+
+PERMISSION_FULL = {'definition': CRUD,
+                   'records': CRUD,
+                   'users': CRUD,
+                   'policy': CRUD}
+PERMISSION_CREATE = {'definition': {'create': True},
+                     'records': {'create': True},
+                     'users': {'create': True},
+                     'policy': {'create': True}}
+
+POLICY_READONLY = {'role:admins': PERMISSION_FULL,
+                   'system.Authenticated': PERMISSION_CREATE,
+                   'system.Everyone': {
+                       'definition': {'read': True},
+                       'records': {'read': True}
+                   }}
+POLICY_ANONYMOUS = {'system.Everyone': PERMISSION_FULL}
+POLICY_ADMINONLY = {'group:admins': PERMISSION_FULL,
+                    'role:admins': PERMISSION_FULL,
+                    'authors:': {'records': CRUD},
+                    'system.Authenticated': {'definition': {'read': True}}}
+
+VIEWS_PERMISSIONS_REQUIRED = {
+    'post_model': PERMISSION_CREATE,
+    'get_model':  {'definition': {'read': True},
+                   'records':    {'read': True},
+                   'users':      {'read': True},
+                   'policy':     {'read': True}},
+    'put_model':  {'definition': C_UD,
+                   'records':    C_UD,
+                   'users':      C_UD,
+                   'policy':     C_UD},
+    'delete_model': {'definition': {'delete': True},
+                     'records':    {'delete': True},
+                     'users':      {'delete': True},
+                     'policy':     {'delete': True}},
+
+    'get_definition': {'definition': {'read': True}},
+
+    'post_record': {'records': {'create': True}},
+    'get_records': {'records': {'read': True}},
+    'delete_records': {'records': {'delete': True}},
+
+    'get_record': {'records': {'read': True}},
+    'put_record': {'records': C_UD},
+    'patch_record': {'records': {'update': True}},
+    'delete_record': {'records': {'delete': True}}
+    # XXX Add users / policy management.
+}
 
 
 @implementer(IAuthorizationPolicy)
@@ -30,7 +78,8 @@ class DaybedAuthorizationPolicy(object):
         principals has access to the given permission.
         """
         allowed = 0
-        mask = permission_mask(permission)
+        permissions_required = VIEWS_PERMISSIONS_REQUIRED[permission]
+        mask = get_binary_mask(permissions_required)
 
         if context.model_id:
             try:
@@ -41,53 +90,48 @@ class DaybedAuthorizationPolicy(object):
         else:
             policy = context.db.get_policy(context.default_policy)
 
-        for role, permissions in policy.items():
+        for role, permissions_given in policy.items():
+            permissions = get_binary_mask(permissions_given)
             if role in principals:
                 allowed |= permissions
 
         logger.debug("(%s, %s) => %x & %x = %x" % (permission, principals,
                                                    allowed, mask,
                                                    allowed & mask))
-        result = allowed & mask == mask
+        result = (allowed & mask) == mask
         return result
 
     def principals_allowed_by_permission(self, context, permission):
         raise NotImplementedError()  # PRAGMA NOCOVER
 
 
-def permission_mask(permission):
-    """Returns the permission mask associated with a permission, so that it's
-    possible to do boolean operations with them.
+def get_binary_mask(permission):
+    """Transforms the permission as ``dict`` into a binary mask, so that it's
+    possible to do boolean operations with it.
 
-    Permissions are defined with the format {privilege}_{resource}.
+    A binary mask has four blocks of 4 bits, i.e one CRUD mask for each domain.
+    Domains are definition, records, users and policy, from left to right.
+
+    A CRUD mask range goes from 0 (no permission) to 15 (C+R+U+D).
     """
-    # As a note, here are the permissions, for a "CRUD":
-    # Create = 8
-    # Read   = 4
-    # Update = 2
-    # Delete = 1
+    def singlemask(perm):
+        byte = 0
+        if perm.get('create'):
+            byte += 8
+        if perm.get('read'):
+            byte += 4
+        if perm.get('update'):
+            byte += 2
+        if perm.get('delete'):
+            byte += 1
+        return byte
 
-    # The order matters and is "Definition, Data, Users, Policy".
-
-    mapping = {
-        'post_model': 0x8888,        # C on everything
-        'get_model': 0x4444,         # R on everything
-        'put_model': 0xBBBB,         # C+U+D on everything
-        'delete_model': 0x1111,      # D on everything
-
-        'get_definition': 0x4000,
-
-        'post_record': 0x0800,       # C
-        'get_records': 0x0400,       # R
-        'delete_records': 0x0100,    # D
-
-        'get_record': 0x0400,        # R
-        'put_record': 0x0B00,        # C+U+D
-        'patch_record': 0x0200,      # U
-        'delete_record': 0x0100,     # D
-    }
-    # XXX Add users / policy management.
-    return mapping[permission]
+    result = 0x0
+    for i, name in enumerate(['policy', 'users', 'records', 'definition']):
+        shift = 4 * i
+        mask = singlemask(permission.get(name, {}))
+        result |= (mask << shift)
+    return result
 
 
 class RootFactory(object):

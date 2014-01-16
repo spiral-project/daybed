@@ -45,7 +45,7 @@ def put_policy(request):
     policy_id = request.matchdict['policy_id']
 
     try:
-        request.db.set_policy(policy_id, request.validated['policy'])
+        request.db.set_policy(policy_id, request.data_clean)
     except PolicyAlreadyExist:
         raise HTTPConflict('%s already exists.' % policy_id)
     return {"msg": "ok"}

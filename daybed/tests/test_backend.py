@@ -38,7 +38,7 @@ class BackendTestBase(object):
             "description": "One optional field",
             "fields": [{"name": "age", "type": "int", "required": False}]
         }
-        self.policy = {'role:admins': 0xFFFF}
+        self.policy = {'role:admins': {'definition': {'create':True}}}
 
         self.record = {'age': 7}
 

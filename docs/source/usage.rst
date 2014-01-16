@@ -197,28 +197,18 @@ Get policy list
     curl http://localhost:8000/policies/read-only
 
     {
-        "role:admins": 65535,
-        "system.Authenticated": 32768,
-        "system.Everyone": 17408
+        "role:admins": {"definition": {"create": true, "read": true,
+                                       "update": true, "delete": true},
+                        "records":    {"create": true, "read": true,
+                                       "update": true, "delete": true},
+                        "users":      {"create": true, "read": true,
+                                       "update": true, "delete": true},
+                        "policy":     {"create": true, "read": true,
+                                       "update": true, "delete": true}},
+        "system.Authenticated": {"definition": {"create": true},
+                                 "records":    {"create": true},
+                                 "users":      {"create": true},
+                                 "policy":     {"create": true}},
+        "system.Everyone": {"definition": {"read": true},
+                            "records":    {"read": true}},
     }
-
-This means::
-
-    {
-        "role:admins": 0xFFFF,
-        "system.Authenticated": 0xC000,
-        "system.Everyone": 0x4400
-    }
-
- - People with the role admins, can do everything on the model and it data.
- - Other people can read Definition and Data but not Users and Policy
-
-+-----------------+------------+------+--------+--------+
-| Right example   | Definition | Data | Users  | Policy |
-+=================+============+======+========+========+
-| 0xFFFF - 65535  |    CRUD    | CRUD |  CRUD  |  CRUD  |
-+-----------------+------------+------+--------+--------+
-| 0xC000 - 32768  |    CR      |      |        |        |
-+-----------------+------------+------+--------+--------+
-| 0x4400 - 17408  |     R      |  R   |        |        |
-+-----------------+------------+------+--------+--------+

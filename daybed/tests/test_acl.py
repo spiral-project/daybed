@@ -5,7 +5,8 @@ except ImportError:
 import mock
 
 
-from daybed.acl import DaybedAuthorizationPolicy, build_user_principals
+from daybed.acl import (DaybedAuthorizationPolicy, build_user_principals,
+                        PERMISSION_FULL, CRUD, get_binary_mask)
 
 
 class TestACL(TestCase):
@@ -27,9 +28,9 @@ class TestACL(TestCase):
         permits = authz_policy.permits
 
         context = mock.MagicMock()
-        policy = {'group:admins': 0xFFFF,
-                  'authors:': 0x0F00,
-                  'system.Authenticated': 0x4000}
+        policy = {'group:admins': PERMISSION_FULL,
+                  'authors:': {'records': CRUD},
+                  'system.Authenticated': {'definition': {'read': True}}}
         context.db.get_model_policy.return_value = policy
 
         self.assertFalse(permits(context, ['Alexis'], 'get_definition'))
@@ -52,3 +53,24 @@ class TestACL(TestCase):
         request.db.get_groups.return_value = []
         principals = build_user_principals('Alexis', request)
         self.assertEquals(set([u'authors:']), principals)
+
+
+class PermissionAsMaskTest(TestCase):
+    def test_no_permissions_is_blank_mask(self):
+        mask = get_binary_mask({})
+        self.assertEquals(mask, 0)
+
+    def test_single_permission_has_single_byte(self):
+        mask = get_binary_mask({'records': {'read': True}})
+        self.assertEquals(mask, 0x0400)
+
+    def test_full_permission_is_full_byte(self):
+        mask = get_binary_mask({'records': {'create': True,
+                                            'read': True,
+                                            'update': True,
+                                            'delete': True}})
+        self.assertEquals(mask, 0x0F00)
+
+    def test_all_permissions_is_full_mask(self):
+        mask = get_binary_mask(PERMISSION_FULL)
+        self.assertEquals(mask, 0xFFFF)
