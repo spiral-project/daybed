@@ -12,13 +12,14 @@ from colander import (
     Range,
     null,
     Invalid,
+    OneOf
 )
 
 from .base import registry, TypeField
-from .json import JSONSequence
+from .json import JSONSequence, JSONType, JSONField
 
 
-__all__ = ['PointField', 'LineField', 'PolygonField']
+__all__ = ['PointField', 'LineField', 'PolygonField', 'GeoJSONField']
 
 
 class PointNode(SchemaNode):
@@ -155,3 +156,20 @@ class PolygonField(GeometryField):
     :ref:`GeometryField`
     """
     subnode = LinearRingNode
+
+
+class GeoJSONType(JSONType):
+    def deserialize(self, node, cstruct=null):
+        appstruct = super(GeoJSONType, self).deserialize(node, cstruct)
+
+        geom_types = ('Point', 'LineString', 'Polygon', 'GeometryCollection',
+                      'MultiPoint', 'MultiLineString', 'MultiPolygon')
+        geom_type = appstruct.get('type')
+        OneOf(geom_types)(node, geom_type)
+
+        return appstruct
+
+
+@registry.add('geojson')
+class GeoJSONField(JSONField):
+    node = GeoJSONType
