@@ -62,6 +62,9 @@ class TypeRegistry(object):
             return cls
         return decorated
 
+    def type(self, name):
+        return self._registry[name]
+
 registry = TypeRegistry()
 
 
@@ -69,6 +72,7 @@ class TypeField(object):
     node = String
     required = True
     default_value = null
+    hint = ''
 
     @classmethod
     def definition(cls):
@@ -76,6 +80,7 @@ class TypeField(object):
         schema.add(SchemaNode(String(), name='name',
                               validator=Regex(r'^[a-zA-Z][a-zA-Z0-9_\-]*$')))
         schema.add(SchemaNode(String(), name='label', missing=''))
+        schema.add(SchemaNode(String(), name='hint', missing=cls.hint))
         schema.add(SchemaNode(Boolean(), name='required',
                               missing=cls.required))
         schema.add(SchemaNode(String(), name='type',
@@ -84,7 +89,7 @@ class TypeField(object):
 
     @classmethod
     def validation(cls, **kwargs):
-        keys = ['name', 'label', 'validator', 'missing']
+        keys = ['name', 'label', 'hint', 'validator', 'missing']
         specified = [key for key in keys if key in kwargs.keys()]
         options = dict(zip(specified, [kwargs.get(k) for k in specified]))
         # If field is not required, use missing

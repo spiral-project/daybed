@@ -1,4 +1,5 @@
 import six
+from pyramid.i18n import TranslationString as _
 from pyramid.config import global_registries
 from colander import (String, SchemaNode, Invalid)
 
@@ -38,6 +39,7 @@ class RecordsExist(object):
 @registry.add('oneof')
 class OneOfField(TypeField):
     node = String
+    hint = _('A choice among records')
 
     @classmethod
     def definition(cls, **kwargs):
@@ -57,6 +59,7 @@ class OneOfField(TypeField):
 @registry.add('anyof')
 class AnyOfField(TypeField):
     node = JSONList
+    hint = _('Some choices among records')
 
     @classmethod
     def definition(cls, **kwargs):

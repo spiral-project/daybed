@@ -22,6 +22,19 @@ class BaseFieldTests(unittest.TestCase):
             self.assertRaises(colander.Invalid, schema.deserialize,
                               {'name': bad_name, 'type': 'string'})
 
+    def test_field_hint_takes_default_from_type_class(self):
+        schema = schemas.StringField.definition()
+        definition = schema.deserialize({'name': 'no_hint',
+                                         'type': 'string'})
+        self.assertEquals(definition['hint'], schemas.StringField.hint)
+
+    def test_field_hint_can_be_overriden(self):
+        schema = schemas.StringField.definition()
+        definition = schema.deserialize({'name': 'secret',
+                                         'type': 'string',
+                                         'hint': 'A secret word'})
+        self.assertEquals(definition['hint'], 'A secret word')
+
     def test_optional_label(self):
         schema = schemas.StringField.definition()
         definition = schema.deserialize(

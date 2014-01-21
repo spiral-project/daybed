@@ -34,6 +34,8 @@ class DaybedViewsTest(BaseWebTest):
         # String field has no parameters
         stringfield = [f for f in fields if f.get('name') == 'string'][0]
         self.assertIsNone(stringfield.get('parameters'))
+        self.assertEquals(stringfield['default_hint'],
+                          'A set of characters')
         # Enum field describes list items type
         enumfield = [f for f in fields if f.get('name') == 'enum'][0]
         _type = enumfield['parameters'][0].get('items', {}).get('type')

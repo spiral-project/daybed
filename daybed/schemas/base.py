@@ -1,6 +1,7 @@
 import re
 import datetime
 
+from pyramid.i18n import TranslationString as _
 from colander import (
     deferred,
     SchemaNode,
@@ -32,31 +33,37 @@ __all__ = ['IntField', 'StringField', 'RangeField',
 @registry.add('int')
 class IntField(TypeField):
     node = Int
+    hint = _('An integer')
 
 
 @registry.add('string')
 class StringField(TypeField):
     node = String
+    hint = _('A set of characters')
 
 
 @registry.add('text')
 class TextField(TypeField):
     node = String
+    hint = _('A text')
 
 
 @registry.add('decimal')
 class DecimalField(TypeField):
     node = Decimal
+    hint = _('A decimal number')
 
 
 @registry.add('boolean')
 class BooleanField(TypeField):
     node = Boolean
+    hint = _('True or false')
 
 
 @registry.add('enum')
 class EnumField(TypeField):
     node = String
+    hint = _('A choice among values')
 
     @classmethod
     def definition(cls):
@@ -74,6 +81,7 @@ class EnumField(TypeField):
 @registry.add('choices')
 class ChoicesField(TypeField):
     node = JSONList
+    hint = _('Some choices among values')
 
     @classmethod
     def definition(cls):
@@ -91,6 +99,7 @@ class ChoicesField(TypeField):
 @registry.add('range')
 class RangeField(TypeField):
     node = Int
+    hint = _('A number with limits')
 
     @classmethod
     def definition(cls):
@@ -110,6 +119,7 @@ class RangeField(TypeField):
 class RegexField(TypeField):
     """Allows to validate a field with a python regular expression."""
     node = String
+    hint = _('A string matching a pattern')
 
     @classmethod
     def definition(cls):
@@ -127,6 +137,7 @@ class RegexField(TypeField):
 class EmailField(TypeField):
     """An email address field."""
     node = String
+    hint = _('A valid email')
 
     @classmethod
     def validation(cls, **kwargs):
@@ -138,6 +149,7 @@ class EmailField(TypeField):
 class URLField(TypeField):
     """A URL field."""
     node = String
+    hint = _('A valid URL')
 
     @classmethod
     def validation(cls, **kwargs):
@@ -181,6 +193,7 @@ class AutoNowMixin(object):
 class DateField(AutoNowMixin, TypeField):
     """A date field (ISO_8601, yyyy-mm-dd)."""
     node = Date
+    hint = _('A date (yyyy-mm-dd)')
 
     @deferred
     def auto_value(node, kw):
@@ -191,6 +204,7 @@ class DateField(AutoNowMixin, TypeField):
 class DateTimeField(AutoNowMixin, TypeField):
     """A date time field (ISO_8601, yyyy-mm-ddTHH:MMZ)."""
     node = DateTime
+    hint = _('A date with time (yyyy-mm-ddTHH:MM)')
 
     @deferred
     def auto_value(node, kw):

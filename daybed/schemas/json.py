@@ -2,6 +2,7 @@ from __future__ import absolute_import
 import re
 import json
 
+from pyramid.i18n import TranslationString as _
 import six
 from colander import Sequence, null, Invalid, List, Mapping
 
@@ -32,6 +33,7 @@ class JSONType(Mapping):
 @registry.add('json')
 class JSONField(TypeField):
     node = JSONType
+    hint = _('A JSON value')
 
 
 class JSONSequence(Sequence):
