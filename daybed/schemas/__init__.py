@@ -1,5 +1,5 @@
 from colander import (SchemaType, SchemaNode, Mapping, null, String,
-                      OneOf, Boolean)
+                      OneOf, Boolean, Regex)
 
 
 class AlreadyRegisteredError(Exception):
@@ -73,7 +73,8 @@ class TypeField(object):
     @classmethod
     def definition(cls):
         schema = SchemaNode(Mapping())
-        schema.add(SchemaNode(String(), name='name'))
+        schema.add(SchemaNode(String(), name='name',
+                              validator=Regex(r'^[a-zA-Z][a-zA-Z0-9_\-]*$')))
         schema.add(SchemaNode(String(), name='description', missing=''))
         schema.add(SchemaNode(Boolean(), name='required',
                               missing=cls.required))

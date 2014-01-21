@@ -7,6 +7,21 @@ from daybed.tests.support import unittest
 
 
 class BaseFieldTests(unittest.TestCase):
+    def test_field_name_can_contain_some_characters(self):
+        schema = schemas.StringField.definition()
+        good_names = ['a', 'B', 'a0', 'a_', 'a-b', 'Aa']
+        for good_name in good_names:
+            definition = schema.deserialize({'name': good_name,
+                                             'type': 'string'})
+            self.assertEquals(definition['name'], good_name)
+
+    def test_field_name_cannot_contain_bad_characters(self):
+        schema = schemas.StringField.definition()
+        bad_names = ['', '_', '-a', '0a', '_a', 'a b', 'a&a']
+        for bad_name in bad_names:
+            self.assertRaises(colander.Invalid, schema.deserialize,
+                              {'name': bad_name, 'type': 'string'})
+
     def test_optional_description(self):
         schema = schemas.StringField.definition()
         definition = schema.deserialize(
