@@ -7,8 +7,8 @@ from daybed.tests.support import BaseWebTest
 class RelationTest(BaseWebTest):
     def _create_definition(self, **kwargs):
         fakedef = {'title': 'stupid', 'description': 'stupid',
-                   'fields': [{"name": "age", "type": "int", "required": False,
-                               "description": ""}]}
+                   'fields': [{"name": "age", "type": "int",
+                               "required": False}]}
         fakedef.update(**kwargs)
         return self.app.put_json('/models/simple',
                                  {'definition': fakedef},

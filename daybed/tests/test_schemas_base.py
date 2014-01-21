@@ -22,18 +22,18 @@ class BaseFieldTests(unittest.TestCase):
             self.assertRaises(colander.Invalid, schema.deserialize,
                               {'name': bad_name, 'type': 'string'})
 
-    def test_optional_description(self):
+    def test_optional_label(self):
         schema = schemas.StringField.definition()
         definition = schema.deserialize(
-            {'description': 'Some field',
+            {'label': 'Some field',
              'name': 'address',
              'type': 'string'})
-        self.assertEquals(definition.get('description'), 'Some field')
+        self.assertEquals(definition.get('label'), 'Some field')
         # Description is optional (will not raise Invalid)
         definition = schema.deserialize(
             {'name': 'firstname',
              'type': 'string'})
-        self.assertEquals(definition.get('description'), '')
+        self.assertEquals(definition.get('label'), '')
 
     def test_optional_field(self):
         schema = schemas.IntField.definition()
@@ -136,7 +136,7 @@ class DateFieldTests(unittest.TestCase):
     def test_date(self):
         schema = schemas.DateField.definition()
         definition = schema.deserialize(
-            {'description': 'First commit',
+            {'label': 'First commit',
              'name': 'creation',
              'type': 'date'})
 
@@ -167,7 +167,7 @@ class DateFieldTests(unittest.TestCase):
     def test_datetime(self):
         schema = schemas.DateTimeField.definition()
         definition = schema.deserialize(
-            {'description': 'First branch',
+            {'label': 'First branch',
              'name': 'branch',
              'type': 'datetime'})
 

@@ -44,7 +44,7 @@ class DaybedViewsTest(BaseWebTest):
                               [dict(name="gps",
                                     default=True,
                                     type="boolean",
-                                    description="Gps")])
+                                    label="Gps")])
 
     def test_unknown_model_data_creation(self):
         resp = self.app.post_json('/models/unknown/records', {},
@@ -61,8 +61,7 @@ class BasicAuthRegistrationTest(BaseWebTest):
         return {
             "title": "simple",
             "description": "One optional field",
-            "fields": [{"name": "age", "type": "int", "required": False,
-                        "description": ""}]
+            "fields": [{"name": "age", "type": "int", "required": False}]
         }
 
     def test_basic_auth_user_creation(self):

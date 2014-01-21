@@ -34,21 +34,21 @@ like this:
     model='{
       "definition": {
         "title": "todo",
-        "description": "A list of my stuff to do", 
+        "description": "A list of my stuff to do",
         "fields": [
             {
-                "name": "item", 
+                "name": "item",
                 "type": "string",
-                "description": "The item"
-            }, 
+                "label": "The item"
+            },
             {
-                "name": "status", 
+                "name": "status",
                 "type": "enum",
                 "choices": [
-                    "done", 
+                    "done",
                     "todo"
-                ], 
-                "description": "is it done or not"
+                ],
+                "label": "is it done or not"
             }
          ]
       }
@@ -71,11 +71,11 @@ We can now get our models back::
             "fields": [{
                 "type": "string",
                 "name": "item",
-                "description": "The item"
+                "label": "The item"
             }, {
                 "choices": ["done", "todo"],
                 "type": "enum",
-                "description": "is it done or not",
+                "label": "is it done or not",
                 "name": "status"
             }],
             "description": "A list of my stuff to do",
@@ -141,23 +141,23 @@ Get back a definition
     curl http://localhost:8000/models/todo/definition -u admin@example.com:apikey | python -m json.tool
 
     {
-        "description": "A list of my stuff to do", 
+        "description": "A list of my stuff to do",
         "fields": [
             {
-                "description": "The item", 
-                "name": "item", 
+                "label": "The item",
+                "name": "item",
                 "type": "string"
-            }, 
+            },
             {
                 "choices": [
-                    "done", 
+                    "done",
                     "todo"
-                ], 
-                "description": "is it done or not", 
-                "name": "status", 
+                ],
+                "label": "is it done or not",
+                "name": "status",
                 "type": "enum"
             }
-        ], 
+        ],
         "title": "todo"
     }
 
