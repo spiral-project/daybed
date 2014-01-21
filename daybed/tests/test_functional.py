@@ -292,7 +292,7 @@ class SimpleModelTest(FunctionalTest, BaseWebTest):
             "title": u"simple — with unicode data in it",
             "description": "One optional field",
             "fields": [{"name": "age", "type": "int", "required": False,
-                        "description": u"Put your âge"}]
+                        "label": u"Put your âge"}]
         }
 
     @property
@@ -320,7 +320,7 @@ class TodoModelTest(FunctionalTest, BaseWebTest):
                 {
                     "name": "item",
                     "type": "string",
-                    "description": "The item",
+                    "label": "The item",
                     "required": True,
                 },
                 {
@@ -331,7 +331,7 @@ class TodoModelTest(FunctionalTest, BaseWebTest):
                         "todo"
                     ],
                     "required": True,
-                    "description": "is it done or not"
+                    "label": "is it done or not"
                 }
             ]
         }
@@ -361,14 +361,14 @@ class TimestampedModelTest(FunctionalTest, BaseWebTest):
                 {
                     "name": "creation",
                     "type": "date",
-                    "description": "created on",
+                    "label": "created on",
                     "required": True,
                     "auto_now": False
                 },
                 {
                     "name": "modified",
                     "type": "datetime",
-                    "description": "modified on",
+                    "label": "modified on",
                     "required": True,
                     "auto_now": True
                 },
@@ -407,14 +407,14 @@ class MushroomsModelTest(FunctionalTest, BaseWebTest):
                     "name": "mushroom",
                     "type": "string",
                     "required": True,
-                    "description": "Species"
+                    "label": "Species"
                 },
                 {
                     "name": "location",
                     "type": "polygon",
                     "gps": True,
                     "required": True,
-                    "description": "Area spotted"
+                    "label": "Area spotted"
                 }
             ]
         }
@@ -481,14 +481,14 @@ class CityModelTest(FunctionalTest, BaseWebTest):
                     "name": "name",
                     "type": "string",
                     "required": True,
-                    "description": "Administrative"
+                    "label": "Administrative"
                 },
                 {
                     "name": "location",
                     "type": "point",
                     "gps": True,
                     "required": True,
-                    "description": "(x,y,z)"
+                    "label": "(x,y,z)"
                 }
             ]
         }
@@ -521,7 +521,7 @@ class EuclideModelTest(FunctionalTest, BaseWebTest):
                     "name": "location",
                     "type": "point",
                     "required": True,
-                    "description": "(x,y)",
+                    "label": "(x,y)",
                     "gps": False
                 }
             ]

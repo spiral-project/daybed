@@ -12,7 +12,7 @@ fields = Service(name='fields',
 
 @fields.get()
 def list_fields(request):
-    common_params = ['name', 'type', 'description', 'required']
+    common_params = ['name', 'type', 'label', 'required']
     fields = []
     # Iterate registered field types
     for name in registry.names:
@@ -22,7 +22,7 @@ def list_fields(request):
             if parameter.name not in common_params:
                 fieldtype = parameter.typ.__class__.__name__.lower()
                 extras = dict(name=parameter.name,
-                              description=parameter.title,
+                              label=parameter.title,
                               type=fieldtype)
                 # Special case for sequence
                 if fieldtype == 'sequence':

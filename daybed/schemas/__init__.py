@@ -75,7 +75,7 @@ class TypeField(object):
         schema = SchemaNode(Mapping())
         schema.add(SchemaNode(String(), name='name',
                               validator=Regex(r'^[a-zA-Z][a-zA-Z0-9_\-]*$')))
-        schema.add(SchemaNode(String(), name='description', missing=''))
+        schema.add(SchemaNode(String(), name='label', missing=''))
         schema.add(SchemaNode(Boolean(), name='required',
                               missing=cls.required))
         schema.add(SchemaNode(String(), name='type',
@@ -84,7 +84,7 @@ class TypeField(object):
 
     @classmethod
     def validation(cls, **kwargs):
-        keys = ['name', 'description', 'validator', 'missing']
+        keys = ['name', 'label', 'validator', 'missing']
         specified = [key for key in keys if key in kwargs.keys()]
         options = dict(zip(specified, [kwargs.get(k) for k in specified]))
         # If field is not required, use missing
