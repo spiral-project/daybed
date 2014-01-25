@@ -12,11 +12,12 @@ fields = Service(name='fields',
 
 @fields.get()
 def list_fields(request):
-    common_params = ['name', 'type', 'label', 'required']
+    common_params = ['name', 'type', 'label', 'hint', 'required']
     fields = []
     # Iterate registered field types
     for name in registry.names:
-        field = dict(name=name)
+        typefield = registry.type(name)
+        field = dict(name=name, default_hint=typefield.hint)
         # Describe field parameters using Colander children
         for parameter in registry.definition(name).children:
             if parameter.name not in common_params:

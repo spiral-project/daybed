@@ -1,6 +1,7 @@
 from __future__ import absolute_import
 import json
 
+from pyramid.i18n import TranslationString as _
 import six
 from colander import (
     SchemaNode,
@@ -122,6 +123,7 @@ class PointField(GeometryField):
     :ref:`GeometryField`
     """
     node = PointType
+    hint = _('A point')
 
     @classmethod
     def validation(cls, **kwargs):
@@ -136,6 +138,7 @@ class LineField(GeometryField):
     """A field representing a line, of at least two positions.
     :ref:`GeometryField`
     """
+    hint = _('A line made of points')
 
     @classmethod
     def validation(cls, **kwargs):
@@ -157,6 +160,7 @@ class PolygonField(GeometryField):
     :ref:`GeometryField`
     """
     subnode = LinearRingNode
+    hint = _('A polygon made of a closed line')
 
 
 class GeoJSONType(JSONType):
@@ -210,3 +214,4 @@ class GeoJSONType(JSONType):
 @registry.add('geojson')
 class GeoJSONField(JSONField):
     node = GeoJSONType
+    hint = _('A GeoJSON geometry')
