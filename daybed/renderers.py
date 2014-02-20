@@ -1,17 +1,10 @@
-from pyramid.renderers import JSON
+from pyramid.renderers import JSONP
 
 
-class GeoJSON(JSON):
+class GeoJSON(JSONP):
     def __call__(self, info):
         def _render(value, system):
             request = system.get('request')
-            if request is not None:
-                response = request.response
-                ct = response.content_type
-                if ct == response.default_content_type:
-                    # GeoJSON is JSON.
-                    response.content_type = 'application/json'
-            default = self._make_default(request)
 
             # Inspect model definition
             geom_fields = {}
@@ -31,7 +24,8 @@ class GeoJSON(JSON):
                     geojson['features'].append(feature)
                 value = geojson
 
-            return self.serializer(value, default=default, **self.kw)
+            jsonp = super(GeoJSON, self).__call__(info)
+            return jsonp(value, system)
 
         return _render
 
