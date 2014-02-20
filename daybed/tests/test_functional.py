@@ -263,6 +263,7 @@ class FunctionalTest(object):
         # no data should be added
         response = self.app.get('/models/%s/records' % self.model_id,
                                 headers=self.headers)
+        print headers, response.json
         self.assertEquals(0, len(response.json['data']))
         # of course, pushing weird data should tell what's wrong
         response = self.app.post_json('/models/%s/records' % self.model_id,

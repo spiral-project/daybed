@@ -43,7 +43,5 @@ class TestGeoJSONRenderer(BaseWebTest):
     def test_geojson_renderer_works_with_jsonp(self):
         request = self._build_request()
         request.GET['callback'] = 'func'
-        geojsonp = self._rendered({'data': [{'location': [0,0]}]}, request)
+        geojsonp = self._rendered({'data': [{'location': [0, 0]}]}, request)
         self.assertIn('func(', geojsonp)
-        self.assertIn('{"type": "FeatureCollection", "features"',
-                      geojsonp)
