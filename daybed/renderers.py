@@ -1,3 +1,5 @@
+from collections import OrderedDict
+
 from pyramid.renderers import JSONP
 
 
@@ -36,13 +38,15 @@ class GeoJSON(JSONP):
         mapping = {'point': 'Point',
                    'line': 'Linestring',
                    'polygon': 'Polygon'}
+        geom_types = ['geojson'] + list(mapping.keys())
         # Gather all geometry fields for this definition
-        geom_fields = dict()
+        geom_fields = []
         for field in definition['fields']:
-            if field['type'] in mapping.keys():
-                geom_fields[field['name']] = mapping.get(field['type'],
-                                                         field['type'])
-        return geom_fields
+            if field['type'] in geom_types:
+                geom_fields.append((field['name'],
+                                    mapping.get(field['type'],
+                                                field['type'])))
+        return OrderedDict(geom_fields)
 
     def _buildFeature(self, geom_fields, record):
         """Return GeoJSON feature (properties + geometry(ies))
@@ -51,10 +55,13 @@ class GeoJSON(JSONP):
         feature['id'] = record.pop('id', None)
         first = True
         for name, geomtype in geom_fields.items():
-            coords = record.pop(name)
+            if geomtype is 'geojson':
+                geometry = record.pop(name)
+            else:
+                # Note for future: this won't work for GeometryCollection
+                coords = record.pop(name)
+                geometry = dict(type=geomtype, coordinates=coords)
             name = 'geometry' if first else name
-            # Note for future: this won't work for GeometryCollection
-            geometry = dict(type=geomtype, coordinates=coords)
             feature[name] = geometry
             first = False
         feature['properties'] = record
