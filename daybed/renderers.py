@@ -58,7 +58,7 @@ class GeoJSON(JSONP):
         feature['id'] = record.pop('id', None)
         first = True
         for name, geomtype in geom_fields.items():
-            if geomtype is 'geojson':
+            if geomtype == 'geojson':
                 geometry = record.pop(name)
             else:
                 # Note for future: this won't work for GeometryCollection
