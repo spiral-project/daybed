@@ -47,7 +47,11 @@ class PolicyValidator(SchemaNode):
     def deserialize(self, cstruct=null):
         if cstruct:
             self.children = []
-            for key in six.iterkeys(cstruct):
+            self.add(SchemaNode(String(), name='title', missing=drop))
+            self.add(SchemaNode(String(), name='description', missing=drop))
+            roles = [key for key in six.iterkeys(cstruct)
+                     if key not in ('title', 'description')]
+            for key in roles:
                 permSchema = SchemaNode(Mapping(unknown='raise'), name=key)
                 for domain in ('definition', 'records', 'users', 'policy'):
                     permSchema.add(self._crudSchema(domain))

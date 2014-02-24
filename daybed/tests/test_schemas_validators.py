@@ -60,3 +60,15 @@ class PolicyValidatorTests(unittest.TestCase):
 
     def test_empty_is_valid(self):
         self.assertEquals({}, self.schema.deserialize({}))
+
+    def test_can_have_description(self):
+        policy = {'description': 'Useful for polls'}
+        self.assertEquals(policy, self.schema.deserialize(policy))
+
+    def test_can_have_title(self):
+        policy = {'title': 'Open to everyone'}
+        self.assertEquals(policy, self.schema.deserialize(policy))
+
+    def test_can_have_both_title_and_roles(self):
+        policy = {'title': 'Open to everyone', 'role:admins': PERMISSION_FULL}
+        self.assertEquals(policy, self.schema.deserialize(policy))
