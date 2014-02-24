@@ -6,6 +6,7 @@ from setuptools import setup
 
 here = os.path.abspath(os.path.dirname(__file__))
 PY2 = sys.version_info[0] == 2
+PY26 = sys.version_info[:2] == (2, 6)
 
 NAME = 'daybed'
 DESCRIPTION = 'Form validation and data storage API.'
@@ -58,6 +59,8 @@ else:
         '#egg=CouchDB-0.9dev',
     )
 
+if PY26:
+    REQUIREMENTS.append('ordereddict')
 
 if __name__ == '__main__':  # Don't run setup() when we import this module.
     setup(name=NAME,
