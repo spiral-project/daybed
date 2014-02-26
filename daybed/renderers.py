@@ -1,17 +1,15 @@
-from pyramid.renderers import JSON
+try:
+    from collections import OrderedDict
+except ImportError:
+    from ordereddict import OrderedDict
+
+from pyramid.renderers import JSONP
 
 
-class GeoJSON(JSON):
+class GeoJSON(JSONP):
     def __call__(self, info):
         def _render(value, system):
             request = system.get('request')
-            if request is not None:
-                response = request.response
-                ct = response.content_type
-                if ct == response.default_content_type:
-                    # GeoJSON is JSON.
-                    response.content_type = 'application/json'
-            default = self._make_default(request)
 
             # Inspect model definition
             geom_fields = {}
@@ -24,14 +22,15 @@ class GeoJSON(JSON):
             # Transform records into GeoJSON feature collection
             records = value.get('data')
 
-            if records:
+            if records is not None:
                 geojson = dict(type='FeatureCollection', features=[])
                 for record in records:
                     feature = self._buildFeature(geom_fields, record)
                     geojson['features'].append(feature)
                 value = geojson
 
-            return self.serializer(value, default=default, **self.kw)
+            jsonp = super(GeoJSON, self).__call__(info)
+            return jsonp(value, system)
 
         return _render
 
@@ -42,13 +41,15 @@ class GeoJSON(JSON):
         mapping = {'point': 'Point',
                    'line': 'Linestring',
                    'polygon': 'Polygon'}
+        geom_types = ['geojson'] + list(mapping.keys())
         # Gather all geometry fields for this definition
-        geom_fields = dict()
+        geom_fields = []
         for field in definition['fields']:
-            if field['type'] in mapping.keys():
-                geom_fields[field['name']] = mapping.get(field['type'],
-                                                         field['type'])
-        return geom_fields
+            if field['type'] in geom_types:
+                geom_fields.append((field['name'],
+                                    mapping.get(field['type'],
+                                                field['type'])))
+        return OrderedDict(geom_fields)
 
     def _buildFeature(self, geom_fields, record):
         """Return GeoJSON feature (properties + geometry(ies))
@@ -57,10 +58,13 @@ class GeoJSON(JSON):
         feature['id'] = record.pop('id', None)
         first = True
         for name, geomtype in geom_fields.items():
-            coords = record.pop(name)
+            if geomtype == 'geojson':
+                geometry = record.pop(name)
+            else:
+                # Note for future: this won't work for GeometryCollection
+                coords = record.pop(name)
+                geometry = dict(type=geomtype, coordinates=coords)
             name = 'geometry' if first else name
-            # Note for future: this won't work for GeometryCollection
-            geometry = dict(type=geomtype, coordinates=coords)
             feature[name] = geometry
             first = False
         feature['properties'] = record
