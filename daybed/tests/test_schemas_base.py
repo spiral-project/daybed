@@ -148,7 +148,8 @@ class BaseFieldTests(unittest.TestCase):
 class GroupFieldTests(unittest.TestCase):
     def setUp(self):
         self.schema = schemas.GroupField.definition()
-        self.definition = {'type': u'group',
+        self.definition = {
+            'type': u'group',
             'name': u'adress',
             'label': u'Address',
             'required': True,

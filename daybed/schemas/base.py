@@ -218,6 +218,6 @@ class GroupField(TypeField):
     def definition(cls):
         schema = super(GroupField, cls).definition()
         schema.add(SchemaNode(String(), name='description', missing=drop))
-        schema.add(SchemaNode(Sequence(), TypeField.definition(), name='fields',
-                              validator=Length(min=1)))
+        schema.add(SchemaNode(Sequence(), TypeField.definition(),
+                              name='fields', validator=Length(min=1)))
         return schema
