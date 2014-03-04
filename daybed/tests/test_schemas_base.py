@@ -150,20 +150,24 @@ class GroupFieldTests(unittest.TestCase):
         self.schema = schemas.GroupField.definition()
         self.definition = {
             'type': u'group',
-            'name': u'adress',
-            'label': u'Address',
-            'required': True,
-            'hint': u'Fill all fields',
-            'description': u'A small text...',
             'fields': [{'type': u'int',
                         'name': u'a',
                         'hint': u'',
                         'label': u'',
                         'required': True}]}
 
+    def test_a_group_has_no_name_nor_hint(self):
+        definition = self.definition.copy()
+        field = self.schema.deserialize(definition)
+        definition['label'] = u''  # default empty
+        self.assertDictEqual(definition, field)
+
     def test_a_group_can_have_label_and_description(self):
-        field = self.schema.deserialize(self.definition)
-        self.assertDictEqual(self.definition, field)
+        definition = self.definition.copy()
+        definition['label'] = u'Address'
+        definition['description'] = u'A small text...'
+        field = self.schema.deserialize(definition)
+        self.assertDictEqual(definition, field)
 
     def test_a_group_must_have_at_least_one_field(self):
         definition = self.definition.copy()
