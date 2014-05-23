@@ -1,5 +1,5 @@
 from cornice import Service
-from colander import required
+from colander import required, drop
 
 from daybed.schemas import registry
 
@@ -32,7 +32,7 @@ def list_fields(request):
                     extras['type'] = 'array'
                     extras['items'] = dict(type=itemtype)
                 # Show default only if present
-                if parameter.missing != required:
+                if parameter.missing not in (required, drop):
                     extras['default'] = parameter.missing
                 field.setdefault('parameters', []).append(extras)
         fields.append(field)

@@ -72,14 +72,14 @@ class TypeField(object):
     node = String
     required = True
     default_value = null
-    hint = ''
+    hint = u''
 
     @classmethod
     def definition(cls):
         schema = SchemaNode(Mapping())
         schema.add(SchemaNode(String(), name='name',
                               validator=Regex(r'^[a-zA-Z][a-zA-Z0-9_\-]*$')))
-        schema.add(SchemaNode(String(), name='label', missing=''))
+        schema.add(SchemaNode(String(), name='label', missing=u''))
         schema.add(SchemaNode(String(), name='hint', missing=cls.hint))
         schema.add(SchemaNode(Boolean(), name='required',
                               missing=cls.required))

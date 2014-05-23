@@ -17,7 +17,8 @@ from colander import (
     Regex,
     Email,
     Date,
-    DateTime
+    DateTime,
+    drop
 )
 
 from . import registry, TypeField
@@ -27,7 +28,7 @@ from .json import JSONList
 __all__ = ['IntField', 'StringField', 'RangeField',
            'RegexField', 'EmailField', 'URLField',
            'EnumField', 'ChoicesField', 'DecimalField',
-           'DateField', 'DateTimeField']
+           'DateField', 'DateTimeField', 'GroupField']
 
 
 @registry.add('int')
@@ -209,3 +210,16 @@ class DateTimeField(AutoNowMixin, TypeField):
     @deferred
     def auto_value(node, kw):
         return datetime.datetime.now()
+
+
+@registry.add('group')
+class GroupField(TypeField):
+    @classmethod
+    def definition(cls):
+        schema = super(GroupField, cls).definition()
+        schema.children = [c for c in schema.children
+                           if c.name not in ('hint', 'name', 'required')]
+        schema.add(SchemaNode(String(), name='description', missing=drop))
+        schema.add(SchemaNode(Sequence(), TypeField.definition(),
+                              name='fields', validator=Length(min=1)))
+        return schema
