@@ -134,7 +134,7 @@ class Database(object):
         """Adds an user to an existing group"""
         doc = self.__get_user(username)
         groups = doc['user']['groups']
-        if not group in groups:
+        if group not in groups:
             groups.append(group)
         self._db['users'][username] = doc
 
@@ -160,7 +160,7 @@ class Database(object):
 
         user = user.copy()
 
-        if not 'groups' in user:
+        if 'groups' not in user:
             user['groups'] = []
 
         doc = dict(user=user, name=username, type='user')

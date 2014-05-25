@@ -60,7 +60,7 @@ def main(global_config, **settings):
     config.include("cornice")
     config.include('pyramid_mako')
 
-    ## ACL management
+    # ACL management
 
     # Persona authentication
     secret = settings.get('persona.secret', None)
