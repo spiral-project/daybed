@@ -27,6 +27,8 @@ $(PYTHON):
 
 clean:
 	rm -fr $(OBJECTS) $(DEV_STAMP) $(INSTALL_STAMP)
+	find . -name '*.pyc' -delete
+	find . -name '__pycache__' -delete
 
 tests: install-dev
 	bin/tox
