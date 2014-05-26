@@ -1,4 +1,3 @@
-VIRTUALENV=virtualenv
 VENV := $(shell echo $${VIRTUAL_ENV-.venv})
 PYTHON=$(VENV)/bin/python
 DEV_STAMP=$(VENV)/.dev_env_installed.stamp
@@ -22,7 +21,7 @@ $(DEV_STAMP): $(PYTHON)
 
 virtualenv: $(PYTHON)
 $(PYTHON):
-	$(VIRTUALENV) $(VENV)
+	virtualenv $(VENV)
 
 clean:
 	rm -fr $(OBJECTS) $(DEV_STAMP) $(INSTALL_STAMP)
