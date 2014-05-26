@@ -18,7 +18,7 @@ def get_policies(request):
 
 @policy.delete()
 def delete_policy(request):
-    """Deletes a policy and its matching associated data."""
+    """Deletes a policy if no associated data."""
     policy_id = request.matchdict['policy_id']
     # Test if somebody is using the policy.
     if not request.db.policy_is_used(policy_id):
