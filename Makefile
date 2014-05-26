@@ -28,7 +28,7 @@ $(PYTHON):
 clean:
 	rm -fr $(OBJECTS) $(DEV_STAMP) $(INSTALL_STAMP)
 
-tests:
+tests: install-dev
 	bin/tox
 
 tests-failfast: .tox/py27/
