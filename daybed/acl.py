@@ -21,12 +21,12 @@ C_UD = {'create': True,
 
 PERMISSION_FULL = {'definition': CRUD,
                    'records': CRUD,
-                   'users': CRUD,
+                   'roles': CRUD,
                    'policy': CRUD}
-PERMISSION_CREATE = {'definition': {'create': True},
-                     'records': {'create': True},
-                     'users': {'create': True},
-                     'policy': {'create': True}}
+PERMISSION_CREATE = {'definition': {'read': True},
+                     'records': C_UD,
+                     'roles': {'read': True},
+                     'policy':  {'read': True}}
 
 POLICY_READONLY = {'role:admins': PERMISSION_FULL,
                    Authenticated: PERMISSION_CREATE,
@@ -44,15 +44,15 @@ VIEWS_PERMISSIONS_REQUIRED = {
     'post_model': PERMISSION_CREATE,
     'get_model':  {'definition': {'read': True},
                    'records':    {'read': True},
-                   'users':      {'read': True},
+                   'roles':      {'read': True},
                    'policy':     {'read': True}},
     'put_model':  {'definition': C_UD,
                    'records':    C_UD,
-                   'users':      C_UD,
+                   'roles':      C_UD,
                    'policy':     C_UD},
     'delete_model': {'definition': {'delete': True},
                      'records':    {'delete': True},
-                     'users':      {'delete': True},
+                     'roles':      {'delete': True},
                      'policy':     {'delete': True}},
 
     'get_definition': {'definition': {'read': True}},
@@ -65,7 +65,7 @@ VIEWS_PERMISSIONS_REQUIRED = {
     'put_record': {'records': C_UD},
     'patch_record': {'records': {'update': True}},
     'delete_record': {'records': {'delete': True}}
-    # XXX Add users / policy management.
+    # XXX Add roles / policy management.
 }
 
 
@@ -111,7 +111,7 @@ def get_binary_mask(permission):
     possible to do boolean operations with it.
 
     A binary mask has four blocks of 4 bits, i.e one CRUD mask for each domain.
-    Domains are definition, records, users and policy, from left to right.
+    Domains are definition, records, roles and policy, from left to right.
 
     A CRUD mask range goes from 0 (no permission) to 15 (C+R+U+D).
     """
@@ -128,7 +128,7 @@ def get_binary_mask(permission):
         return byte
 
     result = 0x0
-    for i, name in enumerate(['policy', 'users', 'records', 'definition']):
+    for i, name in enumerate(['policy', 'roles', 'records', 'definition']):
         shift = 4 * i
         mask = singlemask(permission.get(name, {}))
         result |= (mask << shift)

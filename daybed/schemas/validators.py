@@ -53,7 +53,7 @@ class PolicyValidator(SchemaNode):
                      if key not in ('title', 'description')]
             for key in roles:
                 permSchema = SchemaNode(Mapping(unknown='raise'), name=key)
-                for domain in ('definition', 'records', 'users', 'policy'):
+                for domain in ('definition', 'records', 'roles', 'policy'):
                     permSchema.add(self._crudSchema(domain))
                 self.add(permSchema)
         return super(PolicyValidator, self).deserialize(cstruct)
