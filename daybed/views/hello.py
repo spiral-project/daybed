@@ -1,5 +1,4 @@
 from cornice import Service
-
 from daybed import __version__ as VERSION
 
 
@@ -11,4 +10,7 @@ hello = Service(name="hello",
 
 @hello.get()
 def get_hello(request):
-    return {'daybed': 'hello', 'version': VERSION}
+    """Return information regarding the current instance."""
+    return dict(daybed='hello',
+                version=VERSION,
+                url=request.host_url)

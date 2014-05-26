@@ -21,6 +21,7 @@ class DaybedViewsTest(BaseWebTest):
     def test_hello(self):
         response = self.app.get('/', headers=self.headers)
         self.assertDictEqual({'version': VERSION,
+                              'url': 'http://localhost',
                               'daybed': 'hello'}, response.json)
 
     def test_persona(self):
