@@ -1,5 +1,5 @@
 VIRTUALENV=virtualenv
-VENV := $(shell echo $${VIRTUAL_ENV-.})
+VENV := $(shell echo $${VIRTUAL_ENV-.venv})
 PYTHON=$(VENV)/bin/python
 DEV_STAMP=$(VENV)/.dev_env_installed.stamp
 INSTALL_STAMP=$(VENV)/.install.stamp
@@ -7,7 +7,7 @@ INSTALL_STAMP=$(VENV)/.install.stamp
 .IGNORE: clean
 .PHONY: all install virtualenv tests
 
-OBJECTS = bin/ lib/ local/ include/ man/ .coverage daybed.egg-info
+OBJECTS = .venv .coverage
 
 all: install
 install: $(INSTALL_STAMP)

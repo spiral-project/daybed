@@ -1,17 +1,12 @@
 *.pyc
 /daybed.egg-info
 
-bin/
-lib/
-local/
-include/
 .venv_installed.stamp
 .dev_env_installed.stamp
 .install.stamp
 .coverage
 *.egg/
-man/
 build/
-share/
 .tox/
 .noseids
+.venv/
