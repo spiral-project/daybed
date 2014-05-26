@@ -39,4 +39,4 @@ tests-failfast: install-dev
 	$(VENV)/bin/nosetests --with-coverage --cover-package=daybed -x -s
 
 serve: install install-dev
-	$(VENV)/bin/pserve development.ini --reload
+	$(VENV)/bin/pserve conf/development.ini --reload
