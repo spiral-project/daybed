@@ -13,8 +13,9 @@ It takes advantage of bullet-proof technologies, such as *CouchDB* and *Pyramid*
 .. image:: https://travis-ci.org/spiral-project/daybed.png
     :target: https://travis-ci.org/spiral-project/daybed
 
-.. image:: https://coveralls.io/repos/spiral-project/daybed/badge.png
-    :target: https://coveralls.io/r/spiral-project/daybed
+.. image:: https://coveralls.io/repos/spiral-project/daybed/badge.png?branch=master
+  :target: https://coveralls.io/r/spiral-project/daybed?branch=master
+
 
 Use-cases
 =========
