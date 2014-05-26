@@ -1,7 +1,7 @@
 DEV_STAMP=.dev_env_installed.stamp
 INSTALL_STAMP=.install.stamp
 
-.PHONY: all install virtualenv tests clean
+.PHONY: all docs install virtualenv tests clean
 
 OBJECTS = .coverage daybed.egg-info
 
@@ -20,6 +20,9 @@ clean:
 	rm -fr $(OBJECTS) $(DEV_STAMP) $(INSTALL_STAMP)
 	find . -name '*.pyc' -delete
 	find . -name '__pycache__' -delete
+
+docs:
+	sphinx-build -b html ./docs/source docs/_build
 
 tests: install-dev
 	tox

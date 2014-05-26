@@ -2,6 +2,7 @@
 /daybed.egg-info
 
 bin/
+docs/_build
 lib/
 local/
 include/
