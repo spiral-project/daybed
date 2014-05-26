@@ -1,20 +1,29 @@
-DEV_STAMP=.dev_env_installed.stamp
-INSTALL_STAMP=.install.stamp
+VIRTUALENV=virtualenv
+VENV := $(shell echo $${VIRTUAL_ENV-.})
+PYTHON=$(VENV)/bin/python
+DEV_STAMP=$(VENV)/.dev_env_installed.stamp
+INSTALL_STAMP=$(VENV)/.install.stamp
 
-.PHONY: all install virtualenv tests clean
+.IGNORE: clean
+.PHONY: all install virtualenv tests
 
-OBJECTS = .coverage daybed.egg-info
+OBJECTS = bin/ lib/ local/ include/ man/ .coverage d2to1-0.2.7-py2.7.egg \
+	.coverage daybed.egg-info
 
 all: install
 install: $(INSTALL_STAMP)
-$(INSTALL_STAMP):
-	python setup.py develop
+$(INSTALL_STAMP): $(PYTHON)
+	$(PYTHON) setup.py develop
 	touch $(INSTALL_STAMP)
 
 install-dev: $(DEV_STAMP)
-$(DEV_STAMP):
-	pip install -r dev-requirements.txt
+$(DEV_STAMP): $(PYTHON)
+	$(VENV)/bin/pip install -r dev-requirements.txt
 	touch $(DEV_STAMP)
+
+virtualenv: $(PYTHON)
+$(PYTHON):
+	$(VIRTUALENV) $(VENV)
 
 clean:
 	rm -fr $(OBJECTS) $(DEV_STAMP) $(INSTALL_STAMP)
@@ -22,10 +31,10 @@ clean:
 	find . -name '__pycache__' -delete
 
 tests: install-dev
-	tox
+	$(VENV)/bin/tox
 
-tests-failfast:
-	nosetests --with-coverage --cover-package=daybed -x -s
+tests-failfast: install-dev
+	$(VENV)/bin/nosetests --with-coverage --cover-package=daybed -x -s
 
 serve: install install-dev
-	pserve development.ini --reload
+	$(VENV)/bin/pserve development.ini --reload
