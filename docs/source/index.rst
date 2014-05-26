@@ -31,7 +31,7 @@ Hacking daybed
 --------------
 
 Daybed comes with a Makefile to simplify your life when developing. To install
-daybed in your current virtualenv and get started, you need to type::
+your virtual environment and get started, you need to type::
 
     make install
 
