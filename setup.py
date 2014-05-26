@@ -53,10 +53,10 @@ if PY2:
     REQUIREMENTS.append('CouchDB')
 else:
     # Python3 version for couchdb
-    REQUIREMENTS.append('CouchDB==0.9dev')
+    REQUIREMENTS.append('CouchDB==0.10dev')
     DEPENDENCY_LINKS.append(
-        'https://github.com/lilydjwg/couchdb-python3/zipball/master'
-        '#egg=CouchDB-0.9dev',
+        'https://couchdb-python.googlecode.com/archive/default.zip'
+        '#egg=CouchDB-0.10dev',
     )
 
 if PY26:
