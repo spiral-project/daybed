@@ -10,3 +10,4 @@ build/
 .tox/
 .noseids
 .venv/
+docs/_build

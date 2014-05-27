@@ -27,24 +27,11 @@ choice.
 validation for you, depending on some rules you defined. Oh, and of course it
 is a free software, so you can modify it if you want / need.
 
-Hacking daybed
---------------
-
-Daybed comes with a Makefile to simplify your life when developing. To install
-your virtual environment and get started, you need to type::
-
-    make install
-
-Then, running the test suite is a good way to check that everything is going
-well, and is well installed. You can run them with `make tests`.
-
-Once everything is okay, you can run the server with `make serve`.
-Contents:
-
 More documentation
 ##################
 
 .. toctree::
    :maxdepth: 2
 
+   install
    usage

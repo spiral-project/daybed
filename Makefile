@@ -5,7 +5,7 @@ DEV_STAMP=$(VENV)/.dev_env_installed.stamp
 INSTALL_STAMP=$(VENV)/.install.stamp
 
 .IGNORE: clean
-.PHONY: all install virtualenv tests
+.PHONY: all docs install virtualenv tests
 
 OBJECTS = .venv .coverage
 
@@ -23,6 +23,9 @@ $(DEV_STAMP): $(PYTHON)
 virtualenv: $(PYTHON)
 $(PYTHON):
 	virtualenv $(VENV)
+
+docs:
+	sphinx-build -b html ./docs/source docs/_build
 
 clean:
 	rm -fr $(OBJECTS) $(DEV_STAMP) $(INSTALL_STAMP)
