@@ -35,4 +35,3 @@ More documentation
 
    install
    usage
-   deployment
