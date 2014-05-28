@@ -18,7 +18,7 @@ class BaseWebTest(unittest.TestCase):
     """
 
     def setUp(self):
-        self.app = webtest.TestApp("config:tests.ini", relative_to='.')
+        self.app = webtest.TestApp("config:conf/tests.ini", relative_to='.')
         self.backend = self.app.app.registry.backend
         self.db = self.backend.db()
 

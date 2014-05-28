@@ -73,9 +73,65 @@ passing for all supported Python environments::
 
 Once you're all set, keep on reading for :doc:`using daybed <usage>`.
 
+
+Using Docker images
+-------------------
+
+Docker_ allows you to easily run a Daybed instance, locally or in
+production.
+
+Two steps setup
+~~~~~~~~~~~~~~~
+
+.. note::
+
+    We use Docker links, available in version 0.11+.
+
+Run a CouchDB_ instance::
+
+    sudo docker run --name couchdb klaemo/couchdb
+
+Run a *Daybed* container linked to the previous one::
+
+    sudo docker run --link=couchdb:couchdb --publish=8000:8000 makinacorpus/daybed
+
+Test it !::
+
+    curl http://localhost:8000
+
+Runtime parameters
+~~~~~~~~~~~~~~~~~~
+
+A number of environment variables can be set at runtime, to control the backend
+connection for instance::
+
+    sudo docker run ... --env BACKEND_DB_NAME=mydb ...
+
+See the ``Dockerfile`` file for a complete list of variables, and their default
+value.
+
+Custom configuration
+~~~~~~~~~~~~~~~~~~~~
+
+In order to run the container with a custom configuration file. Just create
+a file ``production.ini`` in a custom folder (e.g. ``/myconf``), and mount it
+this way::
+
+    sudo docker run ... --volume=/myconf:/opt/apps/daybed/conf ...
+
+Build the image from sources
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+From the repository folder::
+
+    make clean
+    sudo docker build -t daybed .
+
+
 .. _CouchDB: http://couchdb.apache.org/
 .. _Homebrew: http://brew.sh/
 .. _Python: http://python.org/
 .. _PyPy: http://pypy.org/
 .. _Mono: http://www.mono-project.com/
 .. _virtualenv: http://virtualenv.readthedocs.org/
+.. _Docker: http://docker.io

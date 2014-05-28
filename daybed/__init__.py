@@ -1,5 +1,6 @@
 """Main entry point
 """
+import os
 import logging
 import pkg_resources
 from collections import defaultdict
@@ -12,6 +13,7 @@ logger = logging.getLogger(__name__)
 
 import json
 
+import six
 from cornice import Service
 from pyramid.config import Configurator
 from pyramid.events import NewRequest
@@ -53,9 +55,17 @@ def get_user(request):
     return request.db.get_user(userid)
 
 
+def settings_expandvars(settings):
+    """Expands all environment variables in a settings dictionary.
+    """
+    return dict((key, os.path.expandvars(value))
+                for key, value in six.iteritems(settings))
+
+
 def main(global_config, **settings):
     Service.cors_origins = ('*',)
 
+    settings = settings_expandvars(settings)
     config = Configurator(settings=settings, root_factory=RootFactory)
     config.include("cornice")
     config.include('pyramid_mako')
