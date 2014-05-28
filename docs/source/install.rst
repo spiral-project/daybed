@@ -99,6 +99,17 @@ Test it !::
 
     curl http://localhost:8000
 
+Runtime parameters
+~~~~~~~~~~~~~~~~~~
+
+A number of environment variables can be set at runtime, to control the backend
+connection for instance::
+
+    sudo docker run ... --env BACKEND_DB_NAME=mydb ...
+
+See the ``Dockerfile`` file for a complete list of variables, and their default
+value.
+
 Custom configuration
 ~~~~~~~~~~~~~~~~~~~~
 
@@ -106,12 +117,7 @@ In order to run the container with a custom configuration file. Just create
 a file ``production.ini`` in a custom folder (e.g. ``/myconf``), and mount it
 this way::
 
-    sudo docker run \
-        --volume=/myconf:/opt/apps/daybed/conf \
-        --link=couchdb:couchdb \
-        --publish=8000:8000 \
-        makinacorpus/daybed
-
+    sudo docker run ... --volume=/myconf:/opt/apps/daybed/conf ...
 
 Build the image from sources
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
