@@ -117,7 +117,7 @@ class ModelFieldTest(BaseWebTest):
 
     def test_validation_succeeds_if_fields_are_valid(self):
         value = self.validator.deserialize('{"age": 12}')
-        self.assertDictEqual(value, {'age': 12              })
+        self.assertDictEqual(value, {'age': 12})
 
     def test_validation_fails_if_fields_is_invalid(self):
         self.assertRaises(colander.Invalid,
