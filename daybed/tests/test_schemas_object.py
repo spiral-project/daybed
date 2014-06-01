@@ -20,7 +20,7 @@ OBJECT_FIELD_DEFINITION = {
          'name': u'updated',
          'label': u'',
          'hint': u'',
-         'required': True,}
+         'required': True}
     ]
 }
 
@@ -34,6 +34,12 @@ class InvalidObjectFieldTest(BaseWebTest):
 
     def test_is_not_valid_if_both_fields_and_model(self):
         self.definition['model'] = 'Foo'
+        self.assertRaises(colander.Invalid,
+                          self.schema.deserialize,
+                          self.definition)
+
+    def test_is_not_valid_if_no_fields_nor_model(self):
+        self.definition.pop('fields')
         self.assertRaises(colander.Invalid,
                           self.schema.deserialize,
                           self.definition)
@@ -69,23 +75,21 @@ class FieldsObjectTest(BaseWebTest):
         super(FieldsObjectTest, self).setUp()
         self.schema = schemas.ObjectField.definition()
         self.definition = OBJECT_FIELD_DEFINITION.copy()
-        # self.validator = schemas.ListField.validation(**self.definition)
+        self.validator = schemas.ObjectField.validation(**self.definition)
 
     def test_is_defined_with_valid_fields(self):
         field = self.schema.deserialize(self.definition)
         self.assertDictEqual(self.definition, field)
 
+    def test_validation_succeeds_if_fields_are_valid(self):
+        value = self.validator.deserialize('{"done": false, '
+                                           ' "updated": "2012-03-13"}')
+        self.assertDictEqual(value, {'done': False, 'updated': '2012-03-13'})
 
-class FreeObjectTest(BaseWebTest):
-    def setUp(self):
-        super(FreeObjectTest, self).setUp()
-        self.schema = schemas.ObjectField.definition()
-        self.definition = OBJECT_FIELD_DEFINITION.copy()
-        self.definition.pop('fields')
-
-    def test_is_defined_without_model_and_fields(self):
-        field = self.schema.deserialize(self.definition)
-        self.assertDictEqual(self.definition, field)
+    def test_validation_fails_if_fields_is_invalid(self):
+        self.assertRaises(colander.Invalid,
+                          self.validator.deserialize,
+                          '{"done": false, "updated": "2012-23-13"}')
 
 
 class ModelFieldTest(BaseWebTest):
@@ -96,6 +100,7 @@ class ModelFieldTest(BaseWebTest):
         self.definition.pop('fields')
         self._create_definition()
         self.definition['model'] = 'simple'
+        self.validator = schemas.ObjectField.validation(**self.definition)
 
     def _create_definition(self, **kwargs):
         fakedef = {'title': 'stupid', 'description': 'stupid',
@@ -109,3 +114,12 @@ class ModelFieldTest(BaseWebTest):
     def test_is_defined_with_an_existing_model(self):
         field = self.schema.deserialize(self.definition)
         self.assertDictEqual(self.definition, field)
+
+    def test_validation_succeeds_if_fields_are_valid(self):
+        value = self.validator.deserialize('{"age": 12}')
+        self.assertDictEqual(value, {'age': 12              })
+
+    def test_validation_fails_if_fields_is_invalid(self):
+        self.assertRaises(colander.Invalid,
+                          self.validator.deserialize,
+                          '{"age": "a"}')
