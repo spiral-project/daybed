@@ -4,8 +4,8 @@ from cornice.errors import Errors
 from pyramid.testing import DummyRequest
 from pyramid.security import Authenticated
 
-from daybed.schemas.validators import (validator, RolesValidator,
-                                       PolicyValidator)
+from daybed.schemas.validators import (validator, RolesSchema,
+                                       PolicySchema)
 from daybed.tests.support import unittest
 from daybed.acl import PERMISSION_FULL
 
@@ -19,9 +19,9 @@ class ValidatorTests(unittest.TestCase):
         self.assertEqual('body', request.errors[0]['location'])
 
 
-class RolesValidatorTests(unittest.TestCase):
+class RolesSchemaTests(unittest.TestCase):
     def test_roles(self):
-        schema = RolesValidator()
+        schema = RolesSchema()
         self.assertRaises(colander.Invalid, schema.deserialize, {})
         self.assertRaises(colander.Invalid, schema.deserialize,
                           {'admins': 'not-a-sequence'})
@@ -36,9 +36,9 @@ class RolesValidatorTests(unittest.TestCase):
                            'group:toto': 'not-a-sequence'})
 
 
-class PolicyValidatorTests(unittest.TestCase):
+class PolicySchemaTests(unittest.TestCase):
     def setUp(self):
-        self.schema = PolicyValidator()
+        self.schema = PolicySchema()
 
     def test_key_with_single_permission_is_valid(self):
         simple = {

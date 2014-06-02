@@ -7,7 +7,7 @@ from colander import (Sequence, SchemaNode, Length, String, drop, Invalid)
 from daybed.backends.exceptions import ModelNotFound
 
 from . import registry, TypeField, TypeFieldNode
-from .validators import RecordValidator
+from .validators import RecordSchema
 from .relations import ModelExist
 from .json import JSONType
 
@@ -17,7 +17,7 @@ class ObjectMatchDefinition(object):
     definition.
     """
     def __init__(self, definition):
-        self.schema = RecordValidator(definition)
+        self.schema = RecordSchema(definition)
 
     def __call__(self, node, value):
         self.schema.deserialize(value)
