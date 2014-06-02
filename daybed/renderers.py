@@ -11,6 +11,12 @@ class GeoJSON(JSONP):
         def _render(value, system):
             request = system.get('request')
 
+            # Response should have appropriate Content-Type
+            response = request.response
+            ct = response.content_type
+            if ct == response.default_content_type:
+                response.content_type = 'application/vnd.geo+json'
+
             # Inspect model definition
             geom_fields = {}
             model_id = request.matchdict.get('model_id')

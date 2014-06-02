@@ -451,7 +451,7 @@ class MushroomsModelTest(FunctionalTest, BaseWebTest):
                             headers=headers)
         self.assertIn('data', resp.json)
 
-        headers['Accept'] = 'application/geojson'
+        headers['Accept'] = 'application/vnd.geo+json'
         resp = self.app.get('/models/%s/records' % (self.model_id),
                             headers=headers)
         self.assertIn('features', resp.json)

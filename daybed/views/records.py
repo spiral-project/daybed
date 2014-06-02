@@ -21,7 +21,7 @@ record = Service(name='record',
 
 
 @records.get(permission='get_records')
-@records.get(accept='application/geojson', renderer='geojson',
+@records.get(accept='application/vnd.geo+json', renderer='geojson',
              permission='get_records')
 def get_records(request):
     """Retrieves all model records."""

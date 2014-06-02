@@ -1,5 +1,6 @@
 import json
 
+import mock
 from pyramid import testing
 
 from daybed.renderers import GeoJSON
@@ -102,3 +103,21 @@ class TestGeoJSONRenderer(BaseWebTest):
                              'coordinates': [[0, 0], [1, 1]]},
                 'properties': {}}
             ]})
+
+    def test_geojson_renderer_serves_with_official_mimetype(self):
+        request = self._build_request()
+        response = mock.MagicMock()
+        response.default_content_type = response.content_type = ''
+        request.response = response
+        self._rendered({'data': []}, request)
+        self.assertEqual(request.response.content_type,
+                         'application/vnd.geo+json')
+
+    def test_geojson_renderer_does_not_override_existing_mimetype(self):
+        request = self._build_request()
+        response = mock.MagicMock()
+        response.content_type = 'application/octet-stream'
+        request.response = response
+        self._rendered({'data': []}, request)
+        self.assertEqual(request.response.content_type,
+                         'application/octet-stream')
