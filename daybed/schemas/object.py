@@ -6,7 +6,7 @@ from colander import (Sequence, SchemaNode, Length, String, drop, Invalid)
 
 from daybed.backends.exceptions import ModelNotFound
 
-from .base import registry, TypeField
+from . import registry, TypeField, TypeFieldNode
 from .validators import RecordValidator
 from .relations import ModelExist
 from .json import JSONType
@@ -56,7 +56,7 @@ class ObjectField(TypeField):
                               missing=drop,
                               validator=ModelExist(db)))
 
-        schema.add(SchemaNode(Sequence(), TypeField.definition(),
+        schema.add(SchemaNode(Sequence(), SchemaNode(TypeFieldNode()),
                               name='fields',
                               validator=Length(min=1),
                               missing=drop))

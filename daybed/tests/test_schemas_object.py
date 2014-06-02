@@ -1,3 +1,5 @@
+import copy
+
 import colander
 
 from daybed import schemas
@@ -14,12 +16,13 @@ OBJECT_FIELD_DEFINITION = {
         {'type': u'boolean',
          'name': u'done',
          'label': u'',
-         'hint': u'',
+         'hint': u'True or false',
          'required': True},
-        {'type': u'datetime',
+        {'auto_now': False,
+         'type': u'datetime',
          'name': u'updated',
          'label': u'',
-         'hint': u'',
+         'hint': u'A date with time (yyyy-mm-ddTHH:MM)',
          'required': True}
     ]
 }
@@ -30,7 +33,7 @@ class InvalidObjectFieldTest(BaseWebTest):
     def setUp(self):
         super(InvalidObjectFieldTest, self).setUp()
         self.schema = schemas.ObjectField.definition()
-        self.definition = OBJECT_FIELD_DEFINITION.copy()
+        self.definition = copy.deepcopy(OBJECT_FIELD_DEFINITION)
 
     def test_is_not_valid_if_both_fields_and_model(self):
         self.definition['model'] = 'Foo'
@@ -65,6 +68,13 @@ class InvalidObjectFieldTest(BaseWebTest):
 
     def test_is_not_valid_if_field_type_unknown(self):
         self.definition['fields'][0]['type'] = 'asteroid'
+        self.assertRaises(colander.Invalid,
+                          self.schema.deserialize,
+                          self.definition)
+
+    def test_is_not_valid_if_subfield_definition_is_invalid(self):
+        self.definition['fields'][0]['type'] = 'enum'
+        self.definition['fields'][0]['choices'] = []
         self.assertRaises(colander.Invalid,
                           self.schema.deserialize,
                           self.definition)
