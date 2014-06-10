@@ -1,31 +1,57 @@
 Daybed
 ######
 
-Daybed is a form-validation and data-storage API.
+An Open Source Web API providing validation and storage as a service.
 
-It is a way to create definitions (models) and to do validation on some
-incoming data using these definitions.
 
 Why ?
 =====
 
-You can do a lot of things with this kind of service, so these use-cases are
-only some of the possibilities we would like to offer.
+Usually, when a Web application requires a backend for storage and validation,
+one of the following solutions is employed :
 
-Maybe do you know Google forms? That's a service letting you design a form and
-exposing it to end users, so then you can access the results.
+* A custom API is developed and deployed (*reinvent the wheel*)
+* A commercial and closed-source service is used (*Google Forms*)
+* A CMS is used as a backoffice for customizable content types (*twist*)
 
-That's working pretty well but nothing there is done in the open. Google now
-has all your data ;) In addition to that, the APIs to access this data are not
-that funny, you can't interact with them without dealing with rows and cells…
-which probably isn't what you want.
+To avoid those situations, make it easy to get your storage backend ready
+in seconds, we created *Daybed*.
 
-As a data geek and librist, I don't think that google forms is a reasonable
-choice.
+*Daybed* is :
 
-**Daybed** tries to solve this very problem by providing a REST API able to do
-validation for you, depending on some rules you defined. Oh, and of course it
-is a free software, so you can modify it if you want / need.
+* a minimalist, robust, dynamic and generic API for validating and storing data ;
+* a universal REST end-point for Web and mobile apps ;
+* a key component for rapid application building ;
+* a simple service deployed and integrated without coding ;
+
+
+How ?
+=====
+
+#. Create a model by posting its definition (*title, fields, ...*)
+#. Generate tokens with permissions (*modify definition, create, update or delete records, ...*)
+#. Use the allocated RESTful end-point in your application (*GET, POST, PUT, ...*)
+#. Store and query the records !
+
+Since *Daybed* talks REST and JSON, you can basically use it as a remote storage with
+any of your favorite technologies (*python, Android, iOS, AngularJS, Ember.js, Backbone.js, etc.*).
+
+
+Use-cases
+=========
+
+* Mobile apps
+* Full JavaScript apps
+* Online forms
+* Data Wiki
+
+Using *Daybed* in its first versions, we built:
+
+* `daybed-map <http://leplatrem.github.io/daybed-map/>`_, a *geo-pad* where you can create you own maps with custom fields, using `backbone-forms <https://github.com/powmedia/backbone-forms>`_
+* A `TODO list <http://daybed.lolnet.org/>`_ using `jquery-spore <https://github.com/nikopol/jquery-spore>`_ ;
+* A `<https://github.com/spiral-project/daybed-keypass>`_
+* A generic `CRUD application <http://spiral-project.github.io/backbone-daybed/>`_ using `backbone-daybed <https://github.com/spiral-project/backbone-daybed>`_ ;
+
 
 More documentation
 ##################
@@ -35,3 +61,5 @@ More documentation
 
    install
    usage
+   acl
+   terminology
