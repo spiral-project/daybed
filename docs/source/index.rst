@@ -14,7 +14,7 @@ one of the following solutions is employed :
 * A commercial and closed-source service is used (*Google Forms*)
 * A CMS is used as a backoffice for customizable content types (*twist*)
 
-To avoid those situations, make it easy to get your storage backend ready
+To avoid those situations, and make it easy to get your storage backend ready
 in seconds, we created *Daybed*.
 
 *Daybed* is :
@@ -44,13 +44,25 @@ Use-cases
 * Full JavaScript apps
 * Online forms
 * Data Wiki
+* Collaborative Web mapping
 
 Using *Daybed* in its first versions, we built:
 
 * `daybed-map <http://leplatrem.github.io/daybed-map/>`_, a *geo-pad* where you can create you own maps with custom fields, using `backbone-forms <https://github.com/powmedia/backbone-forms>`_
-* A `TODO list <http://daybed.lolnet.org/>`_ using `jquery-spore <https://github.com/nikopol/jquery-spore>`_ ;
-* A `<https://github.com/spiral-project/daybed-keypass>`_
+* A `password manager <https://github.com/spiral-project/daybed-keypass>`_
 * A generic `CRUD application <http://spiral-project.github.io/backbone-daybed/>`_ using `backbone-daybed <https://github.com/spiral-project/backbone-daybed>`_ ;
+* A `TODO list <http://daybed.lolnet.org/>`_ using `jquery-spore <https://github.com/nikopol/jquery-spore>`_ ;
+
+
+Technologies
+============
+
+*Daybed* uses the following stack by default :
+
+* `Pyramid <http://www.pylonsproject.org>`_, a robust and powerful python Web framework
+* `Cornice <https://cornice.readthedocs.org>`_, a REST framework for Pyramid
+* `colander <http://colander.readthedocs.org>`_ for the schema validation part
+* `CouchDB <http://couchdb.apache.org>`_ as the default persistence backend
 
 
 More documentation
