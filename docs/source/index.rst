@@ -14,7 +14,7 @@ one of the following solutions is employed :
 * A commercial and closed-source service is used (*Google Forms*)
 * A CMS is used as a backoffice for customizable content types (*twist*)
 
-To avoid those situations, and make it easy to get your storage backend ready
+To avoid those situations and make it easy to get your storage backend ready
 in seconds, we created *Daybed*.
 
 *Daybed* is :
@@ -66,7 +66,7 @@ Technologies
 
 * `Pyramid <http://www.pylonsproject.org>`_, a robust and powerful python Web framework
 * `Cornice <https://cornice.readthedocs.org>`_, a REST framework for Pyramid
-* `colander <http://colander.readthedocs.org>`_ for the schema validation part
+* `Colander <http://colander.readthedocs.org>`_ for the schema validation part
 * `CouchDB <http://couchdb.apache.org>`_ as the default persistence backend
 
 

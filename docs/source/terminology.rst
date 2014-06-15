@@ -1,7 +1,7 @@
 Terminology
 ###########
 
-*Daybed* concepts are rather closed to those of any other storage or model validation
+*Daybed* concepts are very similar to those of any other storage or model validation
 software.
 
 
@@ -10,8 +10,7 @@ software.
 
     Model
         A model is made of a :term:`definition`, a set of :term:`records`.
-        A list of custom :term:`roles` and a :term:`policy` can be also
-        be associated to the model.
+        A list of custom :term:`roles` and a :term:`policy` (optional).
 
     Definition
         A schema defined as a list of fields, each one with a name, a type
