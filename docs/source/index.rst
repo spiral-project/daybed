@@ -19,7 +19,9 @@ in seconds, we created *Daybed*.
 
 *Daybed* is :
 
-* a minimalist, robust, dynamic and generic API for validating and storing data ;
+* a minimalist, robust, dynamic and generic API ;
+* a validation layer with schemaless storage ;
+* a reusable layer of permissions logic ;
 * a universal REST end-point for Web and mobile apps ;
 * a key component for rapid application building ;
 * a simple service deployed and integrated without coding ;
@@ -68,6 +70,37 @@ Technologies
 * `Cornice <https://cornice.readthedocs.org>`_, a REST framework for Pyramid
 * `Colander <http://colander.readthedocs.org>`_ for the schema validation part
 * `CouchDB <http://couchdb.apache.org>`_ as the default persistence backend
+
+
+Comparison
+==========
+
+*Daybed* has many competitors, yet none of them shares the same approach or features set.
+
+===========================  ======  ==================  ==========  ========  ======  ============
+                                     Custom              Generated              Competitors
+                                     dedicated           code
+                                     API
+===========================  ======  ==================  ==========  ==============================
+                                     Django REST
+                                     framework,
+                                     Restify, express,
+                             Daybed  Struts...           Python Eve  Loopback  Hoodie  Google Forms
+---------------------------  ------  ------------------  ----------  --------  ------  ------------
+Minimalist                   ✔       ✔
+Validation                   ✔       ✔                   ✔           ✔                 ✔
+Permissions                  ✔       ✔                               ✔                 ✔
+Dynamic schemas              ✔                                       ✔         ✔       ✔
+Reusable instance            ✔                                       ✔                 ✔
+Dynamic API end-points       ✔                                       ✔
+Raw data access              ✔       ✔                   ✔           ✔         ✔
+Agnostic (REST)              ✔       ✔                   ✔           ✔
+Requires SDK                                                                   ✔
+Open Source                  ✔       ✔                   ✔           ✔         ✔
+ElasticSearch                (soon)
+===========================  ======  ==================  ==========  ==============================
+
+Sources: http://python-eve.org ; http://hood.ie ; http://loopback.io ;
 
 
 More documentation
