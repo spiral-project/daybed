@@ -40,7 +40,7 @@ def post_models(request):
     model_id = request.db.put_model(
         definition=request.validated['definition'],
         roles=request.validated['roles'],
-        policy_id=request.validated['policy_id'])
+        policy_id=request.validated['policy'])
 
     if request.user:
         username = request.user['name']
@@ -80,7 +80,7 @@ def get_model(request):
 
     return {'definition': definition,
             'records': request.db.get_records(model_id),
-            'policy_id': request.db.get_model_policy_id(model_id),
+            'policy': request.db.get_model_policy_id(model_id),
             'roles': request.db.get_roles(model_id)}
 
 
@@ -101,7 +101,7 @@ def put_model(request):
 
     request.db.put_model(request.validated['definition'],
                          request.validated['roles'],
-                         request.validated['policy_id'],
+                         request.validated['policy'],
                          model_id)
 
     for record in request.validated['records']:

@@ -164,12 +164,12 @@ def model_validator(request):
     validate_against_schema(request, RolesSchema(), roles)
 
     request.validated['roles'] = roles
-    policy_id = body.get('policy_id', request.registry.default_policy)
+    policy_id = body.get('policy', request.registry.default_policy)
 
     # Check that the policy exists in our db.
     try:
         request.db.get_policy(policy_id)
     except PolicyNotFound:
-        request.errors.add('body', 'policy_id',
+        request.errors.add('body', 'policy',
                            "policy '%s' doesn't exist" % policy_id)
-    request.validated['policy_id'] = policy_id
+    request.validated['policy'] = policy_id

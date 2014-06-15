@@ -54,7 +54,7 @@ class FunctionalTest(object):
     def test_post_model_definition_wrong_policy(self):
         self.app.post_json('/models',
                            {'definition': self.valid_definition,
-                            'policy_id': 'unknown'},
+                            'policy': 'unknown'},
                            headers=self.headers,
                            status=400)
 
