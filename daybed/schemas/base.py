@@ -171,21 +171,21 @@ class URLField(TypeField):
 
 
 class AutoNowMixin(object):
-    """Mixin to share ``auto_now`` mechanism for both date and datetime fields.
+    """Mixin to share ``autonow`` mechanism for both date and datetime fields.
     """
-    auto_now = False
+    autonow = False
 
     @classmethod
     def definition(cls):
         schema = super(AutoNowMixin, cls).definition()
-        schema.add(SchemaNode(Boolean(), name='auto_now',
-                              missing=cls.auto_now))
+        schema.add(SchemaNode(Boolean(), name='autonow',
+                              missing=cls.autonow))
         return schema
 
     @classmethod
     def validation(cls, **kwargs):
-        auto_now = kwargs.get('auto_now', cls.auto_now)
-        if auto_now:
+        autonow = kwargs.get('autonow', cls.autonow)
+        if autonow:
             kwargs['missing'] = cls.auto_value
         return super(AutoNowMixin, cls).validation(**kwargs).bind()
 

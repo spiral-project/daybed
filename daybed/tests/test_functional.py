@@ -363,14 +363,14 @@ class TimestampedModelTest(FunctionalTest, BaseWebTest):
                     "type": "date",
                     "label": "created on",
                     "required": True,
-                    "auto_now": False
+                    "autonow": False
                 },
                 {
                     "name": "modified",
                     "type": "datetime",
                     "label": "modified on",
                     "required": True,
-                    "auto_now": True
+                    "autonow": True
                 },
             ]
         }
