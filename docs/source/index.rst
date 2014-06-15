@@ -29,12 +29,17 @@ How ?
 =====
 
 #. Create a model by posting its definition (*title, fields, ...*)
-#. Generate tokens with permissions (*modify definition, create, update or delete records, ...*)
+#. Define or reuse existing permissions sets (*modify definition, create, update or delete records, ...*)
 #. Use the allocated RESTful end-point in your application (*GET, POST, PUT, ...*)
 #. Store and query the records !
 
 Since *Daybed* talks REST and JSON, you can basically use it as a remote storage with
 any of your favorite technologies (*python, Android, iOS, AngularJS, Ember.js, Backbone.js, etc.*).
+
+:notes:
+
+    Currently, the authentication relies on `Persona <https://www.mozilla.org/en-US/persona/>`_.
+    This could change in a near future.
 
 
 Use-cases
