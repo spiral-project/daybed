@@ -1,92 +1,128 @@
-ACLs
-####
+Permissions
+###########
 
-In daybed, ACLs are implemented so you can chose who is able to have which
-privileges on the content.
+In *Daybed*, permissions allow to control what are the privileges on
+models, records, users ...and permissions !
 
-Each time a new model is created, a :term:`policy` is attached to it. A policy
-associates roles to permissions. Here are exemples of what you can find in
-a policy:
+They allow to express the following strategies :
 
-- "All the users have the right to push new content to this model"
-- "Alexis is able to delete content from others"
-- "Users of the group 'rangers' have the right to create new records".
+- "Anyone can create new records on this model"
+- "Alexis is able to delete records created by others"
+- "Users of the group 'rangers' have the right to create new records"
+- "Authenticated users can modify their own records"
 
+This documentation describes how they work and how to use them.
 
-Roles
-=====
+Models permissions
+==================
 
-Some default :term:`roles` exist which can be reused when defining a model
-policy.
+Permissions apply to the following actions :
 
-*Roles* are defined by the model itself, but some default ones already exist:
+* Create
+* Read
+* Update
+* Delete
 
-- admins
-- authors
+And cover the following aspects of a model :
+
+* Its definition
+* Its records
+* The attached policy itself
+* The roles given to users or groups for this model
+
+For example, the following one allows manipulation
+of records only :
+
+==========  ======  ====  ======  ======  ============
+            Create  Read  Update  Delete  *(Shortcut)*
+==========  ======  ====  ======  ======  ============
+definition          True                  -R--
+records     True    True  True    True    CRUD
+policy              True                  -R--
+roles               True                  -R--
+==========  ======  ====  ======  ======  ============
 
 
 Users and groups
 ================
 
-Each user can be associated to a number of groups. Groups start by `group:` in
-the daybed storage layer.
+Users can be added to some groups.
 
-When you give a role to a group, all users inside the group have the role.
+If some permissions are given to a group, all its users inherit them.
 
-This can be really useful if a set of users share records or models
-because you can add some of them by just adding them to a group
-instead of adding them to the role of each records or models.
-
-Let say, John and Mike manage the daybed server. They are in the owner
-group. 
-
-Later Mike leave the company and Dan arrive.
-
-Because every model and records are own by the owner group John can
-just remove Mike and add Dan inside the owner group to fix all the roles.
+This allows models and records administration by teams, from which you can add or
+remove users.
 
 
-Policy and Rights
-=================
+Models roles and policy
+=======================
 
-The policy define rights for each roles of a model.
+Permissions on models are specified with a combination
+of a :term:`policy` and some :term:`roles`.
 
-Rights are defined for:
+Roles are defined on the model as a name and a list of users or groups.
+Custom roles can be defined, but some are provided by default :
 
-- Definition
-- Roles
-- Policy
-- Data
+* ``role:admins``
+* ``role:authors``
 
-For example the read-only policy could be defined as this:
+:notes:
 
-    Everybody can read anything but only Authenticated users can add
-    new records and authors can update their records
+    The creator of a model is put among the list of users for the ``admins`` role.
 
-In Daybed this will be something like:
+    The author of a record is put among the list of users for the ``authors`` role.
 
-.. code-block:: json
 
-    {
-        "role:admins": {"definition": {"create": true, "read": true,
-                                       "update": true, "delete": true},
-                        "records":    {"create": true, "read": true,
-                                       "update": true, "delete": true},
-                        "roles":      {"create": true, "read": true,
-                                       "update": true, "delete": true},
-                        "policy":     {"create": true, "read": true,
-                                       "update": true, "delete": true}},
-        "authors:": {"records": {"create": true, "read": true,
-                                 "update": true, "delete": true}},
-        "system.Authenticated": {"records":    {"create": true}
-                                 "roles":      {"read": true},
-                                 "policy":     {"read": true}},
-        "system.Everyone": {"definition": {"read": true},
-                            "records":    {"read": true}},
-    }
+A policy is set on the model. It will assign permissions for each role. 
 
-When a user try an action, a list of principals is generated based on
-the policy and the role the user has inside it.
+When a user tries an action, a list of permissions is obtained based on the roles he
+has on the model (or record) and the related policy.
+He is denied if the permission required for his action is not among them.
+
+:notes:
+
+    When a user has several roles (e.g. authenticated and author), the permissions
+    are summed.
+
+
+Polices are re-usable as long as the roles names are identical.
+Custom policies can be defined, but some are provided by default :
+
+* ``anonymous``
+* ``read-only``
+* ``admin-only``
+
+
+==========  ==========  ===========  ============  ============  ====================  ===============
+                        role:admins  group:admins  role:authors  system.Authenticated  system.Everyone
+==========  ==========  ===========  ============  ============  ====================  ===============
+anonymous   definition                                                                 CRUD
+            records                                                                    CRUD
+            policy                                                                     CRUD
+            roles                                                                      CRUD
+----------  ----------  -----------  ------------  ------------  --------------------  ---------------
+read-only   definition  CRUD                                                           -R--
+            records     CRUD                       --UD          C---                  -R--
+            policy      CRUD                                     -R--
+            roles       CRUD                                     -R--
+----------  ----------  -----------  ------------  ------------  --------------------  ---------------
+admin-only  definition  CRUD         CRUD                                              -R--
+            records     CRUD         CRUD          CRUD
+            policy      CRUD         CRUD
+            roles       CRUD         CRUD
+==========  ==========  ===========  ============  ============  ====================  ===============
+
+The ``read-only`` can be explicited like this :
+
+    Everybody can read anything but only authenticated users can create
+    new records and only authors can update their records.
+
+
+:notes:
+
+    If not specified, the policy defined in the ``daybed.default_policy`` setting is attached
+    to the model (``read-only`` by default).
+
 
 Full example
 ============
@@ -110,24 +146,24 @@ Of the following model:
         "type": "definition",
         "_id": "todo",
         "definition": {
-          "title": "todo",
-          "description": "A list of my stuff to do",
-          "fields": [
-              {
-                  "name": "item",
-                  "type": "string",
-                  "label": "The item"
-              },
-              {
-                  "name": "status",
-                  "type": "enum",
-                  "choices": [
-                      "done",
-                      "todo"
-                  ],
-                  "label": "is it done or not"
-              }
-           ]
+            "title": "todo",
+            "description": "A list of my stuff to do",
+            "fields": [
+                {
+                    "name": "item",
+                    "type": "string",
+                    "label": "The item"
+                },
+                {
+                    "name": "status",
+                    "type": "enum",
+                    "choices": [
+                        "done",
+                        "todo"
+                    ],
+                    "label": "is it done or not"
+                }
+            ]
         },
         "roles": {
             "admins": ["group:admins", "Mike"]
@@ -135,48 +171,42 @@ Of the following model:
         "policy": "read-only"
     }
 
-If `john` tries to modify this record, he will have the following principals::
+If `john` tries to modify this record, *Daybed* will internally consider him with the following roles ::
 
-    ["system.Authenticated", "system.Everyone", "authors:"]
+    ["system.Authenticated", "system.Everyone", "role:authors"]
 
-And the right set for all this principals will be accredited to him:
+And the permissions set, obtained as the union of these from the policy ``read-only`` are :
 
-.. code-block:: json
+==========  ========
+            Obtained
+==========  ========
+definition  -R--
+records     CRUD
+policy      -R--
+roles       -R--
+==========  ========
 
-    {
-      "definition": {"read": true},
-      "records":    {"create": true, "read": true,
-                     "update": true, "delete": true},
-      "roles":      {"read": true},
-      "policy":     {"read": true}
-    }
+Since he has update (U) for ``records``, John will be able to modify its record.
 
-So John will be able to modify its record.
-
-If Dan want to modify the same records he will get::
+Now, if Dan wants to modify the same records he will be considered as ::
 
     ["system.Authenticated", "system.Everyone"]
 
-.. code-block:: json
+And just obtain those permissions :
 
-    {
-      "definition": {"read": true},
-      "records":    {"create": true, "read": true},
-      "roles":      {"read": true},
-      "policy":     {"read": true}
-    }
+==========  ========
+            Obtained
+==========  ========
+definition  -R--
+records     CR--
+policy      -R--
+roles       -R--
+==========  ========
 
-He will not have the right to modify it.
+Hence, he will not have the permission to modify it.
 
-Alexis is in the `admins` group, if he tries to modify the record, he
-will get the `role:admins` and get full access::
+Alexis is in the `admins` group, which is given `admins` role on
+this model. If he tries to modify the record, he will obtain full permissions.
 
-    ["system.Authenticated", "system.Everyone", "role:admins"]
-
-Alexis will be able to modify it.
-
-If Mike tries to modify it, because he has the `role:admins` he will get full access::
-
-    ["system.Authenticated", "system.Everyone", "role:admins"]
-
-Mike will be able to modify it.
+If Mike tries to modify it, because is listed in the `admins` role on
+this model, will get full permissions too.
