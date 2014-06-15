@@ -4,7 +4,7 @@ from cornice import Service
 from pyramid.security import Everyone
 
 from daybed.backends.exceptions import RecordNotFound
-from daybed.schemas.validators import (RecordValidator, record_validator,
+from daybed.schemas.validators import (RecordSchema, record_validator,
                                        validate_against_schema)
 
 
@@ -117,7 +117,7 @@ def patch(request):
 
     data.update(json.loads(request.body.decode('utf-8')))
     definition = request.db.get_model_definition(model_id)
-    validate_against_schema(request, RecordValidator(definition), data)
+    validate_against_schema(request, RecordSchema(definition), data)
     if not request.errors:
         request.db.put_record(model_id, data, [username], record_id)
     return {'id': record_id}

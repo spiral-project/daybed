@@ -12,18 +12,18 @@ from daybed.backends.exceptions import ModelNotFound, PolicyNotFound
 from . import registry, TypeFieldNode
 
 
-class DefinitionValidator(SchemaNode):
+class DefinitionSchema(SchemaNode):
     def __init__(self):
-        super(DefinitionValidator, self).__init__(Mapping())
+        super(DefinitionSchema, self).__init__(Mapping())
         self.add(SchemaNode(String(), name='title'))
         self.add(SchemaNode(String(), name='description'))
         self.add(SchemaNode(Sequence(), SchemaNode(TypeFieldNode()),
                             name='fields', validator=Length(min=1)))
 
 
-class RolesValidator(SchemaNode):
+class RolesSchema(SchemaNode):
     def __init__(self):
-        super(RolesValidator, self).__init__(Mapping(unknown='preserve'))
+        super(RolesSchema, self).__init__(Mapping(unknown='preserve'))
         self.add(SchemaNode(Sequence(), SchemaNode(String()),
                             name='admins', validator=Length(min=1)))
 
@@ -31,9 +31,9 @@ class RolesValidator(SchemaNode):
         # (we need to merge master to fix this. see #86)
 
 
-class PolicyValidator(SchemaNode):
+class PolicySchema(SchemaNode):
     def __init__(self):
-        super(PolicyValidator, self).__init__(Mapping(unknown='preserve'))
+        super(PolicySchema, self).__init__(Mapping(unknown='preserve'))
 
     def _crudSchema(self, domain):
         crudSchema = SchemaNode(Mapping(unknown='raise'),
@@ -56,12 +56,12 @@ class PolicyValidator(SchemaNode):
                 for domain in ('definition', 'records', 'users', 'policy'):
                     permSchema.add(self._crudSchema(domain))
                 self.add(permSchema)
-        return super(PolicyValidator, self).deserialize(cstruct)
+        return super(PolicySchema, self).deserialize(cstruct)
 
 
-class RecordValidator(SchemaNode):
+class RecordSchema(SchemaNode):
     def __init__(self, definition):
-        super(RecordValidator, self).__init__(Mapping())
+        super(RecordSchema, self).__init__(Mapping())
         for field in definition['fields']:
             fieldtype = field.pop('type')
             self.add(registry.validation(fieldtype, **field))
@@ -107,7 +107,7 @@ def validator(request, schema):
 
 
 #  Validates a request body according model definition schema.
-definition_validator = partial(validator, schema=DefinitionValidator())
+definition_validator = partial(validator, schema=DefinitionSchema())
 
 
 def record_validator(request):
@@ -117,7 +117,7 @@ def record_validator(request):
 
     try:
         definition = request.db.get_model_definition(model_id)
-        schema = RecordValidator(definition)
+        schema = RecordSchema(definition)
         validator(request, schema)
     except ModelNotFound:
         request.errors.add('path', 'modelname',
@@ -125,7 +125,7 @@ def record_validator(request):
         request.errors.status = 404
 
 
-policy_validator = partial(validator, schema=PolicyValidator())
+policy_validator = partial(validator, schema=PolicySchema())
 
 
 def model_validator(request):
@@ -143,16 +143,16 @@ def model_validator(request):
     if not definition:
         request.errors.add('body', 'definition', 'definition is required')
     else:
-        validate_against_schema(request, DefinitionValidator(), definition)
+        validate_against_schema(request, DefinitionSchema(), definition)
     request.validated['definition'] = definition
 
     # Check that the records are valid according to the definition.
     records = body.get('records')
     request.validated['records'] = []
     if records:
-        definition_validator = RecordValidator(definition)
+        definition_schema = RecordSchema(definition)
         for record in records:
-            validate_against_schema(request, definition_validator, record)
+            validate_against_schema(request, definition_schema, record)
             request.validated['records'].append(record)
 
     # Check that roles are valid.
@@ -161,7 +161,7 @@ def model_validator(request):
     else:
         default_roles = {'admins': [Everyone]}
     roles = body.get('roles', default_roles)
-    validate_against_schema(request, RolesValidator(), roles)
+    validate_against_schema(request, RolesSchema(), roles)
 
     request.validated['roles'] = roles
     policy_id = body.get('policy_id', request.registry.default_policy)
