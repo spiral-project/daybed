@@ -54,7 +54,7 @@ class FunctionalTest(object):
     def test_post_model_definition_wrong_policy(self):
         self.app.post_json('/models',
                            {'definition': self.valid_definition,
-                            'policy_id': 'unknown'},
+                            'policy': 'unknown'},
                            headers=self.headers,
                            status=400)
 
@@ -363,14 +363,14 @@ class TimestampedModelTest(FunctionalTest, BaseWebTest):
                     "type": "date",
                     "label": "created on",
                     "required": True,
-                    "auto_now": False
+                    "autonow": False
                 },
                 {
                     "name": "modified",
                     "type": "datetime",
                     "label": "modified on",
                     "required": True,
-                    "auto_now": True
+                    "autonow": True
                 },
             ]
         }

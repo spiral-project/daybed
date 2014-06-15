@@ -123,7 +123,7 @@ class PolicyTest(BaseWebTest):
                                 "fields": [{"name": "age", "type": "int",
                                             "required": False}]
                                 },
-                 'policy_id': policy_id}
+                 'policy': policy_id}
 
         self.app.put_json('/models/test', model,
                           headers=self.headers, status=200)

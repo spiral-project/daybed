@@ -18,7 +18,7 @@ OBJECT_FIELD_DEFINITION = {
          'label': u'',
          'hint': u'True or false',
          'required': True},
-        {'auto_now': False,
+        {'autonow': False,
          'type': u'datetime',
          'name': u'updated',
          'label': u'',

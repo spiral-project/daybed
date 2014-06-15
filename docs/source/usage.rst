@@ -85,7 +85,7 @@ We can now get our models back::
         "roles": {
             "admins": ["admin@example.com"]
         },
-        "policy_id": "read-only"
+        "policy": "read-only"
     }
 
 **POST /models**

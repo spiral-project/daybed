@@ -130,9 +130,9 @@ Of the following model:
            ]
         },
         "roles": {
-		  "admins": ["group:admins", "Mike"]
+            "admins": ["group:admins", "Mike"]
         },
-        "policy_id": "read-only"
+        "policy": "read-only"
     }
 
 If `john` tries to modify this record, he will have the following principals::
