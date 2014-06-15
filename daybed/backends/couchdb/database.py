@@ -144,7 +144,7 @@ class Database(object):
         For instance::
 
             {'admins': ['group:pirates', 'group:flibustiers'],
-             'users': ['Remy', 'Alexis']}
+             'moderators': ['Remy', 'Alexis']}
         """
         doc = self.__get_model(model_id)
         return doc['roles']
