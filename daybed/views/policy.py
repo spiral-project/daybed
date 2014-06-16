@@ -23,7 +23,7 @@ def delete_policy(request):
     # Test if somebody is using the policy.
     if not request.db.policy_is_used(policy_id):
         request.db.delete_policy(policy_id)
-        return
+        return {"msg": "ok"}
     return HTTPForbidden("%s is used by some models." % policy_id)
 
 
