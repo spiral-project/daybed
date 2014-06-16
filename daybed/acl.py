@@ -29,6 +29,7 @@ PERMISSION_CREATE = {'definition': {'read': True},
                      'policy':  {'read': True}}
 
 POLICY_READONLY = {'role:admins': PERMISSION_FULL,
+                   'authors:': {'records': CRUD},
                    Authenticated: PERMISSION_CREATE,
                    Everyone: {
                        'definition': {'read': True},
