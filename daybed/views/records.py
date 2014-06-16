@@ -3,7 +3,7 @@ import json
 from cornice import Service
 from pyramid.security import Everyone
 
-from daybed.backends.exceptions import RecordNotFound
+from daybed.backends.exceptions import RecordNotFound, ModelNotFound
 from daybed.schemas.validators import (RecordSchema, record_validator,
                                        validate_against_schema)
 
@@ -26,9 +26,9 @@ record = Service(name='record',
 def get_records(request):
     """Retrieves all model records."""
     model_id = request.matchdict['model_id']
-    # Check that model is defined
-    exists = request.db.get_model_definition(model_id)
-    if not exists:
+    try:
+        request.db.get_model_definition(model_id)
+    except ModelNotFound:
         request.response.status = "404 Not Found"
         return {"msg": "%s: model not found" % model_id}
     # Return array of records
@@ -66,7 +66,11 @@ def post_record(request):
 def delete_records(request):
     """Deletes all records of model."""
     model_id = request.matchdict['model_id']
-    request.db.delete_records(model_id)
+    try:
+        request.db.delete_records(model_id)
+    except ModelNotFound:
+        request.response.status = "404 Not Found"
+        return {"msg": "%s: model not found" % model_id}
     return {"msg": "ok"}
 
 

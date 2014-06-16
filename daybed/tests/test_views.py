@@ -11,6 +11,17 @@ from daybed.schemas import registry
 from daybed.acl import PERMISSION_FULL
 
 
+SIMPLE_MODEL_DEFINITION = {
+    'definition': {
+        "title": "simple",
+        "description": "One optional field",
+        "fields": [{"name": "age",
+                    "type": "int",
+                    "required": False}]
+    }
+}
+
+
 class DaybedViewsTest(BaseWebTest):
 
     def __init__(self, *args, **kwargs):
@@ -48,12 +59,6 @@ class DaybedViewsTest(BaseWebTest):
                                     default=True,
                                     type="boolean",
                                     label="Gps")])
-
-    def test_unknown_model_data_creation(self):
-        resp = self.app.post_json('/models/unknown/records', {},
-                                  headers={'Content-Type': 'application/json'},
-                                  status=404)
-        self.assertIn('"status": "error"', resp.body.decode('utf-8'))
 
 
 class BasicAuthRegistrationTest(BaseWebTest):
@@ -118,12 +123,8 @@ class PolicyTest(BaseWebTest):
                           headers=self.headers, status=409)
 
         # Test Create a definition with it
-        model = {'definition': {"title": "simple",
-                                "description": "One optional field",
-                                "fields": [{"name": "age", "type": "int",
-                                            "required": False}]
-                                },
-                 'policy': policy_id}
+        model = SIMPLE_MODEL_DEFINITION.copy()
+        model.update({'policy': policy_id})
 
         self.app.put_json('/models/test', model,
                           headers=self.headers, status=200)
@@ -163,3 +164,47 @@ class SporeTest(BaseWebTest):
         resp = self.app.get('/spore',
                             headers=self.headers, status=200)
         self.assertEqual(resp.json['name'], 'daybed')
+
+
+class ModelsViewsTest(BaseWebTest):
+
+    def test_unknown_model_deletion_raises_404(self):
+        self.app.delete('/models/unknown', {},
+                        headers=self.headers,
+                        status=404)
+
+    def test_retrieve_whole_model_definition(self):
+        model = SIMPLE_MODEL_DEFINITION.copy()
+        self.app.put_json('/models/test', model,
+                          headers=self.headers)
+        resp = self.app.get('/models/test', {},
+                            headers=self.headers)
+        self.assertEqual(resp.json['policy'], 'read-only')
+        self.assertEqual(resp.json['records'], [])
+        self.assertDictEqual(resp.json['roles'], {"admins": ["admin"]})
+
+
+class RecordsViewsTest(BaseWebTest):
+
+    def test_delete_model_records(self):
+        model = SIMPLE_MODEL_DEFINITION.copy()
+        self.app.put_json('/models/test', model,
+                          headers=self.headers)
+        self.app.delete('/models/test/records', {},
+                        headers=self.headers)
+
+    def test_delete_unknown_model_records(self):
+        self.app.delete('/models/unknown/records', {},
+                        headers=self.headers,
+                        status=404)
+
+    def test_unknown_model_raises_404(self):
+        self.app.get('/models/unknown/records', {},
+                     headers=self.headers,
+                     status=404)
+
+    def test_unknown_model_data_creation(self):
+        resp = self.app.post_json('/models/unknown/records', {},
+                                  headers={'Content-Type': 'application/json'},
+                                  status=404)
+        self.assertIn('"status": "error"', resp.body.decode('utf-8'))

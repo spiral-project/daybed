@@ -1,5 +1,6 @@
 import copy
 
+import mock
 import colander
 
 from daybed import schemas
@@ -37,9 +38,10 @@ class InvalidObjectFieldTest(BaseWebTest):
 
     def test_is_not_valid_if_both_fields_and_model(self):
         self.definition['model'] = 'Foo'
-        self.assertRaises(colander.Invalid,
-                          self.schema.deserialize,
-                          self.definition)
+        with mock.patch('daybed.schemas.relations.ModelExist.__call__'):
+            self.assertRaises(colander.Invalid,
+                              self.schema.deserialize,
+                              self.definition)
 
     def test_is_not_valid_if_no_fields_nor_model(self):
         self.definition.pop('fields')
@@ -133,3 +135,10 @@ class ModelFieldTest(BaseWebTest):
         self.assertRaises(colander.Invalid,
                           self.validator.deserialize,
                           '{"age": "a"}')
+
+    def test_validator_instantiation_fails_if_model_was_delete(self):
+        self.app.delete('/models/simple',
+                        headers=self.headers)
+        self.assertRaises(colander.Invalid,
+                          schemas.ObjectField.validation,
+                          **self.definition)
