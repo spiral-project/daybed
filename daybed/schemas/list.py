@@ -14,6 +14,9 @@ class ParametersMatchItemType(object):
             itemtype = value['itemtype']
             parameters = value['parameters']
             schema = registry.definition(itemtype)
+
+            # Instanciate a fake type to check parameters match what's accepted
+            # by this field type.
             parameters.update(name='fake', type=itemtype)
             schema.deserialize(parameters)
 
