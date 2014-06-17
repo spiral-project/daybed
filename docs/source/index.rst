@@ -78,5 +78,5 @@ More documentation
 
    install
    usage
-   acl
+   permissions
    terminology

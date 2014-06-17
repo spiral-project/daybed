@@ -179,8 +179,9 @@ Get back all the data you pushed to a model
         }]
     }
 
-Get policy list
----------------
+
+Manipulate policies
+-------------------
 
 **GET /policies**
 
@@ -190,7 +191,7 @@ Get policy list
 
     {'policies': ["read-only"]}
 
-**GET /policies/{policy_name}**
+**GET,PUT,DELETE /policies/{policy_name}**
 
 ::
 
