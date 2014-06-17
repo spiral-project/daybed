@@ -78,11 +78,11 @@ Comparison
 *Daybed* has many competitors, yet none of them shares the same approach or features set.
 
 ===========================  ======  ==================  ==========  ========  ======  ============
-                                     Custom              Generated              Competitors
+Strategy                             Custom              Generated              Competitors
                                      dedicated           code
                                      API
 ===========================  ======  ==================  ==========  ==============================
-                                     Django REST
+Project                              Django REST
                                      framework,
                                      Restify, express,
                              Daybed  Struts...           Python Eve  Loopback  Hoodie  Google Forms
