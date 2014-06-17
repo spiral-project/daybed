@@ -97,7 +97,7 @@ Raw data access              ✔       ✔                   ✔           ✔  
 Agnostic (REST)              ✔       ✔                   ✔           ✔
 Requires SDK                                                                   ✔
 Open Source                  ✔       ✔                   ✔           ✔         ✔
-ElasticSearch                (soon)
+Faceted search               (soon)
 ===========================  ======  ==================  ==========  ==============================
 
 Sources: http://python-eve.org ; http://hood.ie ; http://loopback.io ;
