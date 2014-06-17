@@ -18,6 +18,7 @@ Highlights
 * Define dynamic models and relations
 * Validate and store records
 * Query and access data
+* Define role-based permissions and policies
 
 *Daybed* is a minimalist, agnostic and generic REST API, built with bullet-proof
 technologies, such as *CouchDB* and *Pyramid*.
