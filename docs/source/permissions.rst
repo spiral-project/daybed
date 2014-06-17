@@ -68,12 +68,12 @@ Custom roles can be defined, but some are provided by default :
 
 :notes:
 
-    The creator of a model is put among the list of users for the ``admins`` role.
+    The creator of a **model** is put among the list of users for the ``admins`` role.
 
-    The author of a record is put among the list of users for the ``authors`` role.
+    The author of a **record** is put among the list of users for the ``authors`` role.
 
 
-A policy is set on the model. It will assign permissions for each role. 
+A policy is set on the model. It will assign permissions for each role.
 
 When a user tries an action, a list of permissions is obtained based on the roles he
 has on the model (or record) and the related policy.
@@ -92,25 +92,24 @@ Custom policies can be defined, but some are provided by default :
 * ``read-only``
 * ``admin-only``
 
-
-==========  ==========  ===========  ============  ============  ====================  ===============
-                        role:admins  group:admins  role:authors  system.Authenticated  system.Everyone
-==========  ==========  ===========  ============  ============  ====================  ===============
-anonymous   definition                                                                 CRUD
-            records                                                                    CRUD
-            policy                                                                     CRUD
-            roles                                                                      CRUD
-----------  ----------  -----------  ------------  ------------  --------------------  ---------------
-read-only   definition  CRUD                                                           -R--
-            records     CRUD                       --UD          C---                  -R--
-            policy      CRUD                                     -R--
-            roles       CRUD                                     -R--
-----------  ----------  -----------  ------------  ------------  --------------------  ---------------
-admin-only  definition  CRUD         CRUD                                              -R--
-            records     CRUD         CRUD          CRUD
-            policy      CRUD         CRUD
-            roles       CRUD         CRUD
-==========  ==========  ===========  ============  ============  ====================  ===============
+==============  ==========  ===========  ============  ============  ====================  ===============
+Policy          Scope       role:admins  group:admins  role:authors  system.Authenticated  system.Everyone
+==============  ==========  ===========  ============  ============  ====================  ===============
+**anonymous**   definition                                                                 CRUD
+|               records                                                                    CRUD
+|               policy                                                                     CRUD
+|               roles                                                                      CRUD
+--------------  ----------  -----------  ------------  ------------  --------------------  ---------------
+**read-only**   definition  CRUD                                                           -R--
+|               records     CRUD                       --UD          C---                  -R--
+|               policy      CRUD                                     -R--
+|               roles       CRUD                                     -R--
+--------------  ----------  -----------  ------------  ------------  --------------------  ---------------
+**admin-only**  definition  CRUD         CRUD                                              -R--
+|               records     CRUD         CRUD          CRUD
+|               policy      CRUD         CRUD
+|               roles       CRUD         CRUD
+==============  ==========  ===========  ============  ============  ====================  ===============
 
 The ``read-only`` can be explicited like this :
 
