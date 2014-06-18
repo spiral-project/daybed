@@ -48,9 +48,10 @@ Now, install Daybed's Python dependencies in this venv::
 
     $ make install
 
-Don't forget to start your CouchDB_ server instance::
+Don't forget to start your CouchDB_ and ElasticSearch_ server instances::
 
-    $ couchdb
+    $ sudo service couchdb start
+    $ sudo service elasticsearch start
 
 Then start the Daybed server::
 
@@ -91,9 +92,15 @@ Run a CouchDB_ instance::
 
     $ sudo docker run --name couchdb klaemo/couchdb
 
-Run a *Daybed* container linked to the previous one::
+Run an ElasticSearch_ instance::
 
-    $ sudo docker run --link=couchdb:couchdb --publish=8000:8000 makinacorpus/daybed
+    $ sudo docker run --name couchdb dockerfile/elasticsearch
+
+Run a *Daybed* container linked to the previous ones::
+
+    sudo docker run --link=couchdb:couchdb \
+                    --link=elasticsearch:elasticsearch \
+                    --publish=8000:8000 makinacorpus/daybed
 
 Test it !::
 
@@ -131,6 +138,7 @@ From the repository folder::
 
 .. _CouchDB: http://couchdb.apache.org/
 .. _Redis: http://redis.io
+.. _ElasticSearch: http://www.elasticsearch.org/
 .. _Homebrew: http://brew.sh/
 .. _Python: http://python.org/
 .. _PyPy: http://pypy.org/

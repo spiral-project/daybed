@@ -26,6 +26,7 @@ from daybed.permissions import (
 from daybed.views.errors import forbidden_view
 from daybed.renderers import GeoJSON
 from daybed.backends.exceptions import TokenNotFound
+from daybed.indexer import DaybedIndexer
 
 
 def get_hawk_id(request, tokenid):
@@ -99,6 +100,16 @@ def main(global_config, **settings):
 
     config.add_subscriber(add_db_to_request, NewRequest)
 
+    # index initialization
+    index_hosts = build_list(settings.get('index.host', 'localhost:9200'))
+    config.registry.index = DaybedIndexer(config, index_hosts)
+
+    def add_index_to_request(event):
+        event.request.index = config.registry.index
+
+    config.add_subscriber(add_index_to_request, NewRequest)
+
+    # Renderers initialization
     def add_default_accept(event):
         # If the user doesn't give us an Accept header, force the use
         # of the JSON renderer
@@ -108,6 +119,6 @@ def main(global_config, **settings):
     config.add_subscriber(add_default_accept, NewRequest)
 
     config.add_renderer('jsonp', JSONP(param_name='callback'))
-
     config.add_renderer('geojson', GeoJSON())
+
     return config.make_wsgi_app()

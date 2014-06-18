@@ -44,7 +44,8 @@ REQUIREMENTS = [
     'cornice',
     'colander',
     'pyramid_multiauth',
-    'pyramid_hawkauth'
+    'pyramid_hawkauth',
+    'elasticsearch',
 ]
 DEPENDENCY_LINKS = []
 ENTRY_POINTS = {

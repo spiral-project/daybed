@@ -139,6 +139,19 @@ class FunctionalTest(object):
         self.assertIn('name', errors[0])
         self.assertNotEquals('', errors[0]['name'])
 
+    @property
+    def index_query(self):
+        return {}
+
+    def test_data_search(self):
+        self.create_definition()
+        self.create_record()
+        resp = self.app.get('/models/%s/search/' % self.model_id,
+                            {'query': self.index_query},
+                            headers=self.headers)
+        results = resp.json.get('hits', {}).get('hits', [])
+        self.assertTrue(len(results) > 0)
+
 
 class TodoModelTest(FunctionalTest, BaseWebTest):
 

@@ -6,6 +6,7 @@ from pyramid.security import Everyone
 from daybed.backends.exceptions import RecordNotFound, ModelNotFound
 from daybed.schemas.validators import (RecordSchema, record_validator,
                                        validate_against_schema)
+from daybed.events import RecordCreated, RecordDeleted
 
 
 records = Service(name='records',
@@ -59,6 +60,10 @@ def post_record(request):
         token = Everyone
     record_id = request.db.put_record(model_id, request.data_clean,
                                       [token])
+
+    event = RecordCreated(model_id, record_id, request)
+    request.registry.notify(event)
+
     created = u'%s/models/%s/records/%s' % (request.application_url, model_id,
                                             record_id)
     request.response.status = "201 Created"
@@ -145,6 +150,10 @@ def delete(request):
 
     try:
         deleted = request.db.delete_record(model_id, record_id)
+
+        event = RecordDeleted(model_id, record_id, request)
+        request.registry.notify(event)
+
     except RecordNotFound:
         request.errors.add('path', record_id, "record not found")
         request.errors.status = "404 Not Found"
