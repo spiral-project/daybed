@@ -275,31 +275,6 @@ class FunctionalTest(object):
         self.assertIn('Access-Control-Allow-Origin', response.headers)
 
 
-class SimpleModelTest(FunctionalTest, BaseWebTest):
-
-    model_id = 'simple'
-
-    @property
-    def valid_definition(self):
-        return {
-            "title": u"simple — with unicode records in it",
-            "description": "One optional field",
-            "fields": [{"name": "age", "type": "int", "required": False,
-                        "label": u"Put your âge"}]
-        }
-
-    @property
-    def valid_records(self):
-        return {}
-
-    @property
-    def invalid_records(self):
-        return {'age': 'abc'}
-
-    def update_records(self, entry):
-        entry.pop('age', 0)
-
-
 class TodoModelTest(FunctionalTest, BaseWebTest):
 
     model_id = 'todo'
@@ -339,51 +314,6 @@ class TodoModelTest(FunctionalTest, BaseWebTest):
 
     def update_records(self, entry):
         entry['status'] = 'done'
-
-
-class TimestampedModelTest(FunctionalTest, BaseWebTest):
-
-    model_id = 'timestamped'
-
-    @property
-    def valid_definition(self):
-        return {
-            "title": "timestamped",
-            "description": "Playing with date fields",
-            "fields": [
-                {
-                    "name": "creation",
-                    "type": "date",
-                    "label": "created on",
-                    "required": True,
-                    "autonow": False
-                },
-                {
-                    "name": "modified",
-                    "type": "datetime",
-                    "label": "modified on",
-                    "required": True,
-                    "autonow": True
-                },
-            ]
-        }
-
-    @property
-    def valid_records(self):
-        return {'creation': '2012-04-15', 'modified': ''}
-
-    @property
-    def invalid_records(self):
-        return {'creation': '15-04-2012', 'modified': ''}
-
-    def update_records(self, entry):
-        entry['creation'] = '2013-05-30'
-        entry['modified'] = ''
-
-    def assertRecordsCorrect(self, records, entry):
-        self.assertEqual(records['creation'], entry['creation'])
-        # Check that auto-now worked
-        self.assertNotEqual(records['modified'], entry['creation'])
 
 
 class MushroomsModelTest(FunctionalTest, BaseWebTest):
@@ -458,76 +388,3 @@ class MushroomsModelTest(FunctionalTest, BaseWebTest):
         # after update
         self.assertCountEqual(feature['geometry']['coordinates'],
                               [[[0, 0], [0, 1], [1, 1], [0, 0]]])
-
-
-class CityModelTest(FunctionalTest, BaseWebTest):
-
-    model_id = 'city'
-
-    @property
-    def valid_definition(self):
-        return {
-            "title": "capitals",
-            "description": "in the world",
-            "fields": [
-                {
-                    "name": "name",
-                    "type": "string",
-                    "required": True,
-                    "label": "Administrative"
-                },
-                {
-                    "name": "location",
-                    "type": "point",
-                    "gps": True,
-                    "required": True,
-                    "label": "(x,y,z)"
-                }
-            ]
-        }
-
-    @property
-    def valid_records(self):
-        # Add some unicode records
-        return {'name': u'Nuestra Señora de La Paz',
-                'location': [-16.5, -68.15, 3500]}
-
-    @property
-    def invalid_records(self):
-        return {'name': 'La Paz', 'location': [2012, 12, 21]}
-
-    def update_records(self, entry):
-        entry['name'] = 'Sucre'
-        entry['location'] = [-19.0, -65.2, 500]
-
-
-class EuclideModelTest(FunctionalTest, BaseWebTest):
-
-    model_id = 'position'
-
-    @property
-    def valid_definition(self):
-        return {
-            "title": "positions",
-            "description": "euclidean",
-            "fields": [
-                {
-                    "name": "location",
-                    "type": "point",
-                    "required": True,
-                    "label": "(x,y)",
-                    "gps": False
-                }
-            ]
-        }
-
-    @property
-    def valid_records(self):
-        return {'location': [2012, 3042]}
-
-    @property
-    def invalid_records(self):
-        return {'location': [0]}
-
-    def update_records(self, entry):
-        entry['location'] = [21, 12, 2012]
