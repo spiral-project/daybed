@@ -35,9 +35,8 @@ from pyramid_multiauth import MultiAuthenticationPolicy
 from daybed.acl import (
     RootFactory, DaybedAuthorizationPolicy, build_user_principals,
     check_api_token,
-    POLICY_READONLY, POLICY_ANONYMOUS, POLICY_ADMINONLY
 )
-from daybed.backends.exceptions import PolicyAlreadyExist, UserNotFound
+from daybed.backends.exceptions import UserNotFound
 from daybed.views.errors import unauthorized_view
 from daybed.renderers import GeoJSON
 
@@ -135,26 +134,13 @@ def main(global_config, **settings):
 
     # backend initialisation
     backend_class = config.maybe_dotted(settings['daybed.backend'])
-    config.registry.backend = backend = backend_class(config)
+    config.registry.backend = backend_class.load_from_config(config)
 
     def add_db_to_request(event):
-        event.request.db = config.registry.backend.db()
+        event.request.db = config.registry.backend
     config.add_subscriber(add_db_to_request, NewRequest)
 
     config.add_renderer('jsonp', JSONP(param_name='callback'))
-
-    # Here, define the default users / policies etc.
-    database = backend.db()
-    for name, policy in [('read-only', POLICY_READONLY),
-                         ('anonymous', POLICY_ANONYMOUS),
-                         ('admin-only', POLICY_ADMINONLY)]:
-        try:
-            database.set_policy(name, policy)
-        except PolicyAlreadyExist:
-            pass
-
-    config.registry.default_policy = settings.get('daybed.default_policy',
-                                                  'read-only')
 
     config.add_renderer('geojson', GeoJSON())
     return config.make_wsgi_app()

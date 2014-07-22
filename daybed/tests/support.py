@@ -19,12 +19,10 @@ class BaseWebTest(unittest.TestCase):
 
     def setUp(self):
         self.app = webtest.TestApp("config:conf/tests.ini", relative_to='.')
-        self.backend = self.app.app.registry.backend
-        self.db = self.backend.db()
+        self.db = self.app.app.registry.backend
 
         try:
-            self.db.add_user({'name': 'admin', 'groups': ['admins'],
-                              'apitoken': 'foo'})
+            self.db.add_user({'name': 'admin', 'apitoken': 'foo'})
         except UserAlreadyExist:
             pass
 
@@ -37,7 +35,7 @@ class BaseWebTest(unittest.TestCase):
         }
 
     def tearDown(self):
-        self.backend.delete_db()
+        self.db.delete_db()
 
 
 def force_unicode(data):

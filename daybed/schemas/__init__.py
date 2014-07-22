@@ -1,5 +1,9 @@
+from pyramid.config import global_registries
 from colander import (SchemaType, SchemaNode, Mapping, null, String,
                       OneOf, Boolean, Regex)
+
+def get_db():
+    return global_registries.last.backend
 
 
 class AlreadyRegisteredError(Exception):

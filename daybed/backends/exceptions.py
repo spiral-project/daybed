@@ -12,11 +12,3 @@ class ModelNotFound(Exception):
 
 class RecordNotFound(Exception):
     pass
-
-
-class PolicyNotFound(Exception):
-    pass
-
-
-class PolicyAlreadyExist(Exception):
-    pass

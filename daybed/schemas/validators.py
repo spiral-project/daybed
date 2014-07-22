@@ -4,11 +4,11 @@ import json
 import datetime
 
 import six
-from colander import (SchemaNode, Mapping, Sequence, Length, String,
-                      null, drop, Invalid, Boolean)
-from pyramid.security import Everyone
+from colander import (
+    SchemaNode, Mapping, Sequence, Length, String, null, Invalid
+)
 
-from daybed.backends.exceptions import ModelNotFound, PolicyNotFound
+from daybed.backends.exceptions import ModelNotFound
 from . import registry, TypeFieldNode
 
 
@@ -29,34 +29,6 @@ class RolesSchema(SchemaNode):
 
         # XXX Control that the values of the sequence are valid users.
         # (we need to merge master to fix this. see #86)
-
-
-class PolicySchema(SchemaNode):
-    def __init__(self):
-        super(PolicySchema, self).__init__(Mapping(unknown='preserve'))
-
-    def _crudSchema(self, domain):
-        crudSchema = SchemaNode(Mapping(unknown='raise'),
-                                name=domain, missing=drop)
-        crudSchema.add(SchemaNode(Boolean(), name='create', missing=drop))
-        crudSchema.add(SchemaNode(Boolean(), name='read', missing=drop))
-        crudSchema.add(SchemaNode(Boolean(), name='update', missing=drop))
-        crudSchema.add(SchemaNode(Boolean(), name='delete', missing=drop))
-        return crudSchema
-
-    def deserialize(self, cstruct=null):
-        if cstruct:
-            self.children = []
-            self.add(SchemaNode(String(), name='title', missing=drop))
-            self.add(SchemaNode(String(), name='description', missing=drop))
-            roles = [key for key in six.iterkeys(cstruct)
-                     if key not in ('title', 'description')]
-            for key in roles:
-                permSchema = SchemaNode(Mapping(unknown='raise'), name=key)
-                for domain in ('definition', 'records', 'roles', 'policy'):
-                    permSchema.add(self._crudSchema(domain))
-                self.add(permSchema)
-        return super(PolicySchema, self).deserialize(cstruct)
 
 
 class RecordSchema(SchemaNode):
@@ -125,9 +97,6 @@ def record_validator(request):
         request.errors.status = 404
 
 
-policy_validator = partial(validator, schema=PolicySchema())
-
-
 def model_validator(request):
     """Verify that the model is okay (that we have the right fields) and
     eventually populates it if there is a need to.
@@ -154,22 +123,3 @@ def model_validator(request):
         for record in records:
             validate_against_schema(request, definition_schema, record)
             request.validated['records'].append(record)
-
-    # Check that roles are valid.
-    if request.user:
-        default_roles = {'admins': [request.user['name']]}
-    else:
-        default_roles = {'admins': [Everyone]}
-    roles = body.get('roles', default_roles)
-    validate_against_schema(request, RolesSchema(), roles)
-
-    request.validated['roles'] = roles
-    policy_id = body.get('policy', request.registry.default_policy)
-
-    # Check that the policy exists in our db.
-    try:
-        request.db.get_policy(policy_id)
-    except PolicyNotFound:
-        request.errors.add('body', 'policy',
-                           "policy '%s' doesn't exist" % policy_id)
-    request.validated['policy'] = policy_id

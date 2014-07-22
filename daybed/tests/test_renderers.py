@@ -11,26 +11,28 @@ class TestGeoJSONRenderer(BaseWebTest):
 
     def setUp(self):
         super(TestGeoJSONRenderer, self).setUp()
-        roles = {'admins': ['group:pirates']}
 
+        acls = {
+            'read_definition': ['Alexis', 'Remy']
+        }
         self.name = name = 'locations'
         definition = {
             'fields': [{'name': 'location', 'type': 'point'}]
         }
-        self.db.put_model(definition, roles, 'admin-only', name)
+        self.db.put_model(definition, acls, name)
 
         name = 'geomodel'
         definition = {
             'fields': [{'name': 'geom', 'type': 'geojson'}]
         }
-        self.db.put_model(definition, roles, 'admin-only', name)
+        self.db.put_model(definition, acls, name)
 
         name = 'multigeoms'
         definition = {
             'fields': [{'name': 'point', 'type': 'point'},
                        {'name': 'line', 'type': 'line'}]
         }
-        self.db.put_model(definition, roles, 'admin-only', name)
+        self.db.put_model(definition, acls, name)
 
         self.geojson = GeoJSON()
         self.renderer = self.geojson(None)

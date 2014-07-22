@@ -38,9 +38,8 @@ def get_definition(request):
 def post_models(request):
     """Creates a model with the given definition and records, if any."""
     model_id = request.db.put_model(
-        definition=request.validated['definition'],
-        roles=request.validated['roles'],
-        policy_id=request.validated['policy'])
+        definition=request.validated['definition'], acls={})
+    # XXX Fix the ACLS.
 
     if request.user:
         username = request.user['name']
@@ -80,8 +79,7 @@ def get_model(request):
 
     return {'definition': definition,
             'records': request.db.get_records(model_id),
-            'policy': request.db.get_model_policy_id(model_id),
-            'roles': request.db.get_roles(model_id)}
+            'acls': request.db.get_model_acls(model_id)}
 
 
 @model.put(validators=(model_validator,), permission='put_model')
@@ -100,8 +98,7 @@ def put_model(request):
         username = Everyone
 
     request.db.put_model(request.validated['definition'],
-                         request.validated['roles'],
-                         request.validated['policy'],
+                         request.validated.get('acls', {}),  # XXX: FIX ACLS
                          model_id)
 
     for record in request.validated['records']:
