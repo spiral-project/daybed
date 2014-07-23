@@ -68,22 +68,23 @@ class BasicAuthRegistrationTest(BaseWebTest):
             "fields": [{"name": "age", "type": "int", "required": False}]
         }
 
-    def test_basic_auth_user_creation(self):
-        auth_password = base64.b64encode(
-            u'arthur:foo'.encode('ascii')).strip().decode('ascii')
-        headers = {
-            'Content-Type': 'application/json',
-            'Authorization': 'Basic {0}'.format(auth_password),
-        }
-
-        self.app.put_json('/models/%s' % self.model_id,
-                          {'definition': self.valid_definition},
-                          headers=headers)
-
-        try:
-            self.db.get_user('arthur')
-        except UserNotFound:
-            self.fail("BasicAuth didn't create the user arthur.")
+    # XXX: We don't create automatically the user on first login attempt.
+    # def test_basic_auth_user_creation(self):
+    #     auth_password = base64.b64encode(
+    #         u'arthur:foo'.encode('ascii')).strip().decode('ascii')
+    #     headers = {
+    #         'Content-Type': 'application/json',
+    #         'Authorization': 'Basic {0}'.format(auth_password),
+    #     }
+    #
+    #     self.app.put_json('/models/%s' % self.model_id,
+    #                       {'definition': self.valid_definition},
+    #                       headers=headers)
+    #
+    #     try:
+    #         self.db.get_user('arthur')
+    #     except UserNotFound:
+    #         self.fail("BasicAuth didn't create the user arthur.")
 
     def test_forbidden(self):
         self.app.put_json('/models/%s' % self.model_id,
@@ -118,7 +119,18 @@ class ModelsViewsTest(BaseWebTest):
                             headers=self.headers)
         self.assertEqual(resp.json['records'], [])
         self.assertDictEqual(resp.json['acls'], {
-            "read_definition": ["Remy", "Alexis"]
+            'read_acls': ['admin'],
+            'update_definition': ['admin'],
+            'delete_all_records': ['admin'],
+            'read_all_records': ['admin'],
+            'update_my_record': ['admin'],
+            'read_my_record': ['admin'],
+            'read_definition': ['admin'],
+            'delete_my_record': ['admin'],
+            'update_acls': ['admin'],
+            'create_record': ['admin'],
+            'update_all_records': ['admin'],
+            'delete_model': ['admin']
         })
 
 

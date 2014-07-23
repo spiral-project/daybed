@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+from collections import defaultdict
 from pyramid.interfaces import IAuthorizationPolicy
 from pyramid.security import Authenticated, Everyone
 from zope.interface import implementer
@@ -6,6 +8,30 @@ from daybed.backends.exceptions import (
     ModelNotFound, RecordNotFound, UserNotFound
 )
 from daybed import logger
+
+PERMISSIONS_LIST = set([
+    'read_definition', 'read_acls', 'update_definition', 'update_acls',
+    'delete_model',
+    'create_record',
+    'read_all_records', 'update_all_records', 'delete_all_records',
+    'read_my_record', 'update_my_record', 'delete_my_record'
+])
+
+
+def get_acls(username, permissions_list=PERMISSIONS_LIST, acls=None):
+    # - Take a username and return the acls for it.
+    # - By default give all permissions to the username
+    # - You can pass existing acls if you want to add the user to some
+    # permissions
+    if acls is None:
+        acls = defaultdict(list)
+    else:
+        acls = defaultdict(list, **acls)
+
+    for perm in permissions_list:
+        acls[perm].append(username)
+
+    return acls
 
 
 class Any(list):
@@ -55,6 +81,16 @@ VIEWS_PERMISSIONS_REQUIRED = {
 @implementer(IAuthorizationPolicy)
 class DaybedAuthorizationPolicy(object):
 
+    def __init__(self, can_create_model=[Everyone]):
+        # Handle Pyramid constants.
+        if can_create_model[0] == "Authenticated":
+            can_create_model[0] = Authenticated
+
+        if can_create_model[0] == "Everyone":
+            can_create_model[0] = Everyone
+
+        self.can_create_model = set(can_create_model)
+
     def permits(self, context, principals, permission):
         """Returns True or False depending if the user with the specified
         principals has access to the given permission.
@@ -62,17 +98,19 @@ class DaybedAuthorizationPolicy(object):
         permissions_required = VIEWS_PERMISSIONS_REQUIRED[permission]
 
         user_permissions = set()
+        can_create_model = self.can_create_model & set(principals) != set()
+        if can_create_model:
+            user_permissions.add("create_model")
 
         if context.model_id:
             try:
                 acls = context.db.get_model_acls(context.model_id)
             except ModelNotFound:
-                #  In case the model doesn't exist, you have access to it.
                 # PUT a non existing model
-                return True
+                return can_create_model
         else:
             # POST a model
-            return True
+            return can_create_model
 
         for acl_name, tokens in acls.items():
             # If one of the principals is in the valid tokens for this,
@@ -89,7 +127,7 @@ class DaybedAuthorizationPolicy(object):
             except RecordNotFound:
                 authors = []
             finally:
-                if not set(principals) ^ set(authors):
+                if not set(principals) & set(authors):
                     user_permissions -= AUTHORS_PERMISSIONS
 
         # Check view permission matches user permissions.
