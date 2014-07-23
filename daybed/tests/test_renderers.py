@@ -11,26 +11,28 @@ class TestGeoJSONRenderer(BaseWebTest):
 
     def setUp(self):
         super(TestGeoJSONRenderer, self).setUp()
-        roles = {'admins': ['group:pirates']}
 
+        acls = {
+            'read_definition': ['Alexis', 'Remy']
+        }
         self.name = name = 'locations'
         definition = {
             'fields': [{'name': 'location', 'type': 'point'}]
         }
-        self.db.put_model(definition, roles, 'admin-only', name)
+        self.db.put_model(definition, acls, name)
 
         name = 'geomodel'
         definition = {
             'fields': [{'name': 'geom', 'type': 'geojson'}]
         }
-        self.db.put_model(definition, roles, 'admin-only', name)
+        self.db.put_model(definition, acls, name)
 
         name = 'multigeoms'
         definition = {
             'fields': [{'name': 'point', 'type': 'point'},
                        {'name': 'line', 'type': 'line'}]
         }
-        self.db.put_model(definition, roles, 'admin-only', name)
+        self.db.put_model(definition, acls, name)
 
         self.geojson = GeoJSON()
         self.renderer = self.geojson(None)
@@ -50,12 +52,12 @@ class TestGeoJSONRenderer(BaseWebTest):
         return self.renderer(data, system)
 
     def test_geojson_renderer_with_empty_collection(self):
-        geojson = self._rendered({'data': []})
+        geojson = self._rendered({'records': []})
         self.assertJSONEqual(geojson, {'type': 'FeatureCollection',
                                        'features': []})
 
     def test_geojson_renderer_as_features(self):
-        geojson = self._rendered({'data': [{'location': [1, 2]}]})
+        geojson = self._rendered({'records': [{'location': [1, 2]}]})
         self.assertJSONEqual(geojson, {'type': 'FeatureCollection',
                                        'features': [
                                            {'id': None,
@@ -67,15 +69,15 @@ class TestGeoJSONRenderer(BaseWebTest):
                                        ]})
 
     def test_geojson_renderer_renames_geometry_field(self):
-        geojson = self._rendered({'data': [{'location': [0, 0]}]})
+        geojson = self._rendered({'records': [{'location': [0, 0]}]})
         geometry = json.loads(geojson)['features'][0]['geometry']
         self.assertDictEqual(geometry, {'type': 'Point',
                                         'coordinates': [0, 0]})
 
     def test_geojson_renderer_renames_only_first_geometry_field(self):
         request = self._build_request(name='multigeoms')
-        geojson = self._rendered({'data': [{'point': [0, 0],
-                                            'line': [[0, 0], [1, 1]]}]},
+        geojson = self._rendered({'records': [{'point': [0, 0],
+                                               'line': [[0, 0], [1, 1]]}]},
                                  request)
         record = json.loads(geojson)['features'][0]
         self.assertDictEqual(record['geometry'],
@@ -87,13 +89,13 @@ class TestGeoJSONRenderer(BaseWebTest):
     def test_geojson_renderer_works_with_jsonp(self):
         request = self._build_request()
         request.GET['callback'] = 'func'
-        geojsonp = self._rendered({'data': [{'location': [0, 0]}]}, request)
+        geojsonp = self._rendered({'records': [{'location': [0, 0]}]}, request)
         self.assertIn('func(', geojsonp)
 
     def test_geojson_renderer_works_with_geojson_field(self):
         request = self._build_request(name='geomodel')
-        records = {'data': [{'geom': {'type': 'Linestring',
-                                      'coordinates': [[0, 0], [1, 1]]}}]}
+        records = {'records': [{'geom': {'type': 'Linestring',
+                                         'coordinates': [[0, 0], [1, 1]]}}]}
         geojson = self._rendered(records, request)
         self.assertJSONEqual(geojson, {
             'type': 'FeatureCollection', 'features': [{
@@ -109,7 +111,7 @@ class TestGeoJSONRenderer(BaseWebTest):
         response = mock.MagicMock()
         response.default_content_type = response.content_type = ''
         request.response = response
-        self._rendered({'data': []}, request)
+        self._rendered({'records': []}, request)
         self.assertEqual(request.response.content_type,
                          'application/vnd.geo+json')
 
@@ -118,6 +120,6 @@ class TestGeoJSONRenderer(BaseWebTest):
         response = mock.MagicMock()
         response.content_type = 'application/octet-stream'
         request.response = response
-        self._rendered({'data': []}, request)
+        self._rendered({'records': []}, request)
         self.assertEqual(request.response.content_type,
                          'application/octet-stream')

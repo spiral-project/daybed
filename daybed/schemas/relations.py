@@ -1,9 +1,10 @@
 import six
 from pyramid.i18n import TranslationString as _
-from pyramid.config import global_registries
 from colander import (String, SchemaNode, Invalid)
 
 from daybed.backends.exceptions import ModelNotFound, RecordNotFound
+
+from . import get_db
 from .base import registry, TypeField, JSONList
 
 
@@ -43,7 +44,7 @@ class OneOfField(TypeField):
 
     @classmethod
     def definition(cls, **kwargs):
-        db = global_registries.last.backend.db()
+        db = get_db()
         schema = super(OneOfField, cls).definition(**kwargs)
         schema.add(SchemaNode(String(), name='model',
                    validator=ModelExist(db)))
@@ -51,7 +52,7 @@ class OneOfField(TypeField):
 
     @classmethod
     def validation(cls, **kwargs):
-        db = global_registries.last.backend.db()
+        db = get_db()
         kwargs['validator'] = RecordsExist(db, kwargs['model'])
         return super(OneOfField, cls).validation(**kwargs)
 
@@ -63,7 +64,7 @@ class AnyOfField(TypeField):
 
     @classmethod
     def definition(cls, **kwargs):
-        db = global_registries.last.backend.db()
+        db = get_db()
         schema = super(AnyOfField, cls).definition(**kwargs)
         schema.add(SchemaNode(String(), name='model',
                    validator=ModelExist(db)))
@@ -71,6 +72,6 @@ class AnyOfField(TypeField):
 
     @classmethod
     def validation(cls, **kwargs):
-        db = global_registries.last.backend.db()
+        db = get_db()
         kwargs['validator'] = RecordsExist(db, kwargs['model'])
         return super(AnyOfField, cls).validation(**kwargs)

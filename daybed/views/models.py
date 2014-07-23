@@ -1,6 +1,7 @@
 from cornice import Service
 from pyramid.security import Everyone
 
+from daybed.acl import get_model_acls
 from daybed.backends.exceptions import ModelNotFound
 from daybed.schemas.validators import model_validator
 
@@ -37,15 +38,14 @@ def get_definition(request):
 @models.post(permission='post_model', validators=(model_validator,))
 def post_models(request):
     """Creates a model with the given definition and records, if any."""
-    model_id = request.db.put_model(
-        definition=request.validated['definition'],
-        roles=request.validated['roles'],
-        policy_id=request.validated['policy'])
-
     if request.user:
         username = request.user['name']
     else:
         username = Everyone
+
+    model_id = request.db.put_model(
+        definition=request.validated['definition'],
+        acls=get_model_acls(username))
 
     for record in request.validated['records']:
         request.db.put_record(model_id, record, [username])
@@ -80,8 +80,7 @@ def get_model(request):
 
     return {'definition': definition,
             'records': request.db.get_records(model_id),
-            'policy': request.db.get_model_policy_id(model_id),
-            'roles': request.db.get_roles(model_id)}
+            'acls': request.db.get_model_acls(model_id)}
 
 
 @model.put(validators=(model_validator,), permission='put_model')
@@ -100,8 +99,7 @@ def put_model(request):
         username = Everyone
 
     request.db.put_model(request.validated['definition'],
-                         request.validated['roles'],
-                         request.validated['policy'],
+                         get_model_acls(username),
                          model_id)
 
     for record in request.validated['records']:

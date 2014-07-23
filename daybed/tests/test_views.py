@@ -1,14 +1,6 @@
-import json
-from uuid import uuid4
-import base64
-
-from pyramid.security import Authenticated
-
 from daybed import __version__ as VERSION
-from daybed.backends.exceptions import UserNotFound
 from daybed.tests.support import BaseWebTest
 from daybed.schemas import registry
-from daybed.acl import PERMISSION_FULL
 
 
 SIMPLE_MODEL_DEFINITION = {
@@ -72,22 +64,23 @@ class BasicAuthRegistrationTest(BaseWebTest):
             "fields": [{"name": "age", "type": "int", "required": False}]
         }
 
-    def test_basic_auth_user_creation(self):
-        auth_password = base64.b64encode(
-            u'arthur:foo'.encode('ascii')).strip().decode('ascii')
-        headers = {
-            'Content-Type': 'application/json',
-            'Authorization': 'Basic {0}'.format(auth_password),
-        }
-
-        self.app.put_json('/models/%s' % self.model_id,
-                          {'definition': self.valid_definition},
-                          headers=headers)
-
-        try:
-            self.db.get_user('arthur')
-        except UserNotFound:
-            self.fail("BasicAuth didn't create the user arthur.")
+    # XXX: We don't create automatically the user on first login attempt.
+    # def test_basic_auth_user_creation(self):
+    #     auth_password = base64.b64encode(
+    #         u'arthur:foo'.encode('ascii')).strip().decode('ascii')
+    #     headers = {
+    #         'Content-Type': 'application/json',
+    #         'Authorization': 'Basic {0}'.format(auth_password),
+    #     }
+    #
+    #     self.app.put_json('/models/%s' % self.model_id,
+    #                       {'definition': self.valid_definition},
+    #                       headers=headers)
+    #
+    #     try:
+    #         self.db.get_user('arthur')
+    #     except UserNotFound:
+    #         self.fail("BasicAuth didn't create the user arthur.")
 
     def test_forbidden(self):
         self.app.put_json('/models/%s' % self.model_id,
@@ -97,65 +90,6 @@ class BasicAuthRegistrationTest(BaseWebTest):
                             headers={'Content-Type': 'application/json'},
                             status=401)
         self.assertIn('401', resp)
-
-
-class PolicyTest(BaseWebTest):
-
-    def test_policy_put_get_delete_ok(self):
-        policy_id = 'read-only%s' % uuid4()
-        policy = {'role:admins': PERMISSION_FULL,
-                  Authenticated: {'definition': {'read': True},
-                                  'records': {'read': True}}}
-
-        # Test Create
-        self.app.put_json('/policies/%s' % policy_id,
-                          policy,
-                          headers=self.headers, status=200)
-
-        # Test Get
-        resp = self.app.get('/policies/%s' % policy_id,
-                            headers=self.headers, status=200)
-        self.assertDictEqual(json.loads(resp.body.decode('utf-8')), policy)
-
-        # Test Create another time with the same name
-        self.app.put_json('/policies/%s' % policy_id,
-                          policy,
-                          headers=self.headers, status=409)
-
-        # Test Create a definition with it
-        model = SIMPLE_MODEL_DEFINITION.copy()
-        model.update({'policy': policy_id})
-
-        self.app.put_json('/models/test', model,
-                          headers=self.headers, status=200)
-
-        # Test Delete when used
-        self.app.delete('/policies/%s' % policy_id,
-                        headers=self.headers, status=403)
-
-        # Delete the model
-        self.app.delete('/models/test',
-                        headers=self.headers, status=200)
-
-        # Test Delete when not used
-        self.app.delete('/policies/%s' % policy_id,
-                        headers=self.headers, status=200)
-
-        self.app.get('/policies/%s' % policy_id,
-                     headers=self.headers, status=404)
-
-    def test_policy_put_wrong(self):
-        policy_id = 'read-only%s' % uuid4()
-        policy = {'role:admins': 'toto'}
-        self.app.put_json('/policies/%s' % policy_id,
-                          policy,
-                          headers=self.headers, status=400)
-
-    def test_policies_list(self):
-        resp = self.app.get('/policies', headers=self.headers, status=200)
-        self.assertDictEqual(
-            json.loads(resp.body.decode('utf-8')),
-            {"policies": ["admin-only", "anonymous", "read-only"]})
 
 
 class SporeTest(BaseWebTest):
@@ -179,9 +113,21 @@ class ModelsViewsTest(BaseWebTest):
                           headers=self.headers)
         resp = self.app.get('/models/test', {},
                             headers=self.headers)
-        self.assertEqual(resp.json['policy'], 'read-only')
         self.assertEqual(resp.json['records'], [])
-        self.assertDictEqual(resp.json['roles'], {"admins": ["admin"]})
+        self.assertDictEqual(resp.json['acls'], {
+            'read_acls': ['admin'],
+            'update_definition': ['admin'],
+            'delete_all_records': ['admin'],
+            'read_all_records': ['admin'],
+            'update_my_record': ['admin'],
+            'read_my_record': ['admin'],
+            'read_definition': ['admin'],
+            'delete_my_record': ['admin'],
+            'update_acls': ['admin'],
+            'create_record': ['admin'],
+            'update_all_records': ['admin'],
+            'delete_model': ['admin']
+        })
 
 
 class RecordsViewsTest(BaseWebTest):

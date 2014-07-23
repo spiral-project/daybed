@@ -32,17 +32,17 @@ class FunctionalTest(object):
         raise NotImplementedError
 
     @property
-    def valid_data(self):
+    def valid_records(self):
         raise NotImplementedError
 
     @property
-    def invalid_data(self):
+    def invalid_records(self):
         raise NotImplementedError
 
     def test_post_model_definition_without_definition(self):
         self.app.post_json('/models', {}, headers=self.headers, status=400)
 
-    def test_post_model_definition_without_data(self):
+    def test_post_model_definition_without_records(self):
         resp = self.app.post_json('/models',
                                   {'definition': self.valid_definition},
                                   headers=self.headers)
@@ -51,27 +51,20 @@ class FunctionalTest(object):
         definition = self.db.get_model_definition(model_id)
         self.assertEquals(definition, self.valid_definition)
 
-    def test_post_model_definition_wrong_policy(self):
-        self.app.post_json('/models',
-                           {'definition': self.valid_definition,
-                            'policy': 'unknown'},
-                           headers=self.headers,
-                           status=400)
-
-    def test_post_model_definition_with_data(self):
+    def test_post_model_definition_with_records(self):
         resp = self.app.post_json('/models',
                                   {'definition': self.valid_definition,
-                                   'records': [self.valid_data,
-                                               self.valid_data]},
+                                   'records': [self.valid_records,
+                                               self.valid_records]},
                                   headers=self.headers)
         model_id = resp.json['id']
         self.assertEquals(len(self.db.get_records(model_id)), 2)
 
-    def test_put_model_definition_without_data(self):
+    def test_put_model_definition_without_records(self):
         resp = self.app.post_json('/models',
                                   {'definition': self.valid_definition,
-                                   'records': [self.valid_data,
-                                               self.valid_data]},
+                                   'records': [self.valid_records,
+                                               self.valid_records]},
                                   headers=self.headers)
         model_id = resp.json['id']
 
@@ -81,39 +74,39 @@ class FunctionalTest(object):
 
         self.assertEquals(len(self.db.get_records(model_id)), 0)
 
-    def test_put_model_definition_with_data(self):
+    def test_put_model_definition_with_records(self):
         resp = self.app.post_json('/models',
                                   {'definition': self.valid_definition,
-                                   'records': [self.valid_data,
-                                               self.valid_data]},
+                                   'records': [self.valid_records,
+                                               self.valid_records]},
                                   headers=self.headers)
         model_id = resp.json['id']
 
         resp = self.app.put_json('/models/%s' % model_id,
                                  {'definition': self.valid_definition,
-                                  'records': [self.valid_data]},
+                                  'records': [self.valid_records]},
                                  headers=self.headers)
 
         self.assertEquals(len(self.db.get_records(model_id)), 1)
 
-    def create_definition(self, data=None):
-        if not data:
-            data = self.valid_definition
+    def create_definition(self, records=None):
+        if not records:
+            records = self.valid_definition
         return self.app.put_json('/models/%s' % self.model_id,
-                                 {'definition': data},
+                                 {'definition': records},
                                  headers=self.headers)
 
-    def create_data(self, data=None):
-        if not data:
-            data = self.valid_data
+    def create_records(self, records=None):
+        if not records:
+            records = self.valid_records
         return self.app.post_json('/models/%s/records' % self.model_id,
-                                  data, headers=self.headers)
+                                  records, headers=self.headers)
 
-    def create_data_resp(self, data=None):
-        if not data:
-            data = self.valid_data
+    def create_records_resp(self, records=None):
+        if not records:
+            records = self.valid_records
         return self.app.post_json('/models/%s/records' % self.model_id,
-                                  data,
+                                  records,
                                   headers=self.headers)
 
     def test_normal_definition_creation(self):
@@ -126,7 +119,7 @@ class FunctionalTest(object):
                                  status=400)
         self.assertIn('"name": "title"', resp.body.decode('utf-8'))
 
-    def test_definition_creation_rejects_malformed_data(self):
+    def test_definition_creation_rejects_malformed_records(self):
         resp = self.app.put('/models/%s' % self.model_id,
                             {'definition': self.malformed_definition},
                             headers=self.headers,
@@ -144,7 +137,7 @@ class FunctionalTest(object):
 
     def test_model_deletion(self):
         resp = self.create_definition()
-        resp = self.create_data()
+        resp = self.create_records()
         record_id = resp.json['id']
         resp = self.app.delete('/models/%s' % self.model_id,
                                headers=self.headers)
@@ -154,49 +147,49 @@ class FunctionalTest(object):
         self.assertRaises(ModelNotFound, self.db.get_model_definition,
                           self.model_id)
 
-    def test_normal_data_creation(self):
+    def test_normal_records_creation(self):
         self.create_definition()
 
-        # Put data against this definition
+        # Put records against this definition
         resp = self.app.post_json('/models/%s/records' % self.model_id,
-                                  self.valid_data, headers=self.headers)
+                                  self.valid_records, headers=self.headers)
         self.assertIn('id', resp.body.decode('utf-8'))
 
-    def test_invalid_data_validation(self):
+    def test_invalid_records_validation(self):
         self.create_definition()
 
-        # Try to put invalid data to this definition
+        # Try to put invalid records to this definition
         resp = self.app.post_json('/models/%s/records' % self.model_id,
-                                  self.invalid_data,
+                                  self.invalid_records,
                                   headers=self.headers,
                                   status=400)
         self.assertIn('"status": "error"', resp.body.decode('utf-8'))
 
-    def test_data_retrieval(self):
+    def test_records_retrieval(self):
         self.create_definition()
-        resp = self.create_data()
+        resp = self.create_records()
 
-        # Put valid data against this definition
+        # Put valid records against this definition
         self.assertIn('id', resp.body.decode('utf-8'))
 
         record_id = resp.json['id']
         resp = self.app.get('/models/%s/records/%s' % (self.model_id,
                                                        record_id),
                             headers=self.headers)
-        self.assertDataCorrect(resp.json, force_unicode(self.valid_data))
+        self.assertRecordsCorrect(resp.json, force_unicode(self.valid_records))
 
-    def assertDataCorrect(self, data, entry):
-        self.assertEqual(data, entry)
+    def assertRecordsCorrect(self, records, entry):
+        self.assertEqual(records, entry)
 
     def test_record_update(self):
         self.create_definition()
-        # Put data against this definition
-        entry = self.valid_data.copy()
-        resp = self.create_data(entry)
+        # Put records against this definition
+        entry = self.valid_records.copy()
+        resp = self.create_records(entry)
         record_id = resp.json['id']
 
-        # Update this data
-        self.update_data(entry)
+        # Update this records
+        self.update_records(entry)
         resp = self.app.put_json('/models/%s/records/%s' % (self.model_id,
                                                             record_id),
                                  entry,
@@ -205,16 +198,16 @@ class FunctionalTest(object):
         records = self.db.get_records(self.model_id)
         self.assertEqual(len(records), 1)
 
-    def test_data_partial_update(self):
+    def test_records_partial_update(self):
         self.create_definition()
 
-        # Put data against this definition
-        entry = self.valid_data.copy()
-        resp = self.create_data(entry)
+        # Put records against this definition
+        entry = self.valid_records.copy()
+        resp = self.create_records(entry)
         record_id = resp.json['id']
 
-        # Update this data
-        self.update_data(entry)
+        # Update this records
+        self.update_records(entry)
         resp = self.app.patch_json('/models/%s/records/%s' % (self.model_id,
                                                               record_id),
                                    entry, headers=self.headers)
@@ -224,13 +217,13 @@ class FunctionalTest(object):
         # created a new record)
         record = self.db.get_record(self.model_id, record_id)
 
-        new_item = self.valid_data.copy()
+        new_item = self.valid_records.copy()
         new_item.update(entry)
         self.assertEquals(record, new_item)
 
-    def test_data_deletion(self):
+    def test_records_deletion(self):
         self.create_definition()
-        resp = self.create_data()
+        resp = self.create_records()
         record_id = resp.json['id']
         # Test 200
         resp = self.app.delete(
@@ -246,27 +239,27 @@ class FunctionalTest(object):
                                                      record_id)),
             headers=self.headers, status=404)
 
-    def test_unknown_data_returns_404(self):
+    def test_unknown_records_returns_404(self):
         self.create_definition()
         self.app.get(
             six.text_type('/models/%s/records/%s' % (self.model_id, 1234)),
             headers=self.headers, status=404)
 
-    def test_data_validation(self):
+    def test_records_validation(self):
         self.create_definition()
         headers = self.headers.copy()
         headers['X-Daybed-Validate-Only'] = 'true'
         self.app.post_json('/models/%s/records' % self.model_id,
-                           self.valid_data,
+                           self.valid_records,
                            headers=headers, status=200)
 
-        # no data should be added
+        # no records should be added
         response = self.app.get('/models/%s/records' % self.model_id,
                                 headers=self.headers)
-        self.assertEquals(0, len(response.json['data']))
-        # of course, pushing weird data should tell what's wrong
+        self.assertEquals(0, len(response.json['records']))
+        # of course, pushing weird records should tell what's wrong
         response = self.app.post_json('/models/%s/records' % self.model_id,
-                                      self.invalid_data,
+                                      self.invalid_records,
                                       headers=headers, status=400)
         # make sure the field name in cause is provided
         self.assertIn('errors', response.json)
@@ -289,21 +282,21 @@ class SimpleModelTest(FunctionalTest, BaseWebTest):
     @property
     def valid_definition(self):
         return {
-            "title": u"simple — with unicode data in it",
+            "title": u"simple — with unicode records in it",
             "description": "One optional field",
             "fields": [{"name": "age", "type": "int", "required": False,
                         "label": u"Put your âge"}]
         }
 
     @property
-    def valid_data(self):
+    def valid_records(self):
         return {}
 
     @property
-    def invalid_data(self):
+    def invalid_records(self):
         return {'age': 'abc'}
 
-    def update_data(self, entry):
+    def update_records(self, entry):
         entry.pop('age', 0)
 
 
@@ -337,14 +330,14 @@ class TodoModelTest(FunctionalTest, BaseWebTest):
         }
 
     @property
-    def valid_data(self):
+    def valid_records(self):
         return {'item': 'My task', 'status': 'todo'}
 
     @property
-    def invalid_data(self):
+    def invalid_records(self):
         return {'item': 'Invalid task', 'status': 'yay'}
 
-    def update_data(self, entry):
+    def update_records(self, entry):
         entry['status'] = 'done'
 
 
@@ -376,21 +369,21 @@ class TimestampedModelTest(FunctionalTest, BaseWebTest):
         }
 
     @property
-    def valid_data(self):
+    def valid_records(self):
         return {'creation': '2012-04-15', 'modified': ''}
 
     @property
-    def invalid_data(self):
+    def invalid_records(self):
         return {'creation': '15-04-2012', 'modified': ''}
 
-    def update_data(self, entry):
+    def update_records(self, entry):
         entry['creation'] = '2013-05-30'
         entry['modified'] = ''
 
-    def assertDataCorrect(self, data, entry):
-        self.assertEqual(data['creation'], entry['creation'])
+    def assertRecordsCorrect(self, records, entry):
+        self.assertEqual(records['creation'], entry['creation'])
         # Check that auto-now worked
-        self.assertNotEqual(data['modified'], entry['creation'])
+        self.assertNotEqual(records['modified'], entry['creation'])
 
 
 class MushroomsModelTest(FunctionalTest, BaseWebTest):
@@ -420,36 +413,36 @@ class MushroomsModelTest(FunctionalTest, BaseWebTest):
         }
 
     @property
-    def valid_data(self):
+    def valid_records(self):
         return {'mushroom': 'Boletus',
                 'location': [[[0, 0], [0, 1], [1, 1]]]}
 
     @property
-    def invalid_data(self):
+    def invalid_records(self):
         return {'mushroom': 'Boletus',
                 'location': [[0, 0], [0, 1]]}
 
-    def update_data(self, entry):
+    def update_records(self, entry):
         entry['location'] = [[[0, 0], [0, 2], [2, 2]],
                              [[0.5, 0.5], [0.5, 1], [1, 1]]]
 
-    def assertDataCorrect(self, data, entry):
-        self.assertEqual(data['mushroom'], entry['mushroom'])
+    def assertRecordsCorrect(self, records, entry):
+        self.assertEqual(records['mushroom'], entry['mushroom'])
         # Check that polygon was closed automatically
-        self.assertNotEqual(data['location'], entry['location'])
-        self.assertEqual(data['location'][0][0], data['location'][0][-1])
+        self.assertNotEqual(records['location'], entry['location'])
+        self.assertEqual(records['location'][0][0], records['location'][0][-1])
 
-    def test_data_geojson_retrieval(self):
+    def test_records_geojson_retrieval(self):
         resp = self.create_definition()
         self.assertIn('id', resp.body.decode('utf-8'))
-        resp = self.create_data()
+        resp = self.create_records()
         self.assertIn('id', resp.body.decode('utf-8'))
 
         headers = self.headers.copy()
         headers['Accept'] = 'application/json'
         resp = self.app.get('/models/%s/records' % self.model_id,
                             headers=headers)
-        self.assertIn('data', resp.json)
+        self.assertIn('records', resp.json)
 
         headers['Accept'] = 'application/vnd.geo+json'
         resp = self.app.get('/models/%s/records' % (self.model_id),
@@ -494,15 +487,16 @@ class CityModelTest(FunctionalTest, BaseWebTest):
         }
 
     @property
-    def valid_data(self):
-        return {'name': u'Nuestra Señora de La Paz',  # Add some unicode data
+    def valid_records(self):
+        # Add some unicode records
+        return {'name': u'Nuestra Señora de La Paz',
                 'location': [-16.5, -68.15, 3500]}
 
     @property
-    def invalid_data(self):
+    def invalid_records(self):
         return {'name': 'La Paz', 'location': [2012, 12, 21]}
 
-    def update_data(self, entry):
+    def update_records(self, entry):
         entry['name'] = 'Sucre'
         entry['location'] = [-19.0, -65.2, 500]
 
@@ -528,12 +522,12 @@ class EuclideModelTest(FunctionalTest, BaseWebTest):
         }
 
     @property
-    def valid_data(self):
+    def valid_records(self):
         return {'location': [2012, 3042]}
 
     @property
-    def invalid_data(self):
+    def invalid_records(self):
         return {'location': [0]}
 
-    def update_data(self, entry):
+    def update_records(self, entry):
         entry['location'] = [21, 12, 2012]

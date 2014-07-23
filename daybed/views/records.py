@@ -33,7 +33,7 @@ def get_records(request):
         return {"msg": "%s: model not found" % model_id}
     # Return array of records
     results = request.db.get_records(model_id)
-    return {'data': results}
+    return {'records': results}
 
 
 @records.post(validators=record_validator, permission='post_record')
@@ -114,16 +114,16 @@ def patch(request):
         username = Everyone
 
     try:
-        data = request.db.get_record(model_id, record_id)
+        records = request.db.get_record(model_id, record_id)
     except RecordNotFound:
         request.response.status = "404 Not Found"
         return {"msg": "%s: record not found %s" % (model_id, record_id)}
 
-    data.update(json.loads(request.body.decode('utf-8')))
+    records.update(json.loads(request.body.decode('utf-8')))
     definition = request.db.get_model_definition(model_id)
-    validate_against_schema(request, RecordSchema(definition), data)
+    validate_against_schema(request, RecordSchema(definition), records)
     if not request.errors:
-        request.db.put_record(model_id, data, [username], record_id)
+        request.db.put_record(model_id, records, [username], record_id)
     return {'id': record_id}
 
 

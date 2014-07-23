@@ -1,12 +1,11 @@
 import six
 
 from pyramid.i18n import TranslationString as _
-from pyramid.config import global_registries
 from colander import (Sequence, SchemaNode, Length, String, drop, Invalid)
 
 from daybed.backends.exceptions import ModelNotFound
 
-from . import registry, TypeField, TypeFieldNode
+from . import registry, TypeField, TypeFieldNode, get_db
 from .validators import RecordSchema
 from .relations import ModelExist
 from .json import JSONType
@@ -50,7 +49,7 @@ class ObjectField(TypeField):
     def definition(cls, **kwargs):
         schema = super(ObjectField, cls).definition(**kwargs)
 
-        db = global_registries.last.backend.db()
+        db = get_db()
         schema.add(SchemaNode(String(),
                               name='model',
                               missing=drop,
@@ -77,7 +76,7 @@ class ObjectField(TypeField):
         """
         if 'model' in field_definition:
             model = field_definition['model']
-            db = global_registries.last.backend.db()
+            db = get_db()
             try:
                 definition = db.get_model_definition(model)
             except ModelNotFound:

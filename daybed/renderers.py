@@ -26,7 +26,7 @@ class GeoJSON(JSONP):
                     geom_fields = self._geomFields(definition)
 
             # Transform records into GeoJSON feature collection
-            records = value.get('data')
+            records = value.get('records')
 
             if records is not None:
                 geojson = dict(type='FeatureCollection', features=[])
