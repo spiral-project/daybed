@@ -5,7 +5,7 @@ from pyramid.security import Authenticated, Everyone
 from zope.interface import implementer
 
 from daybed.backends.exceptions import (
-    ModelNotFound, RecordNotFound, UserNotFound
+    ModelNotFound, RecordNotFound, TokenNotFound
 )
 from daybed import logger
 
@@ -18,10 +18,10 @@ PERMISSIONS_SET = set([
 ])
 
 
-def get_model_acls(username, permissions_list=PERMISSIONS_SET, acls=None):
-    # - Take a username and return the acls for it.
-    # - By default give all permissions to the username
-    # - You can pass existing acls if you want to add the user to some
+def get_model_acls(token, permissions_list=PERMISSIONS_SET, acls=None):
+    # - Add the token to given acls.
+    # - By default give all permissions to the token
+    # - You can pass existing acls if you want to add the token to some
     # permissions
     if acls is None:
         acls = defaultdict(list)
@@ -29,7 +29,7 @@ def get_model_acls(username, permissions_list=PERMISSIONS_SET, acls=None):
         acls = defaultdict(list, **acls)
 
     for perm in permissions_list:
-        acls[perm].append(username)
+        acls[perm].append(token)
 
     return acls
 
@@ -97,16 +97,16 @@ class DaybedAuthorizationPolicy(object):
             self.model_creators.add(Everyone)
 
     def permits(self, context, principals, permission):
-        """Returns True or False depending if the user with the specified
+        """Returns True or False depending if the token with the specified
         principals has access to the given permission.
         """
         permissions_required = VIEWS_PERMISSIONS_REQUIRED[permission]
 
-        user_permissions = set()
+        token_permissions = set()
         can_create_model = self.model_creators & set(principals) != set()
 
         if can_create_model:
-            user_permissions.add("create_model")
+            token_permissions.add("create_model")
 
         if context.model_id:
             try:
@@ -122,9 +122,9 @@ class DaybedAuthorizationPolicy(object):
             # If one of the principals is in the valid tokens for this,
             # permission, grant the permission.
             if set(principals) & set(tokens):
-                user_permissions.add(acl_name)
+                token_permissions.add(acl_name)
 
-        logger.debug("user permissions: %s", user_permissions)
+        logger.debug("token permissions: %s", token_permissions)
 
         if context.record_id is not None:
             try:
@@ -134,10 +134,10 @@ class DaybedAuthorizationPolicy(object):
                 authors = []
             finally:
                 if not set(principals) & set(authors):
-                    user_permissions -= AUTHORS_PERMISSIONS
+                    token_permissions -= AUTHORS_PERMISSIONS
 
-        # Check view permission matches user permissions.
-        return permissions_required.matches(user_permissions)
+        # Check view permission matches token permissions.
+        return permissions_required.matches(token_permissions)
 
     def principals_allowed_by_permission(self, context, permission):
         raise NotImplementedError()  # PRAGMA NOCOVER
@@ -152,15 +152,15 @@ class RootFactory(object):
         self.request = request
 
 
-def build_user_principals(user, request):
-    return [user]
+def build_user_principals(token, request):
+    return [token]
 
 
-def check_api_token(username, password, request):
+def check_api_token(token, password, request):
     try:
-        user = request.db.get_user(username)
-        if user['apitoken'] == password:
-            return build_user_principals(username, request)
+        token = request.db.get_token(token)
+        if token['apitoken'] == password:
+            return build_user_principals(token, request)
         return []
-    except UserNotFound:
+    except TokenNotFound:
         return []

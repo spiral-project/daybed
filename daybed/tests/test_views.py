@@ -64,8 +64,8 @@ class BasicAuthRegistrationTest(BaseWebTest):
             "fields": [{"name": "age", "type": "int", "required": False}]
         }
 
-    # XXX: We don't create automatically the user on first login attempt.
-    # def test_basic_auth_user_creation(self):
+    # XXX: We don't create automatically the token on first login attempt.
+    # def test_basic_auth_token_creation(self):
     #     auth_password = base64.b64encode(
     #         u'arthur:foo'.encode('ascii')).strip().decode('ascii')
     #     headers = {
@@ -78,9 +78,9 @@ class BasicAuthRegistrationTest(BaseWebTest):
     #                       headers=headers)
     #
     #     try:
-    #         self.db.get_user('arthur')
-    #     except UserNotFound:
-    #         self.fail("BasicAuth didn't create the user arthur.")
+    #         self.db.get_token('arthur')
+    #     except TokenNotFound:
+    #         self.fail("BasicAuth didn't create the token arthur.")
 
     def test_forbidden(self):
         self.app.put_json('/models/%s' % self.model_id,

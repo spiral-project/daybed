@@ -10,7 +10,7 @@ from .views import docs
 
 from . import views
 from daybed.backends.exceptions import (
-    UserAlreadyExist, UserNotFound, ModelNotFound, RecordNotFound
+    TokenAlreadyExist, TokenNotFound, ModelNotFound, RecordNotFound
 )
 
 
@@ -155,30 +155,30 @@ class CouchDBBackend(object):
         self._db.delete(doc)
         return doc
 
-    def __get_user(self, username):
+    def __get_token(self, token):
         try:
-            return views.users(self._db)[username].rows[0].value
+            return views.tokens(self._db)[token].rows[0].value
         except IndexError:
-            raise UserNotFound(username)
+            raise TokenNotFound(token)
 
-    def get_user(self, username):
-        """Returns the information associated with an user"""
-        user = dict(**self.__get_user(username))
-        return user['user']
+    def get_token(self, token):
+        """Returns the information associated with an token"""
+        token = dict(**self.__get_token(token))
+        return token['token']
 
-    def add_user(self, user):
-        # Check that the user doesn't already exist.
+    def add_token(self, token):
+        # Check that the token doesn't already exist.
         try:
-            user = self.__get_user(user['name'])
-            raise UserAlreadyExist(user['name'])
-        except UserNotFound:
+            token = self.__get_token(token['name'])
+            raise TokenAlreadyExist(token['name'])
+        except TokenNotFound:
             pass
 
-        user = user.copy()
+        token = token.copy()
 
-        doc = dict(user=user, name=user['name'], type='user')
+        doc = dict(token=token, name=token['name'], type='token')
         self._db.save(doc)
-        return user
+        return token
 
     def get_model_acls(self, model_id):
         doc = self.__get_model(model_id)

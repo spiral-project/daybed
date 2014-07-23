@@ -33,22 +33,22 @@ from daybed.acl import (
     RootFactory, DaybedAuthorizationPolicy, build_user_principals,
     check_api_token,
 )
-from daybed.backends.exceptions import UserNotFound
+from daybed.backends.exceptions import TokenNotFound
 from daybed.views.errors import unauthorized_view
 from daybed.renderers import GeoJSON
 
 
 def home(request):
     try:
-        user = get_user(request)
-    except UserNotFound:
-        user = defaultdict(str)
-    return {'user': user}
+        token = get_token(request)
+    except TokenNotFound:
+        token = defaultdict(str)
+    return {'token': token}
 
 
-def get_user(request):
+def get_token(request):
     userid = unauthenticated_userid(request)
-    return request.db.get_user(userid)
+    return request.db.get_token(userid)
 
 
 def settings_expandvars(settings):
@@ -90,7 +90,7 @@ def main(global_config, **settings):
     authz_policy = DaybedAuthorizationPolicy(model_creators=can_create_model)
     config.set_authentication_policy(authn_policy)
     config.set_authorization_policy(authz_policy)
-    config.add_request_method(get_user, 'user', reify=True)
+    config.add_request_method(get_token, 'token', reify=True)
 
     # We need to scan AFTER setting the authn / authz policies
     config.scan("daybed.views")

@@ -39,16 +39,16 @@ def get_definition(request):
 def post_models(request):
     """Creates a model with the given definition and records, if any."""
     if request.user:
-        username = request.user['name']
+        token = request.user['name']
     else:
-        username = Everyone
+        token = Everyone
 
     model_id = request.db.put_model(
         definition=request.validated['definition'],
-        acls=get_model_acls(username))
+        acls=get_model_acls(token))
 
     for record in request.validated['records']:
-        request.db.put_record(model_id, record, [username])
+        request.db.put_record(model_id, record, [token])
 
     request.response.status = "201 Created"
     location = '%s/models/%s' % (request.application_url, model_id)
@@ -94,15 +94,15 @@ def put_model(request):
         pass
 
     if request.user:
-        username = request.user['name']
+        token = request.user['name']
     else:
-        username = Everyone
+        token = Everyone
 
     request.db.put_model(request.validated['definition'],
-                         get_model_acls(username),
+                         get_model_acls(token),
                          model_id)
 
     for record in request.validated['records']:
-        request.db.put_record(model_id, record, [username])
+        request.db.put_record(model_id, record, [token])
 
     return {"id": model_id}

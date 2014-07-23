@@ -50,11 +50,11 @@ def post_record(request):
 
     model_id = request.matchdict['model_id']
     if request.user:
-        username = request.user['name']
+        token = request.user['name']
     else:
-        username = Everyone
+        token = Everyone
     record_id = request.db.put_record(model_id, request.data_clean,
-                                      username)
+                                      token)
     created = u'%s/models/%s/records/%s' % (request.application_url, model_id,
                                             record_id)
     request.response.status = "201 Created"
@@ -93,12 +93,12 @@ def put(request):
     record_id = request.matchdict['record_id']
 
     if request.user:
-        username = request.user['name']
+        token = request.user['name']
     else:
-        username = Everyone
+        token = Everyone
 
     record_id = request.db.put_record(model_id, request.data_clean,
-                                      [username], record_id=record_id)
+                                      [token], record_id=record_id)
     return {'id': record_id}
 
 
@@ -109,9 +109,9 @@ def patch(request):
     record_id = request.matchdict['record_id']
 
     if request.user:
-        username = request.user['name']
+        token = request.user['name']
     else:
-        username = Everyone
+        token = Everyone
 
     try:
         records = request.db.get_record(model_id, record_id)
@@ -123,7 +123,7 @@ def patch(request):
     definition = request.db.get_model_definition(model_id)
     validate_against_schema(request, RecordSchema(definition), records)
     if not request.errors:
-        request.db.put_record(model_id, records, [username], record_id)
+        request.db.put_record(model_id, records, [token], record_id)
     return {'id': record_id}
 
 

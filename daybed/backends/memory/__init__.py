@@ -1,7 +1,7 @@
 from copy import deepcopy
 
 from daybed.backends.exceptions import (
-    UserAlreadyExist, UserNotFound, ModelNotFound, RecordNotFound
+    TokenAlreadyExist, TokenNotFound, ModelNotFound, RecordNotFound
 )
 
 
@@ -27,7 +27,7 @@ class MemoryBackend(object):
             'models': {},
             'records': {},
             'acls': {},
-            'users': {}
+            'tokens': {}
         }
 
     def __get_model(self, model_id):
@@ -122,31 +122,31 @@ class MemoryBackend(object):
         del self._db['models'][model_id]
         return doc
 
-    def __get_user(self, username):
+    def __get_token(self, token):
         try:
-            return deepcopy(self._db['users'][username])
+            return deepcopy(self._db['tokens'][token])
         except KeyError:
-            raise UserNotFound(username)
+            raise TokenNotFound(token)
 
-    def get_user(self, username):
-        """Returns the information associated with an user"""
-        user = self.__get_user(username)
-        return user['user']
+    def get_token(self, token):
+        """Returns the information associated with an token"""
+        token = self.__get_token(token)
+        return token['token']
 
-    def add_user(self, user):
-        # Check that the user doesn't already exist.
+    def add_token(self, token):
+        # Check that the token doesn't already exist.
         try:
-            username = user['name']
-            user = self.__get_user(username)
-            raise UserAlreadyExist(username)
-        except UserNotFound:
+            token = token['name']
+            token = self.__get_token(token)
+            raise TokenAlreadyExist(token)
+        except TokenNotFound:
             pass
 
-        user = user.copy()
+        token = token.copy()
 
-        doc = dict(user=user, name=username, type='user')
-        self._db['users'][username] = doc
-        return user
+        doc = dict(token=token, name=token, type='token')
+        self._db['tokens'][token] = doc
+        return token
 
     def get_model_acls(self, model_id):
         doc = self.__get_model(model_id)
