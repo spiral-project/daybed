@@ -268,3 +268,18 @@ class RecordsViewsTest(BaseWebTest):
         # Test 404
         self.app.delete('/models/test/records/%s' % record_id,
                         headers=self.headers, status=404)
+
+
+class TokensViewsTest(BaseWebTest):
+
+    def test_post_token(self):
+        response = self.app.post('/tokens',
+                                 status=200)
+        self.assertIn("sessionToken", response.json)
+        self.assertTrue(len(response.json["sessionToken"]) == 64)
+        self.assertIn("credentials", response.json)
+        self.assertIn("id", response.json["credentials"])
+        self.assertTrue(len(response.json["credentials"]["id"]) == 64)
+        self.assertIn("key", response.json["credentials"])
+        self.assertTrue(len(response.json["credentials"]["key"]) == 64)
+        self.assertEqual("sha256", response.json["credentials"]["algorithm"])

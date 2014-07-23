@@ -70,8 +70,6 @@ class MemoryBackend(object):
             model_id = self._generate_id()
 
         self._db['models'][model_id] = {
-            'type': 'definition',
-            '_id': model_id,
             'definition': definition,
             'acls': acls,
         }
@@ -80,9 +78,7 @@ class MemoryBackend(object):
 
     def put_record(self, model_id, record, authors, record_id=None):
         doc = {
-            'type': 'record',
             'authors': authors,
-            'model_id': model_id,
             'record': record
         }
 
@@ -122,31 +118,26 @@ class MemoryBackend(object):
         del self._db['models'][model_id]
         return doc
 
-    def __get_token(self, token):
+    def __get_token(self, hmacId):
         try:
-            return deepcopy(self._db['tokens'][token])
+            return str(self._db['tokens'][hmacId])
         except KeyError:
-            raise TokenNotFound(token)
+            raise TokenNotFound(hmacId)
 
-    def get_token(self, token):
+    def get_token(self, hmacId):
         """Returns the information associated with an token"""
-        token = self.__get_token(token)
-        return token['token']
+        secret = self.__get_token(hmacId)
+        return secret
 
-    def add_token(self, token):
+    def add_token(self, hmacId, secret):
         # Check that the token doesn't already exist.
         try:
-            token = token['name']
-            token = self.__get_token(token)
-            raise TokenAlreadyExist(token)
+            self.__get_token(hmacId)
+            raise TokenAlreadyExist(hmacId)
         except TokenNotFound:
             pass
 
-        token = token.copy()
-
-        doc = dict(token=token, name=token, type='token')
-        self._db['tokens'][token] = doc
-        return token
+        self._db['tokens'][hmacId] = secret
 
     def get_model_acls(self, model_id):
         doc = self.__get_model(model_id)

@@ -9,6 +9,7 @@ import six
 import webtest
 
 from daybed.backends.exceptions import TokenAlreadyExist
+from daybed.hkdf import hmac
 
 
 class BaseWebTest(unittest.TestCase):
@@ -22,7 +23,10 @@ class BaseWebTest(unittest.TestCase):
         self.db = self.app.app.registry.backend
 
         try:
-            self.db.add_token({'name': 'admin', 'apitoken': 'foo'})
+            self.db.add_token(
+                hmac('admin', self.app.app.registry.hawkHmacKey),
+                'foo'
+            )
         except TokenAlreadyExist:
             pass
 

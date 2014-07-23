@@ -47,8 +47,8 @@ class BackendTestBase(object):
         pass
 
     def test_add_token_fails_if_already_exist(self):
-        self.db.add_token({'name': 'Remy'})
-        self.assertRaises(TokenAlreadyExist, self.db.add_token, {'name': 'Remy'})
+        self.db.add_token("Remy", "Foo")
+        self.assertRaises(TokenAlreadyExist, self.db.add_token, "Remy", "Bar")
 
 
     def test_get_model_acls(self):

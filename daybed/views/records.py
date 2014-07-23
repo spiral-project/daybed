@@ -49,8 +49,8 @@ def post_record(request):
         return
 
     model_id = request.matchdict['model_id']
-    if request.user:
-        token = request.user['name']
+    if request.token:
+        token = request.token['id']
     else:
         token = Everyone
     record_id = request.db.put_record(model_id, request.data_clean,
@@ -92,8 +92,8 @@ def put(request):
     model_id = request.matchdict['model_id']
     record_id = request.matchdict['record_id']
 
-    if request.user:
-        token = request.user['name']
+    if request.token:
+        token = request.token['id']
     else:
         token = Everyone
 
@@ -108,8 +108,8 @@ def patch(request):
     model_id = request.matchdict['model_id']
     record_id = request.matchdict['record_id']
 
-    if request.user:
-        token = request.user['name']
+    if request.token:
+        token = request.token['id']
     else:
         token = Everyone
 

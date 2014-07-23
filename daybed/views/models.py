@@ -38,8 +38,8 @@ def get_definition(request):
 @models.post(permission='post_model', validators=(model_validator,))
 def post_models(request):
     """Creates a model with the given definition and records, if any."""
-    if request.user:
-        token = request.user['name']
+    if request.token:
+        token = request.token['id']
     else:
         token = Everyone
 
@@ -93,8 +93,8 @@ def put_model(request):
     except ModelNotFound:
         pass
 
-    if request.user:
-        token = request.user['name']
+    if request.token:
+        token = request.token['id']
     else:
         token = Everyone
 

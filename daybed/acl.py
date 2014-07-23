@@ -7,6 +7,7 @@ from zope.interface import implementer
 from daybed.backends.exceptions import (
     ModelNotFound, RecordNotFound, TokenNotFound
 )
+from daybed.hkdf import hmac
 from daybed import logger
 
 PERMISSIONS_SET = set([
@@ -75,26 +76,41 @@ VIEWS_PERMISSIONS_REQUIRED = {
                            Any(['delete_my_record', 'delete_all_records'])]),
     'patch_record':   Any(['update_my_record', 'update_all_records']),
     'delete_record':  Any(['delete_my_record', 'delete_all_records']),
+    'get_tokens':     All(['manage_tokens']),
+    'post_token':    Any(['create_token', 'manage_tokens']),
+    'delete_token':   All(['manage_tokens']),
 }
 
 
 @implementer(IAuthorizationPolicy)
 class DaybedAuthorizationPolicy(object):
 
-    def __init__(self, model_creators=None):
-        if model_creators is None:
-            model_creators = "Everyone"
+    def __init__(self, model_creators="Everyone", token_creators="Everyone",
+                 token_managers=None):
+        self.model_creators = self._handle_pyramid_constants(model_creators)
+        self.token_creators = self._handle_pyramid_constants(token_creators)
+        self.token_managers = self._handle_pyramid_constants(token_managers)
 
-        self.model_creators = set(model_creators)
+    def _handle_pyramid_constants(self, creators):
+        if not creators:
+            return set()
+
+        creators = set(creators)
 
         # Handle Pyramid constants.
-        if "Authenticated" in self.model_creators:
-            self.model_creators.remove("Authenticated")
-            self.model_creators.add(Authenticated)
+        if "Authenticated" in creators:
+            creators.remove("Authenticated")
+            creators.add(Authenticated)
 
-        if "Everyone" in self.model_creators:
-            self.model_creators.remove("Everyone")
-            self.model_creators.add(Everyone)
+        if "Everyone" in creators:
+            creators.remove("Everyone")
+            creators.add(Everyone)
+
+        return creators
+
+    def add_conf_rights(self, creators, principals, permissions, perm):
+        if set(creators) & set(principals) != set():
+            permissions.add(perm)
 
     def permits(self, context, principals, permission):
         """Returns True or False depending if the token with the specified
@@ -103,38 +119,42 @@ class DaybedAuthorizationPolicy(object):
         permissions_required = VIEWS_PERMISSIONS_REQUIRED[permission]
 
         token_permissions = set()
-        can_create_model = self.model_creators & set(principals) != set()
 
-        if can_create_model:
-            token_permissions.add("create_model")
+        self.add_conf_rights(self.model_creators, principals,
+                             token_permissions, "create_model")
+        self.add_conf_rights(self.token_creators, principals,
+                             token_permissions, "create_token")
+        self.add_conf_rights(self.token_managers, principals,
+                             token_permissions, "manage_token")
+
+        hasModel = True
 
         if context.model_id:
             try:
                 acls = context.db.get_model_acls(context.model_id)
             except ModelNotFound:
-                # PUT a non existing model
-                return can_create_model
+                return True
         else:
-            # POST a model
-            return can_create_model
+            hasModel = False
 
-        for acl_name, tokens in acls.items():
-            # If one of the principals is in the valid tokens for this,
-            # permission, grant the permission.
-            if set(principals) & set(tokens):
-                token_permissions.add(acl_name)
+        if hasModel:
+            for acl_name, tokens in acls.items():
+                # If one of the principals is in the valid tokens for this,
+                # permission, grant the permission.
+                if set(principals) & set(tokens):
+                    token_permissions.add(acl_name)
 
-        logger.debug("token permissions: %s", token_permissions)
+            logger.debug("token permissions: %s", token_permissions)
 
-        if context.record_id is not None:
-            try:
-                authors = context.db.get_record_authors(
-                    context.model_id, context.record_id)
-            except RecordNotFound:
-                authors = []
-            finally:
-                if not set(principals) & set(authors):
-                    token_permissions -= AUTHORS_PERMISSIONS
+            if context.record_id is not None:
+                try:
+                    authors = context.db.get_record_authors(
+                        context.model_id, context.record_id)
+                except RecordNotFound:
+                    authors = []
+                finally:
+                    if not set(principals) & set(authors):
+                        token_permissions -= AUTHORS_PERMISSIONS
 
         # Check view permission matches token permissions.
         return permissions_required.matches(token_permissions)
@@ -156,11 +176,11 @@ def build_user_principals(token, request):
     return [token]
 
 
-def check_api_token(token, password, request):
+def check_api_token(hawkId, password, request):
     try:
-        token = request.db.get_token(token)
-        if token['apitoken'] == password:
-            return build_user_principals(token, request)
+        secret = request.db.get_token(hmac(hawkId, request.hawkHmacKey))
+        if secret == password:
+            return build_user_principals(hawkId, request)
         return []
     except TokenNotFound:
         return []

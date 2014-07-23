@@ -155,30 +155,27 @@ class CouchDBBackend(object):
         self._db.delete(doc)
         return doc
 
-    def __get_token(self, token):
+    def __get_token(self, hmacId):
         try:
-            return views.tokens(self._db)[token].rows[0].value
+            return views.tokens(self._db)[hmacId].rows[0].value
         except IndexError:
-            raise TokenNotFound(token)
+            raise TokenNotFound(hmacId)
 
-    def get_token(self, token):
+    def get_token(self, hmacId):
         """Returns the information associated with an token"""
-        token = dict(**self.__get_token(token))
-        return token['token']
+        token = dict(**self.__get_token(hmacId))
+        return token['secret']
 
-    def add_token(self, token):
+    def add_token(self, hmacId, secret):
         # Check that the token doesn't already exist.
         try:
-            token = self.__get_token(token['name'])
-            raise TokenAlreadyExist(token['name'])
+            self.__get_token(hmacId)
+            raise TokenAlreadyExist(hmacId)
         except TokenNotFound:
             pass
 
-        token = token.copy()
-
-        doc = dict(token=token, name=token['name'], type='token')
+        doc = dict(secret=secret, name=hmacId, type='token')
         self._db.save(doc)
-        return token
 
     def get_model_acls(self, model_id):
         doc = self.__get_model(model_id)
