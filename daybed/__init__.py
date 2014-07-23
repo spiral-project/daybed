@@ -23,13 +23,10 @@ from pyramid.authentication import (
 )
 from pyramid.session import UnencryptedCookieSessionFactoryConfig
 from pyramid.security import (
-    unauthenticated_userid,
-    NO_PERMISSION_REQUIRED
+    unauthenticated_userid
 )
 from pyramid.settings import aslist
 
-from pyramid_persona.utils import button, js
-from pyramid_persona.views import login, logout
 from pyramid_multiauth import MultiAuthenticationPolicy
 
 from daybed.acl import (
@@ -71,54 +68,12 @@ def main(global_config, **settings):
 
     # ACL management
 
-    # Persona authentication
-    secret = settings.get('persona.secret', None)
-
     policies = [
         BasicAuthAuthenticationPolicy(check_api_token),
         AuthTktAuthenticationPolicy(secret, hashalg='sha512',
                                     callback=build_user_principals)
     ]
     authn_policy = MultiAuthenticationPolicy(policies)
-
-    session_factory = UnencryptedCookieSessionFactoryConfig(secret)
-    config.set_session_factory(session_factory)
-
-    verifier_factory = config.maybe_dotted(
-        settings.get('persona.verifier', 'browserid.RemoteVerifier'))
-    audiences = aslist(settings['persona.audiences'])
-    config.registry['persona.verifier'] = verifier_factory(audiences)
-
-    # Parameters for the request API call
-    request_params = {}
-    for option in ('privacyPolicy', 'siteLogo', 'siteName', 'termsOfService',
-                   'backgroundColor'):
-        setting_name = 'persona.%s' % option
-        if setting_name in settings:
-            request_params[option] = settings[setting_name]
-    config.registry['persona.request_params'] = json.dumps(request_params)
-
-    # Login and logout views.
-    config.add_route('persona', '/persona')
-    config.add_view(home, route_name='persona', renderer='home.mako')
-
-    login_route = settings.get('persona.login_route', 'login')
-    config.registry['persona.login_route'] = login_route
-    login_path = settings.get('persona.login_path', '/login')
-    config.add_route(login_route, login_path)
-    config.add_view(login, route_name=login_route, check_csrf=True,
-                    renderer='json', permission=NO_PERMISSION_REQUIRED)
-
-    logout_route = settings.get('persona.logout_route', 'logout')
-    config.registry['persona.logout_route'] = logout_route
-    logout_path = settings.get('persona.logout_path', '/logout')
-    config.add_route(logout_route, logout_path)
-    config.add_view(logout, route_name=logout_route, check_csrf=True,
-                    renderer='json',
-                    permission=NO_PERMISSION_REQUIRED)
-
-    config.add_request_method(button, 'persona_button', reify=True)
-    config.add_request_method(js, 'persona_js', reify=True)
 
     # Unauthorized view
     config.add_forbidden_view(unauthorized_view)
