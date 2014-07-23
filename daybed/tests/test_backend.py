@@ -17,6 +17,8 @@ from daybed.backends.couchdb import (
     CouchDBBackendConnectionError, CouchDBBackend
 )
 from daybed.backends.memory import MemoryBackend
+from daybed.backends.redis import RedisBackend
+from redis.exceptions import ConnectionError
 
 from daybed.backends.couchdb.views import docs as couchdb_views
 
@@ -132,6 +134,27 @@ class TestCouchDBBackend(BackendTestBase, TestCase):
                 id_generator=lambda: True
             )
 
+
+class TestRedisBackend(BackendTestBase, TestCase):
+
+    def setUp(self):
+        self.db = RedisBackend(
+            host='localhost',
+            port=6379,
+            db=0,
+            id_generator=lambda: six.text_type(uuid4())
+        )
+        super(TestRedisBackend, self).setUp()
+
+    def tearDown(self):
+        self.db.delete_db()
+
+    def test_server_unreachable(self):
+        with self.assertRaises(ConnectionError):
+            db = RedisBackend(
+                host='unreachable', port=6379, db=5,
+                id_generator=lambda: True
+            )
 
 class TestMemoryBackend(BackendTestBase, TestCase):
 
