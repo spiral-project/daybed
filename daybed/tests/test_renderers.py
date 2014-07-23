@@ -77,7 +77,7 @@ class TestGeoJSONRenderer(BaseWebTest):
     def test_geojson_renderer_renames_only_first_geometry_field(self):
         request = self._build_request(name='multigeoms')
         geojson = self._rendered({'records': [{'point': [0, 0],
-                                            'line': [[0, 0], [1, 1]]}]},
+                                               'line': [[0, 0], [1, 1]]}]},
                                  request)
         record = json.loads(geojson)['features'][0]
         self.assertDictEqual(record['geometry'],
@@ -95,7 +95,7 @@ class TestGeoJSONRenderer(BaseWebTest):
     def test_geojson_renderer_works_with_geojson_field(self):
         request = self._build_request(name='geomodel')
         records = {'records': [{'geom': {'type': 'Linestring',
-                                      'coordinates': [[0, 0], [1, 1]]}}]}
+                                         'coordinates': [[0, 0], [1, 1]]}}]}
         geojson = self._rendered(records, request)
         self.assertJSONEqual(geojson, {
             'type': 'FeatureCollection', 'features': [{

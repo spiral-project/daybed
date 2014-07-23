@@ -488,7 +488,8 @@ class CityModelTest(FunctionalTest, BaseWebTest):
 
     @property
     def valid_records(self):
-        return {'name': u'Nuestra Señora de La Paz',  # Add some unicode records
+        # Add some unicode records
+        return {'name': u'Nuestra Señora de La Paz',
                 'location': [-16.5, -68.15, 3500]}
 
     @property

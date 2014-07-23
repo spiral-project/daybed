@@ -1,8 +1,4 @@
-import base64
-
-
 from daybed import __version__ as VERSION
-from daybed.backends.exceptions import UserNotFound
 from daybed.tests.support import BaseWebTest
 from daybed.schemas import registry
 
