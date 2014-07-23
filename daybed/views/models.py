@@ -1,7 +1,7 @@
 from cornice import Service
 from pyramid.security import Everyone
 
-from daybed.acl import get_acls
+from daybed.acl import get_model_acls
 from daybed.backends.exceptions import ModelNotFound
 from daybed.schemas.validators import model_validator
 
@@ -45,7 +45,7 @@ def post_models(request):
 
     model_id = request.db.put_model(
         definition=request.validated['definition'],
-        acls=get_acls(username))
+        acls=get_model_acls(username))
 
     for record in request.validated['records']:
         request.db.put_record(model_id, record, [username])
@@ -99,7 +99,7 @@ def put_model(request):
         username = Everyone
 
     request.db.put_model(request.validated['definition'],
-                         get_acls(username),
+                         get_model_acls(username),
                          model_id)
 
     for record in request.validated['records']:

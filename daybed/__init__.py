@@ -124,15 +124,15 @@ def main(global_config, **settings):
     config.add_forbidden_view(unauthorized_view)
 
     # Authorization policy
-    can_create_model = settings.get("daybed.can_create_model", '["Everyone"]')
+    can_create_model = settings.get("daybed.can_create_model", "Everyone")
 
-    try:
-        can_create_model = json.loads(can_create_model)
-    except ValueError:
-        raise ValueError("%s should be a list." %
-                         settings.get('daybed.can_create_model'))
+    if "\n" in can_create_model:
+        can_create_model = can_create_model.split("\n")
+    else:
+        can_create_model = can_create_model.split(",")
+    can_create_model = [u.strip() for u in can_create_model]
 
-    authz_policy = DaybedAuthorizationPolicy(can_create_model=can_create_model)
+    authz_policy = DaybedAuthorizationPolicy(model_creators=can_create_model)
     config.set_authentication_policy(authn_policy)
     config.set_authorization_policy(authz_policy)
     config.add_request_method(get_user, 'user', reify=True)

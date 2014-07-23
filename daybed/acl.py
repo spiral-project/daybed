@@ -9,7 +9,7 @@ from daybed.backends.exceptions import (
 )
 from daybed import logger
 
-PERMISSIONS_LIST = set([
+PERMISSIONS_SET = set([
     'read_definition', 'read_acls', 'update_definition', 'update_acls',
     'delete_model',
     'create_record',
@@ -18,7 +18,7 @@ PERMISSIONS_LIST = set([
 ])
 
 
-def get_acls(username, permissions_list=PERMISSIONS_LIST, acls=None):
+def get_model_acls(username, permissions_list=PERMISSIONS_SET, acls=None):
     # - Take a username and return the acls for it.
     # - By default give all permissions to the username
     # - You can pass existing acls if you want to add the user to some
@@ -81,15 +81,20 @@ VIEWS_PERMISSIONS_REQUIRED = {
 @implementer(IAuthorizationPolicy)
 class DaybedAuthorizationPolicy(object):
 
-    def __init__(self, can_create_model=[Everyone]):
+    def __init__(self, model_creators=None):
+        if model_creators is None:
+            model_creators = "Everyone"
+
+        self.model_creators = set(model_creators)
+
         # Handle Pyramid constants.
-        if can_create_model[0] == "Authenticated":
-            can_create_model[0] = Authenticated
+        if "Authenticated" in self.model_creators:
+            self.model_creators.remove("Authenticated")
+            self.model_creators.add(Authenticated)
 
-        if can_create_model[0] == "Everyone":
-            can_create_model[0] = Everyone
-
-        self.can_create_model = set(can_create_model)
+        if "Everyone" in self.model_creators:
+            self.model_creators.remove("Everyone")
+            self.model_creators.add(Everyone)
 
     def permits(self, context, principals, permission):
         """Returns True or False depending if the user with the specified
@@ -98,7 +103,8 @@ class DaybedAuthorizationPolicy(object):
         permissions_required = VIEWS_PERMISSIONS_REQUIRED[permission]
 
         user_permissions = set()
-        can_create_model = self.can_create_model & set(principals) != set()
+        can_create_model = self.model_creators & set(principals) != set()
+
         if can_create_model:
             user_permissions.add("create_model")
 
