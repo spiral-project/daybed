@@ -27,7 +27,7 @@ class RolesSchema(SchemaNode):
         self.add(SchemaNode(Sequence(), SchemaNode(String()),
                             name='admins', validator=Length(min=1)))
 
-        # XXX Control that the values of the sequence are valid users.
+        # XXX Control that the values of the sequence are valid tokens.
         # (we need to merge master to fix this. see #86)
 
 
@@ -104,7 +104,7 @@ def model_validator(request):
     try:
         body = json.loads(request.body.decode('utf-8'))
     except ValueError:
-        request.errors.add('body', 'json value error', "body malformed")
+        request.errors.add('body', 'json value error', "malformed body")
         return
 
     # Check the definition is valid.

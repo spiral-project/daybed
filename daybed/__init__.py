@@ -1,5 +1,6 @@
 """Main entry point
 """
+import codecs
 import os
 import logging
 import pkg_resources
@@ -11,47 +12,44 @@ __version__ = pkg_resources.get_distribution(__package__).version
 
 logger = logging.getLogger(__name__)
 
-import json
-
 import six
 from cornice import Service
 from pyramid.config import Configurator
 from pyramid.events import NewRequest
 from pyramid.renderers import JSONP
-from pyramid.authentication import (
-    AuthTktAuthenticationPolicy, BasicAuthAuthenticationPolicy
-)
-from pyramid.session import UnencryptedCookieSessionFactoryConfig
+from pyramid.authentication import BasicAuthAuthenticationPolicy
 from pyramid.security import (
-    unauthenticated_userid,
-    NO_PERMISSION_REQUIRED
+    unauthenticated_userid
 )
-from pyramid.settings import aslist
 
-from pyramid_persona.utils import button, js
-from pyramid_persona.views import login, logout
 from pyramid_multiauth import MultiAuthenticationPolicy
 
 from daybed.acl import (
-    RootFactory, DaybedAuthorizationPolicy, build_user_principals,
-    check_api_token,
+    RootFactory, DaybedAuthorizationPolicy, check_api_token,
 )
-from daybed.backends.exceptions import UserNotFound
+from daybed.backends.exceptions import TokenNotFound
+from daybed.tokens import hmac
 from daybed.views.errors import unauthorized_view
 from daybed.renderers import GeoJSON
 
 
 def home(request):
     try:
-        user = get_user(request)
-    except UserNotFound:
-        user = defaultdict(str)
-    return {'user': user}
+        token = get_token(request)
+    except TokenNotFound:
+        token = defaultdict(str)
+    return {'token': token}
 
 
-def get_user(request):
+def get_token(request):
     userid = unauthenticated_userid(request)
-    return request.db.get_user(userid)
+    tokenHmacId = hmac(userid, request.hawkHmacKey)
+    return {
+        'tokenHmacId': tokenHmacId,
+        'id': userid,
+        'key': request.db.get_token(tokenHmacId),
+        'algorithm': 'sha256'
+    }
 
 
 def settings_expandvars(settings):
@@ -61,81 +59,45 @@ def settings_expandvars(settings):
                 for key, value in six.iteritems(settings))
 
 
+def build_list(variable):
+    if not variable:
+        return []
+    elif "\n" in variable:
+        variable = variable.split("\n")
+    else:
+        variable = variable.split(",")
+    return [v.strip() for v in variable]
+
+
 def main(global_config, **settings):
     Service.cors_origins = ('*',)
 
     settings = settings_expandvars(settings)
     config = Configurator(settings=settings, root_factory=RootFactory)
     config.include("cornice")
-    config.include('pyramid_mako')
 
     # ACL management
 
-    # Persona authentication
-    secret = settings.get('persona.secret', None)
-
     policies = [
         BasicAuthAuthenticationPolicy(check_api_token),
-        AuthTktAuthenticationPolicy(secret, hashalg='sha512',
-                                    callback=build_user_principals)
     ]
     authn_policy = MultiAuthenticationPolicy(policies)
-
-    session_factory = UnencryptedCookieSessionFactoryConfig(secret)
-    config.set_session_factory(session_factory)
-
-    verifier_factory = config.maybe_dotted(
-        settings.get('persona.verifier', 'browserid.RemoteVerifier'))
-    audiences = aslist(settings['persona.audiences'])
-    config.registry['persona.verifier'] = verifier_factory(audiences)
-
-    # Parameters for the request API call
-    request_params = {}
-    for option in ('privacyPolicy', 'siteLogo', 'siteName', 'termsOfService',
-                   'backgroundColor'):
-        setting_name = 'persona.%s' % option
-        if setting_name in settings:
-            request_params[option] = settings[setting_name]
-    config.registry['persona.request_params'] = json.dumps(request_params)
-
-    # Login and logout views.
-    config.add_route('persona', '/persona')
-    config.add_view(home, route_name='persona', renderer='home.mako')
-
-    login_route = settings.get('persona.login_route', 'login')
-    config.registry['persona.login_route'] = login_route
-    login_path = settings.get('persona.login_path', '/login')
-    config.add_route(login_route, login_path)
-    config.add_view(login, route_name=login_route, check_csrf=True,
-                    renderer='json', permission=NO_PERMISSION_REQUIRED)
-
-    logout_route = settings.get('persona.logout_route', 'logout')
-    config.registry['persona.logout_route'] = logout_route
-    logout_path = settings.get('persona.logout_path', '/logout')
-    config.add_route(logout_route, logout_path)
-    config.add_view(logout, route_name=logout_route, check_csrf=True,
-                    renderer='json',
-                    permission=NO_PERMISSION_REQUIRED)
-
-    config.add_request_method(button, 'persona_button', reify=True)
-    config.add_request_method(js, 'persona_js', reify=True)
 
     # Unauthorized view
     config.add_forbidden_view(unauthorized_view)
 
     # Authorization policy
-    can_create_model = settings.get("daybed.can_create_model", "Everyone")
-
-    if "\n" in can_create_model:
-        can_create_model = can_create_model.split("\n")
-    else:
-        can_create_model = can_create_model.split(",")
-    can_create_model = [u.strip() for u in can_create_model]
-
-    authz_policy = DaybedAuthorizationPolicy(model_creators=can_create_model)
+    authz_policy = DaybedAuthorizationPolicy(
+        model_creators=build_list(settings.get("daybed.can_create_model",
+                                               "Everyone")),
+        token_creators=build_list(settings.get("daybed.can_create_token",
+                                               "Everyone")),
+        token_managers=build_list(settings.get("daybed.can_manage_token",
+                                               None)),
+    )
     config.set_authentication_policy(authn_policy)
     config.set_authorization_policy(authz_policy)
-    config.add_request_method(get_user, 'user', reify=True)
+    config.add_request_method(get_token, 'token', reify=True)
 
     # We need to scan AFTER setting the authn / authz policies
     config.scan("daybed.views")
@@ -144,8 +106,15 @@ def main(global_config, **settings):
     backend_class = config.maybe_dotted(settings['daybed.backend'])
     config.registry.backend = backend_class.load_from_config(config)
 
+    # hawkHmacKey configuration
+    config.registry.hawkHmacKey = codecs.decode(
+        settings['daybed.hawkHmacKey'], 'hex_codec'
+    )
+
     def add_db_to_request(event):
         event.request.db = config.registry.backend
+        event.request.hawkHmacKey = config.registry.hawkHmacKey
+
     config.add_subscriber(add_db_to_request, NewRequest)
 
     config.add_renderer('jsonp', JSONP(param_name='callback'))

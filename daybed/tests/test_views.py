@@ -30,9 +30,6 @@ class DaybedViewsTest(BaseWebTest):
                               'url': 'http://localhost',
                               'daybed': 'hello'}, response.json)
 
-    def test_persona(self):
-        self.app.get('/persona', headers=self.headers)
-
     def test_fields_are_listed(self):
         response = self.app.get('/fields')
         fields = response.json
@@ -67,8 +64,8 @@ class BasicAuthRegistrationTest(BaseWebTest):
             "fields": [{"name": "age", "type": "int", "required": False}]
         }
 
-    # XXX: We don't create automatically the user on first login attempt.
-    # def test_basic_auth_user_creation(self):
+    # XXX: We don't create automatically the token on first login attempt.
+    # def test_basic_auth_token_creation(self):
     #     auth_password = base64.b64encode(
     #         u'arthur:foo'.encode('ascii')).strip().decode('ascii')
     #     headers = {
@@ -81,9 +78,9 @@ class BasicAuthRegistrationTest(BaseWebTest):
     #                       headers=headers)
     #
     #     try:
-    #         self.db.get_user('arthur')
-    #     except UserNotFound:
-    #         self.fail("BasicAuth didn't create the user arthur.")
+    #         self.db.get_token('arthur')
+    #     except TokenNotFound:
+    #         self.fail("BasicAuth didn't create the token arthur.")
 
     def test_forbidden(self):
         self.app.put_json('/models/%s' % self.model_id,
@@ -271,3 +268,17 @@ class RecordsViewsTest(BaseWebTest):
         # Test 404
         self.app.delete('/models/test/records/%s' % record_id,
                         headers=self.headers, status=404)
+
+
+class TokensViewsTest(BaseWebTest):
+
+    def test_post_token(self):
+        response = self.app.post('/tokens', status=201)
+        self.assertIn("sessionToken", response.json)
+        self.assertTrue(len(response.json["sessionToken"]) == 64)
+        self.assertIn("credentials", response.json)
+        self.assertIn("id", response.json["credentials"])
+        self.assertTrue(len(response.json["credentials"]["id"]) == 64)
+        self.assertIn("key", response.json["credentials"])
+        self.assertTrue(len(response.json["credentials"]["key"]) == 64)
+        self.assertEqual("sha256", response.json["credentials"]["algorithm"])

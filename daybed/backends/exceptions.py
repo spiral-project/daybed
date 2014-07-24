@@ -1,8 +1,8 @@
-class UserAlreadyExist(Exception):
+class TokenAlreadyExist(Exception):
     pass
 
 
-class UserNotFound(Exception):
+class TokenNotFound(Exception):
     pass
 
 

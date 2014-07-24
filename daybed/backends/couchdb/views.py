@@ -28,10 +28,10 @@ function(doc) {
   }
 }""")
 
-"""The usernames of the users"""
-users = ViewDefinition('users', 'by_name', """
+"""The token from their ids"""
+tokens = ViewDefinition('tokens', 'by_name', """
 function(doc){
-  if(doc.type == 'user'){
+  if(doc.type == 'token'){
       emit(doc.name, doc);
   }
 }

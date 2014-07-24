@@ -35,14 +35,14 @@ KEYWORDS = ['web',
             'backbone',
             'storage']
 PACKAGES = [NAME.replace('-', '_')]
-REQUIREMENTS = ['setuptools',
-                'six',
-                'pyramid',
-                'cornice',
-                'colander',
-                'pyramid_persona',
-                'pyramid_multiauth',
-                'pyramid_mako']
+REQUIREMENTS = [
+    'setuptools',
+    'six',
+    'pyramid',
+    'cornice',
+    'colander',
+    'pyramid_multiauth',
+]
 DEPENDENCY_LINKS = []
 ENTRY_POINTS = {
     'paste.app_factory': [

@@ -1,7 +1,7 @@
 from copy import deepcopy
 
 from daybed.backends.exceptions import (
-    UserAlreadyExist, UserNotFound, ModelNotFound, RecordNotFound
+    TokenAlreadyExist, TokenNotFound, ModelNotFound, RecordNotFound
 )
 
 
@@ -27,7 +27,7 @@ class MemoryBackend(object):
             'models': {},
             'records': {},
             'acls': {},
-            'users': {}
+            'tokens': {}
         }
 
     def __get_model(self, model_id):
@@ -70,8 +70,6 @@ class MemoryBackend(object):
             model_id = self._generate_id()
 
         self._db['models'][model_id] = {
-            'type': 'definition',
-            '_id': model_id,
             'definition': definition,
             'acls': acls,
         }
@@ -80,9 +78,7 @@ class MemoryBackend(object):
 
     def put_record(self, model_id, record, authors, record_id=None):
         doc = {
-            'type': 'record',
             'authors': authors,
-            'model_id': model_id,
             'record': record
         }
 
@@ -122,31 +118,26 @@ class MemoryBackend(object):
         del self._db['models'][model_id]
         return doc
 
-    def __get_user(self, username):
+    def __get_token(self, tokenHmacId):
         try:
-            return deepcopy(self._db['users'][username])
+            return str(self._db['tokens'][tokenHmacId])
         except KeyError:
-            raise UserNotFound(username)
+            raise TokenNotFound(tokenHmacId)
 
-    def get_user(self, username):
-        """Returns the information associated with an user"""
-        user = self.__get_user(username)
-        return user['user']
+    def get_token(self, tokenHmacId):
+        """Returns the information associated with an token"""
+        secret = self.__get_token(tokenHmacId)
+        return secret
 
-    def add_user(self, user):
-        # Check that the user doesn't already exist.
+    def add_token(self, tokenHmacId, secret):
+        # Check that the token doesn't already exist.
         try:
-            username = user['name']
-            user = self.__get_user(username)
-            raise UserAlreadyExist(username)
-        except UserNotFound:
+            self.__get_token(tokenHmacId)
+            raise TokenAlreadyExist(tokenHmacId)
+        except TokenNotFound:
             pass
 
-        user = user.copy()
-
-        doc = dict(user=user, name=username, type='user')
-        self._db['users'][username] = doc
-        return user
+        self._db['tokens'][tokenHmacId] = secret
 
     def get_model_acls(self, model_id):
         doc = self.__get_model(model_id)

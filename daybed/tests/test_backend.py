@@ -11,7 +11,7 @@ from couchdb.client import Server
 from couchdb.design import ViewDefinition
 
 from daybed.backends.exceptions import (
-    UserAlreadyExist, ModelNotFound, RecordNotFound,
+    TokenAlreadyExist, ModelNotFound, RecordNotFound,
 )
 from daybed.backends.couchdb import (
     CouchDBBackendConnectionError, CouchDBBackend
@@ -46,9 +46,9 @@ class BackendTestBase(object):
     def test_add_acls_merges_redundant_acls(self):
         pass
 
-    def test_add_user_fails_if_already_exist(self):
-        self.db.add_user({'name': 'Remy'})
-        self.assertRaises(UserAlreadyExist, self.db.add_user, {'name': 'Remy'})
+    def test_add_token_fails_if_already_exist(self):
+        self.db.add_token("Remy", "Foo")
+        self.assertRaises(TokenAlreadyExist, self.db.add_token, "Remy", "Bar")
 
 
     def test_get_model_acls(self):

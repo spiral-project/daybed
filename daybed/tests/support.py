@@ -8,7 +8,8 @@ import base64
 import six
 import webtest
 
-from daybed.backends.exceptions import UserAlreadyExist
+from daybed.backends.exceptions import TokenAlreadyExist
+from daybed.tokens import hmac
 
 
 class BaseWebTest(unittest.TestCase):
@@ -22,8 +23,11 @@ class BaseWebTest(unittest.TestCase):
         self.db = self.app.app.registry.backend
 
         try:
-            self.db.add_user({'name': 'admin', 'apitoken': 'foo'})
-        except UserAlreadyExist:
+            self.db.add_token(
+                hmac('admin', self.app.app.registry.hawkHmacKey),
+                'foo'
+            )
+        except TokenAlreadyExist:
             pass
 
         auth_password = base64.b64encode(
