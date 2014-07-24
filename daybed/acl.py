@@ -176,11 +176,11 @@ def build_user_principals(token, request):
     return [token]
 
 
-def check_api_token(hawkId, password, request):
+def check_api_token(tokenId, tokenKey, request):
     try:
-        secret = request.db.get_token(hmac(hawkId, request.hawkHmacKey))
-        if secret == password:
-            return build_user_principals(hawkId, request)
+        secret = request.db.get_token(hmac(tokenId, request.hawkHmacKey))
+        if secret == tokenKey:
+            return build_user_principals(tokenId, request)
         return []
     except TokenNotFound:
         return []

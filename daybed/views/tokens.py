@@ -28,8 +28,8 @@ def post_tokens(request):
         'algorithm': 'sha256'
     }
 
-    hmacId = hmac(credentials["id"], request.hawkHmacKey)
-    request.db.add_token(hmacId, credentials["key"])
+    tokenHmacId = hmac(credentials["id"], request.hawkHmacKey)
+    request.db.add_token(tokenHmacId, credentials["key"])
 
     session_token = codecs.encode(session_token, "hex_codec").decode("utf-8")
 

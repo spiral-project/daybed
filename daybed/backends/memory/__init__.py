@@ -118,26 +118,26 @@ class MemoryBackend(object):
         del self._db['models'][model_id]
         return doc
 
-    def __get_token(self, hmacId):
+    def __get_token(self, tokenHmacId):
         try:
-            return str(self._db['tokens'][hmacId])
+            return str(self._db['tokens'][tokenHmacId])
         except KeyError:
-            raise TokenNotFound(hmacId)
+            raise TokenNotFound(tokenHmacId)
 
-    def get_token(self, hmacId):
+    def get_token(self, tokenHmacId):
         """Returns the information associated with an token"""
-        secret = self.__get_token(hmacId)
+        secret = self.__get_token(tokenHmacId)
         return secret
 
-    def add_token(self, hmacId, secret):
+    def add_token(self, tokenHmacId, secret):
         # Check that the token doesn't already exist.
         try:
-            self.__get_token(hmacId)
-            raise TokenAlreadyExist(hmacId)
+            self.__get_token(tokenHmacId)
+            raise TokenAlreadyExist(tokenHmacId)
         except TokenNotFound:
             pass
 
-        self._db['tokens'][hmacId] = secret
+        self._db['tokens'][tokenHmacId] = secret
 
     def get_model_acls(self, model_id):
         doc = self.__get_model(model_id)

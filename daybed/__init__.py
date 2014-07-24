@@ -43,11 +43,11 @@ def home(request):
 
 def get_token(request):
     userid = unauthenticated_userid(request)
-    hmacId = hmac(userid, request.hawkHmacKey)
+    tokenHmacId = hmac(userid, request.hawkHmacKey)
     return {
-        'hmacId': hmacId,
+        'tokenHmacId': tokenHmacId,
         'id': userid,
-        'key': request.db.get_token(hmacId),
+        'key': request.db.get_token(tokenHmacId),
         'algorithm': 'sha256'
     }
 
