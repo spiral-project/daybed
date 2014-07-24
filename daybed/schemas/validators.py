@@ -46,13 +46,14 @@ def validate_against_schema(request, schema, data, field_name=None):
         # Attach data_clean to request: see usage in views.
         request.data_clean = data_clean
     except Invalid as e:
-        def output_error(error):
+        def output_error(error, recurse=False):
             # here we transform the errors we got from colander into cornice
             # errors
             for field, error in error.asdict().items():
                 request.errors.add('body', field or field_name or '', error)
-                map(output_error, e.children)
-        output_error(e)
+                if recurse:
+                    map(output_error, e.children)
+        output_error(e, True)
 
 
 def post_serialize(data):
