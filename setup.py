@@ -38,6 +38,8 @@ PACKAGES = [NAME.replace('-', '_')]
 REQUIREMENTS = [
     'setuptools',
     'six',
+    'redis',
+    'hiredis',
     'pyramid',
     'cornice',
     'colander',

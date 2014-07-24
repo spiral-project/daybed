@@ -58,7 +58,7 @@ class CouchDBBackend(object):
     def sync_views(self):
         ViewDefinition.sync_many(self.server[self.db_name], docs)
 
-    def __get_model(self, model_id):
+    def __get_raw_model(self, model_id):
         try:
             doc = views.model_definitions(self._db)[model_id].rows[0]
             return doc.value
@@ -66,19 +66,19 @@ class CouchDBBackend(object):
             raise ModelNotFound(model_id)
 
     def get_model_definition(self, model_id):
-        return self.__get_model(model_id)['definition']
+        return self.__get_raw_model(model_id)['definition']
 
-    def __get_records(self, model_id):
+    def __get_raw_records(self, model_id):
         return views.records(self._db)[model_id]
 
     def get_records(self, model_id):
         records = []
-        for item in self.__get_records(model_id):
+        for item in self.__get_raw_records(model_id):
             item.value['record']['id'] = item.value['_id'].split('-')[1]
             records.append(item.value['record'])
         return records
 
-    def __get_record(self, model_id, record_id):
+    def __get_raw_record(self, model_id, record_id):
         key = u'-'.join((model_id, record_id))
         try:
             return views.records_all(self._db)[key].rows[0].value
@@ -86,11 +86,11 @@ class CouchDBBackend(object):
             raise RecordNotFound(u'(%s, %s)' % (model_id, record_id))
 
     def get_record(self, model_id, record_id):
-        doc = self.__get_record(model_id, record_id)
+        doc = self.__get_raw_record(model_id, record_id)
         return doc['record']
 
     def get_record_authors(self, model_id, record_id):
-        doc = self.__get_record(model_id, record_id)
+        doc = self.__get_raw_record(model_id, record_id)
         return doc['authors']
 
     def put_model(self, definition, acls, model_id=None):
@@ -113,7 +113,7 @@ class CouchDBBackend(object):
 
         if record_id is not None:
             try:
-                old_doc = self.__get_record(model_id, record_id)
+                old_doc = self.__get_raw_record(model_id, record_id)
             except RecordNotFound:
                 doc['_id'] = '-'.join((model_id, record_id))
             else:
@@ -129,13 +129,13 @@ class CouchDBBackend(object):
         return record_id
 
     def delete_record(self, model_id, record_id):
-        doc = self.__get_record(model_id, record_id)
+        doc = self.__get_raw_record(model_id, record_id)
         if doc:
             self._db.delete(doc)
         return doc
 
     def delete_records(self, model_id):
-        results = self.__get_records(model_id)
+        results = self.__get_raw_records(model_id)
         for result in results:
             self._db.delete(result.value)
         return results
@@ -155,7 +155,7 @@ class CouchDBBackend(object):
         self._db.delete(doc)
         return doc
 
-    def __get_token(self, tokenHmacId):
+    def __get_raw_token(self, tokenHmacId):
         try:
             return views.tokens(self._db)[tokenHmacId].rows[0].value
         except IndexError:
@@ -163,13 +163,13 @@ class CouchDBBackend(object):
 
     def get_token(self, tokenHmacId):
         """Returns the information associated with an token"""
-        token = dict(**self.__get_token(tokenHmacId))
+        token = dict(**self.__get_raw_token(tokenHmacId))
         return token['secret']
 
     def add_token(self, tokenHmacId, secret):
         # Check that the token doesn't already exist.
         try:
-            self.__get_token(tokenHmacId)
+            self.__get_raw_token(tokenHmacId)
             raise TokenAlreadyExist(tokenHmacId)
         except TokenNotFound:
             pass
@@ -178,5 +178,5 @@ class CouchDBBackend(object):
         self._db.save(doc)
 
     def get_model_acls(self, model_id):
-        doc = self.__get_model(model_id)
+        doc = self.__get_raw_model(model_id)
         return doc['acls']
