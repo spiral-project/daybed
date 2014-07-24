@@ -1,6 +1,6 @@
 from cornice import Service
 
-from daybed.hkdf import get_hawk_credentials, hmac
+from daybed.tokens import get_hawk_credentials, hmac
 
 tokens = Service(name='tokens', path='/tokens', description='Tokens',
                  renderer="jsonp", cors_origins=('*',))

@@ -9,7 +9,7 @@ import six
 import webtest
 
 from daybed.backends.exceptions import TokenAlreadyExist
-from daybed.hkdf import hmac
+from daybed.tokens import hmac
 
 
 class BaseWebTest(unittest.TestCase):

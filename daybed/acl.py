@@ -7,7 +7,7 @@ from zope.interface import implementer
 from daybed.backends.exceptions import (
     ModelNotFound, RecordNotFound, TokenNotFound
 )
-from daybed.hkdf import hmac
+from daybed.tokens import hmac
 from daybed import logger
 
 PERMISSIONS_SET = set([

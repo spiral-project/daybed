@@ -28,7 +28,7 @@ from daybed.acl import (
     RootFactory, DaybedAuthorizationPolicy, check_api_token,
 )
 from daybed.backends.exceptions import TokenNotFound
-from daybed.hkdf import hmac
+from daybed.tokens import hmac
 from daybed.views.errors import unauthorized_view
 from daybed.renderers import GeoJSON
 
