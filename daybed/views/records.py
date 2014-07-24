@@ -54,7 +54,7 @@ def post_record(request):
     else:
         token = Everyone
     record_id = request.db.put_record(model_id, request.data_clean,
-                                      token)
+                                      [token])
     created = u'%s/models/%s/records/%s' % (request.application_url, model_id,
                                             record_id)
     request.response.status = "201 Created"
