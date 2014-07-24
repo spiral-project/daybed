@@ -13,9 +13,9 @@ class RedisBackend(object):
         settings = config.registry.settings
         generator = config.maybe_dotted(settings['daybed.id_generator'])
         return RedisBackend(
-            settings['backend.db_host'],
-            settings['backend.db_port'],
-            settings['backend.db_index'],
+            settings.get('backend.db_host', 'localhost'),
+            settings.get('backend.db_port', 6379),
+            settings.get('backend.db_index', 0),
             generator(config)
         )
 
