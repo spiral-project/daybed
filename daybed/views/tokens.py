@@ -1,4 +1,5 @@
 import os
+import codecs
 from cornice import Service
 
 from daybed.hkdf import HKDF, hmac
@@ -22,15 +23,17 @@ def post_tokens(request):
     keyMaterial = HKDF(session_token, "", keyInfo, 32*2)
 
     credentials = {
-        'id': keyMaterial[:32].encode("hex"),
-        'key': keyMaterial[32:64].encode("hex"),
+        'id': codecs.encode(keyMaterial[:32], "hex_codec").decode("utf-8"),
+        'key': codecs.encode(keyMaterial[32:64], "hex_codec").decode("utf-8"),
         'algorithm': 'sha256'
     }
 
     hmacId = hmac(credentials["id"], request.hawkHmacKey)
     request.db.add_token(hmacId, credentials["key"])
 
+    session_token = codecs.encode(session_token, "hex_codec").decode("utf-8")
+
     return {
-        'sessionToken': session_token.encode("hex"),
+        'sessionToken': session_token,
         'credentials': credentials
     }

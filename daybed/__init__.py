@@ -1,5 +1,6 @@
 """Main entry point
 """
+import codecs
 import os
 import logging
 import pkg_resources
@@ -106,7 +107,9 @@ def main(global_config, **settings):
     config.registry.backend = backend_class.load_from_config(config)
 
     # hawkHmacKey configuration
-    config.registry.hawkHmacKey = settings['daybed.hawkHmacKey'].decode('hex')
+    config.registry.hawkHmacKey = codecs.decode(
+        settings['daybed.hawkHmacKey'], 'hex_codec'
+    )
 
     def add_db_to_request(event):
         event.request.db = config.registry.backend

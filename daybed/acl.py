@@ -109,7 +109,7 @@ class DaybedAuthorizationPolicy(object):
         return creators
 
     def add_conf_rights(self, creators, principals, permissions, perm):
-        if set(creators) & set(principals) != set():
+        if creators.intersection(principals) != set():
             permissions.add(perm)
 
     def permits(self, context, principals, permission):
@@ -141,7 +141,7 @@ class DaybedAuthorizationPolicy(object):
             for acl_name, tokens in acls.items():
                 # If one of the principals is in the valid tokens for this,
                 # permission, grant the permission.
-                if set(principals) & set(tokens):
+                if set(principals).intersection(tokens):
                     token_permissions.add(acl_name)
 
             logger.debug("token permissions: %s", token_permissions)
@@ -153,7 +153,7 @@ class DaybedAuthorizationPolicy(object):
                 except RecordNotFound:
                     authors = []
                 finally:
-                    if not set(principals) & set(authors):
+                    if not set(principals).intersection(authors):
                         token_permissions -= AUTHORS_PERMISSIONS
 
         # Check view permission matches token permissions.
