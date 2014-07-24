@@ -22,6 +22,7 @@ from pyramid.security import (
     unauthenticated_userid
 )
 
+from pyramid_hawkauth import HawkAuthenticationPolicy
 from pyramid_multiauth import MultiAuthenticationPolicy
 
 from daybed.acl import (
@@ -80,6 +81,7 @@ def main(global_config, **settings):
 
     policies = [
         BasicAuthAuthenticationPolicy(check_api_token),
+        HawkAuthenticationPolicy(settings.get("daybed.hawk_master_secret")),
     ]
     authn_policy = MultiAuthenticationPolicy(policies)
 
@@ -88,12 +90,12 @@ def main(global_config, **settings):
 
     # Authorization policy
     authz_policy = DaybedAuthorizationPolicy(
-        model_creators=build_list(settings.get("daybed.can_create_model",
-                                               "Everyone")),
-        token_creators=build_list(settings.get("daybed.can_create_token",
-                                               "Everyone")),
-        token_managers=build_list(settings.get("daybed.can_manage_token",
-                                               None)),
+        model_creators=build_list(
+            settings.get("daybed.can_create_model", "Everyone")),
+        token_creators=build_list(
+            settings.get("daybed.can_create_token", "Everyone")),
+        token_managers=build_list(
+            settings.get("daybed.can_manage_token", None)),
     )
     config.set_authentication_policy(authn_policy)
     config.set_authorization_policy(authz_policy)

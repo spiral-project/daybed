@@ -44,6 +44,7 @@ REQUIREMENTS = [
     'cornice',
     'colander',
     'pyramid_multiauth',
+    'pyramid_hawkauth'
 ]
 DEPENDENCY_LINKS = []
 ENTRY_POINTS = {
