@@ -1,6 +1,5 @@
 """Main entry point
 """
-import codecs
 import os
 import logging
 import pkg_resources
