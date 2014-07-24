@@ -1,7 +1,7 @@
 Daybed
 ######
 
-An Open Source Web API providing validation and storage as a service.
+Daybed is an Open Source Web API providing validation and storage as a service.
 
 
 Why ?
@@ -31,7 +31,7 @@ How ?
 =====
 
 #. Create a model by posting its definition (*title, fields, ...*)
-#. Define or reuse existing permissions sets (*modify definition, create, update or delete records, ...*)
+#. Define the permissions sets (*modify definition, create, update or delete records, ...*)
 #. Use the allocated RESTful end-point in your application (*GET, POST, PUT, ...*)
 #. Store and query the records !
 
@@ -40,8 +40,8 @@ any of your favorite technologies (*python, Android, iOS, AngularJS, Ember.js, B
 
 :notes:
 
-    Currently, the authentication relies on `Persona <https://www.mozilla.org/en-US/persona/>`_.
-    This could change in a near future.
+    Currently, the authentication relies on Basic authentication and `Hawk
+    <https://github.com/hueniverse/hawk>`_
 
 
 Use-cases
