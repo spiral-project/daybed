@@ -31,13 +31,12 @@ class RedisBackend(object):
     def __get_model(self, model_id):
         model = self._db.get("model.%s" % model_id)
         if model is not None:
-            return model
+            return model.decode("utf-8")
         raise ModelNotFound(model_id)
 
     def get_model_definition(self, model_id):
         model = self.__get_model(model_id)
-        if model is not None:
-            return json.loads(model)['definition']
+        return json.loads(model)['definition']
 
     def get_model_acls(self, model_id):
         doc = self.__get_model(model_id)
@@ -58,13 +57,13 @@ class RedisBackend(object):
     def get_records(self, model_id):
         records = []
         for item in self.__get_records(model_id):
-            records.append(json.loads(item)['record'])
+            records.append(json.loads(item.decode("utf-8"))['record'])
         return records
 
     def __get_record(self, model_id, record_id):
         record = self._db.get("model.%s.record.%s" % (model_id, record_id))
         if record is not None:
-            return record
+            return record.decode("utf-8")
         raise RecordNotFound(u'(%s, %s)' % (model_id, record_id))
 
     def get_record(self, model_id, record_id):
@@ -148,7 +147,7 @@ class RedisBackend(object):
         secret = self._db.get("token.%s" % tokenHmacId)
         if secret is None:
             raise TokenNotFound(tokenHmacId)
-        return secret
+        return secret.decode("utf-8")
 
     def get_token(self, tokenHmacId):
         """Returns the information associated with an token"""
