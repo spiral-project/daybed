@@ -5,6 +5,5 @@ pyramid_debugtoolbar
 waitress
 unittest2
 Mock
-pyramid_multiauth
 tox
 flake8

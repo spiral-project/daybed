@@ -11,6 +11,7 @@ hello = Service(name="hello",
 @hello.get()
 def get_hello(request):
     """Return information regarding the current instance."""
-    return dict(daybed='hello',
+    return dict(token=request.token,
+                daybed='hello',
                 version=VERSION,
                 url=request.host_url)

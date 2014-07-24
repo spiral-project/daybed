@@ -4,7 +4,6 @@ import codecs
 import os
 import logging
 import pkg_resources
-from collections import defaultdict
 
 
 #: Module version, as defined in PEP-0396.
@@ -28,29 +27,16 @@ from pyramid_multiauth import MultiAuthenticationPolicy
 from daybed.acl import (
     RootFactory, DaybedAuthorizationPolicy, check_api_token,
 )
-from daybed.backends.exceptions import TokenNotFound
-from daybed.tokens import hmac
 from daybed.views.errors import unauthorized_view
 from daybed.renderers import GeoJSON
+from daybed.backends.exceptions import TokenNotFound
 
 
-def home(request):
+def get_hawk_id(request, tokenid):
     try:
-        token = get_token(request)
+        return tokenid, request.db.get_token(tokenid)
     except TokenNotFound:
-        token = defaultdict(str)
-    return {'token': token}
-
-
-def get_token(request):
-    userid = unauthenticated_userid(request)
-    tokenHmacId = hmac(userid, request.hawkHmacKey)
-    return {
-        'tokenHmacId': tokenHmacId,
-        'id': userid,
-        'key': request.db.get_token(tokenHmacId),
-        'algorithm': 'sha256'
-    }
+        raise ValueError
 
 
 def settings_expandvars(settings):
@@ -81,7 +67,7 @@ def main(global_config, **settings):
 
     policies = [
         BasicAuthAuthenticationPolicy(check_api_token),
-        HawkAuthenticationPolicy(settings.get("daybed.hawk_master_secret")),
+        HawkAuthenticationPolicy(decode_hawk_id=get_hawk_id),
     ]
     authn_policy = MultiAuthenticationPolicy(policies)
 
@@ -99,7 +85,7 @@ def main(global_config, **settings):
     )
     config.set_authentication_policy(authn_policy)
     config.set_authorization_policy(authz_policy)
-    config.add_request_method(get_token, 'token', reify=True)
+    config.add_request_method(unauthenticated_userid, 'token', reify=True)
 
     # We need to scan AFTER setting the authn / authz policies
     config.scan("daybed.views")
