@@ -33,6 +33,7 @@ def post_tokens(request):
 
     session_token = codecs.encode(session_token, "hex_codec").decode("utf-8")
 
+    request.response.status = "201 Created"
     return {
         'sessionToken': session_token,
         'credentials': credentials

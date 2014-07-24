@@ -274,7 +274,7 @@ class TokensViewsTest(BaseWebTest):
 
     def test_post_token(self):
         response = self.app.post('/tokens',
-                                 status=200)
+                                 status=201)
         self.assertIn("sessionToken", response.json)
         self.assertTrue(len(response.json["sessionToken"]) == 64)
         self.assertIn("credentials", response.json)
