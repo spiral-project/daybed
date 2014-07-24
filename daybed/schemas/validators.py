@@ -104,35 +104,7 @@ def model_validator(request):
     try:
         body = json.loads(request.body.decode('utf-8'))
     except ValueError:
-        request.errors.add('body', 'json value error', "body malformed")
-        return
-
-    # Check the definition is valid.
-    definition = body.get('definition')
-    if not definition:
-        request.errors.add('body', 'definition', 'definition is required')
-    else:
-        validate_against_schema(request, DefinitionSchema(), definition)
-    request.validated['definition'] = definition
-
-    # Check that the records are valid according to the definition.
-    records = body.get('records')
-    request.validated['records'] = []
-    if records:
-        definition_schema = RecordSchema(definition)
-        for record in records:
-            validate_against_schema(request, definition_schema, record)
-            request.validated['records'].append(record)
-
-
-def token_validator(request):
-    """Verify that the model is okay (that we have the right fields) and
-    eventually populates it if there is a need to.
-    """
-    try:
-        body = json.loads(request.body.decode('utf-8'))
-    except ValueError:
-        request.errors.add('body', 'json value error', "body malformed")
+        request.errors.add('body', 'json value error', "malformed body")
         return
 
     # Check the definition is valid.

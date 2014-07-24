@@ -273,8 +273,7 @@ class RecordsViewsTest(BaseWebTest):
 class TokensViewsTest(BaseWebTest):
 
     def test_post_token(self):
-        response = self.app.post('/tokens',
-                                 status=201)
+        response = self.app.post('/tokens', status=201)
         self.assertIn("sessionToken", response.json)
         self.assertTrue(len(response.json["sessionToken"]) == 64)
         self.assertIn("credentials", response.json)
