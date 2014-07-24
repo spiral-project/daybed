@@ -20,59 +20,61 @@ class RedisBackend(object):
         )
 
     def __init__(self, host, port, db, id_generator):
-        # model id generator
         self._db = redis.StrictRedis(host=host, port=port, db=db)
+
+        # Ping the server to be sure the connection works.
         self._db.ping()
         self._generate_id = id_generator
 
     def delete_db(self):
         self._db.flushdb()
 
-    def __get_model(self, model_id):
+    def __get_raw_model(self, model_id):
         model = self._db.get("model.%s" % model_id)
         if model is not None:
-            return model.decode("utf-8")
+            return json.loads(model.decode("utf-8"))
         raise ModelNotFound(model_id)
 
     def get_model_definition(self, model_id):
-        model = self.__get_model(model_id)
-        return json.loads(model)['definition']
+        model = self.__get_raw_model(model_id)
+        return model['definition']
 
     def get_model_acls(self, model_id):
-        doc = self.__get_model(model_id)
-        return json.loads(doc)['acls']
+        doc = self.__get_raw_model(model_id)
+        return doc['acls']
 
-    def __get_records(self, model_id):
+    def __get_raw_records(self, model_id):
         # Check if the model still exists or raise
-        self.__get_model(model_id)
+        self.__get_raw_model(model_id)
 
         model_records = self._db.smembers(
             "model.%s.records" % model_id
         )
         if model_records:
-            return self._db.mget(*model_records)
+            return [json.loads(i.decode("utf-8"))
+                    for i in self._db.mget(*model_records)]
         else:
             return []
 
     def get_records(self, model_id):
         records = []
-        for item in self.__get_records(model_id):
-            records.append(json.loads(item.decode("utf-8"))['record'])
+        for item in self.__get_raw_records(model_id):
+            records.append(item['record'])
         return records
 
-    def __get_record(self, model_id, record_id):
+    def __get_raw_record(self, model_id, record_id):
         record = self._db.get("model.%s.record.%s" % (model_id, record_id))
         if record is not None:
-            return record.decode("utf-8")
+            return json.loads(record.decode("utf-8"))
         raise RecordNotFound(u'(%s, %s)' % (model_id, record_id))
 
     def get_record(self, model_id, record_id):
-        doc = self.__get_record(model_id, record_id)
-        return json.loads(doc)['record']
+        doc = self.__get_raw_record(model_id, record_id)
+        return doc['record']
 
     def get_record_authors(self, model_id, record_id):
-        doc = self.__get_record(model_id, record_id)
-        return json.loads(doc)['authors']
+        doc = self.__get_raw_record(model_id, record_id)
+        return doc['authors']
 
     def put_model(self, definition, acls, model_id=None):
         if model_id is None:
@@ -96,7 +98,7 @@ class RedisBackend(object):
 
         if record_id is not None:
             try:
-                old_doc = json.loads(self.__get_record(model_id, record_id))
+                old_doc = self.__get_raw_record(model_id, record_id)
             except RecordNotFound:
                 pass
             else:
@@ -118,14 +120,14 @@ class RedisBackend(object):
         return record_id
 
     def delete_record(self, model_id, record_id):
-        doc = self.__get_record(model_id, record_id)
+        doc = self.__get_raw_record(model_id, record_id)
         if doc:
             self._db.delete("model.%s.record.%s" % (model_id, record_id))
             self._db.srem(
                 "model.%s.records" % model_id,
                 "model.%s.record.%s" % (model_id, record_id)
             )
-            return json.loads(doc)
+            return doc
 
     def delete_records(self, model_id):
         records = self.get_records(model_id)
@@ -138,25 +140,22 @@ class RedisBackend(object):
         return records
 
     def delete_model(self, model_id):
-        doc = json.loads(self.__get_model(model_id))
+        doc = self.__get_raw_model(model_id)
         doc["records"] = self.delete_records(model_id)
         self._db.delete("model.%s" % model_id)
         return doc
 
-    def __get_token(self, tokenHmacId):
+    def get_token(self, tokenHmacId):
+        """Retrieves a token by its id"""
         secret = self._db.get("token.%s" % tokenHmacId)
         if secret is None:
             raise TokenNotFound(tokenHmacId)
         return secret.decode("utf-8")
 
-    def get_token(self, tokenHmacId):
-        """Returns the information associated with an token"""
-        return self.__get_token(tokenHmacId)
-
     def add_token(self, tokenHmacId, secret):
         # Check that the token doesn't already exist.
         try:
-            self.__get_token(tokenHmacId)
+            self.get_token(tokenHmacId)
             raise TokenAlreadyExist(tokenHmacId)
         except TokenNotFound:
             pass

@@ -30,39 +30,39 @@ class MemoryBackend(object):
             'tokens': {}
         }
 
-    def __get_model(self, model_id):
+    def __get_raw_model(self, model_id):
         try:
             return deepcopy(self._db['models'][model_id])
         except KeyError:
             raise ModelNotFound(model_id)
 
     def get_model_definition(self, model_id):
-        return self.__get_model(model_id)['definition']
+        return self.__get_raw_model(model_id)['definition']
 
-    def __get_records(self, model_id):
+    def __get_raw_records(self, model_id):
         # Check that model_id exists and raises if not.
-        self.__get_model(model_id)
+        self.__get_raw_model(model_id)
         return self._db['records'].get(model_id, {}).values()
 
     def get_records(self, model_id):
         records = []
-        for item in self.__get_records(model_id):
+        for item in self.__get_raw_records(model_id):
             item['record']['id'] = item['_id']
             records.append(deepcopy(item['record']))
         return records
 
-    def __get_record(self, model_id, record_id):
+    def __get_raw_record(self, model_id, record_id):
         try:
             return deepcopy(self._db['records'][model_id][record_id])
         except KeyError:
             raise RecordNotFound(u'(%s, %s)' % (model_id, record_id))
 
     def get_record(self, model_id, record_id):
-        doc = self.__get_record(model_id, record_id)
+        doc = self.__get_raw_record(model_id, record_id)
         return doc['record']
 
     def get_record_authors(self, model_id, record_id):
-        doc = self.__get_record(model_id, record_id)
+        doc = self.__get_raw_record(model_id, record_id)
         return doc['authors']
 
     def put_model(self, definition, acls, model_id=None):
@@ -84,7 +84,7 @@ class MemoryBackend(object):
 
         if record_id is not None:
             try:
-                old_doc = self.__get_record(model_id, record_id)
+                old_doc = self.__get_raw_record(model_id, record_id)
             except RecordNotFound:
                 doc['_id'] = record_id
             else:
@@ -100,13 +100,13 @@ class MemoryBackend(object):
         return record_id
 
     def delete_record(self, model_id, record_id):
-        doc = self.__get_record(model_id, record_id)
+        doc = self.__get_raw_record(model_id, record_id)
         if doc:
             del self._db['records'][model_id][record_id]
         return doc
 
     def delete_records(self, model_id):
-        results = self.__get_records(model_id)
+        results = self.__get_raw_records(model_id)
         records_ids = [r['_id'] for r in results]
         for record_id in records_ids:
             self.delete_record(model_id, record_id)
@@ -118,21 +118,16 @@ class MemoryBackend(object):
         del self._db['models'][model_id]
         return doc
 
-    def __get_token(self, tokenHmacId):
+    def get_token(self, tokenHmacId):
         try:
             return str(self._db['tokens'][tokenHmacId])
         except KeyError:
             raise TokenNotFound(tokenHmacId)
 
-    def get_token(self, tokenHmacId):
-        """Returns the information associated with an token"""
-        secret = self.__get_token(tokenHmacId)
-        return secret
-
     def add_token(self, tokenHmacId, secret):
         # Check that the token doesn't already exist.
         try:
-            self.__get_token(tokenHmacId)
+            self.get_token(tokenHmacId)
             raise TokenAlreadyExist(tokenHmacId)
         except TokenNotFound:
             pass
@@ -140,5 +135,5 @@ class MemoryBackend(object):
         self._db['tokens'][tokenHmacId] = secret
 
     def get_model_acls(self, model_id):
-        doc = self.__get_model(model_id)
+        doc = self.__get_raw_model(model_id)
         return doc['acls']
