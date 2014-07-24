@@ -94,14 +94,8 @@ def main(global_config, **settings):
     backend_class = config.maybe_dotted(settings['daybed.backend'])
     config.registry.backend = backend_class.load_from_config(config)
 
-    # hawkHmacKey configuration
-    config.registry.hawkHmacKey = codecs.decode(
-        settings['daybed.hawkHmacKey'], 'hex_codec'
-    )
-
     def add_db_to_request(event):
         event.request.db = config.registry.backend
-        event.request.hawkHmacKey = config.registry.hawkHmacKey
 
     config.add_subscriber(add_db_to_request, NewRequest)
 
