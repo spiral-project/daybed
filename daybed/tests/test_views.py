@@ -28,6 +28,7 @@ class DaybedViewsTest(BaseWebTest):
         response = self.app.get('/', headers=self.headers)
         self.assertDictEqual({'version': VERSION,
                               'url': 'http://localhost',
+                              'token': 'admin',
                               'daybed': 'hello'}, response.json)
 
     def test_fields_are_listed(self):

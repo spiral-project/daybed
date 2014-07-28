@@ -7,7 +7,6 @@ from zope.interface import implementer
 from daybed.backends.exceptions import (
     ModelNotFound, RecordNotFound, TokenNotFound
 )
-from daybed.tokens import hmac
 from daybed import logger
 
 PERMISSIONS_SET = set([
@@ -178,7 +177,7 @@ def build_user_principals(token, request):
 
 def check_api_token(tokenId, tokenKey, request):
     try:
-        secret = request.db.get_token(hmac(tokenId, request.hawkHmacKey))
+        secret = request.db.get_token(tokenId)
         if secret == tokenKey:
             return build_user_principals(tokenId, request)
         return []

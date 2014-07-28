@@ -39,18 +39,21 @@ class RecordSchema(SchemaNode):
             self.add(registry.validation(fieldtype, **field))
 
 
-def validate_against_schema(request, schema, data):
+def validate_against_schema(request, schema, data, field_name=None):
     try:
         data_pure = schema.deserialize(data)
         data_clean = post_serialize(data_pure)
         # Attach data_clean to request: see usage in views.
         request.data_clean = data_clean
     except Invalid as e:
-        for error in e.children:
+        def output_error(error, recurse=False):
             # here we transform the errors we got from colander into cornice
             # errors
             for field, error in error.asdict().items():
-                request.errors.add('body', field, error)
+                request.errors.add('body', field or field_name or '', error)
+                if recurse:
+                    map(output_error, e.children)
+        output_error(e, True)
 
 
 def post_serialize(data):
@@ -112,7 +115,8 @@ def model_validator(request):
     if not definition:
         request.errors.add('body', 'definition', 'definition is required')
     else:
-        validate_against_schema(request, DefinitionSchema(), definition)
+        validate_against_schema(request, DefinitionSchema(), definition,
+                                'definition')
     request.validated['definition'] = definition
 
     # Check that the records are valid according to the definition.

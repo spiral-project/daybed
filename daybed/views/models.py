@@ -39,7 +39,7 @@ def get_definition(request):
 def post_models(request):
     """Creates a model with the given definition and records, if any."""
     if request.token:
-        token = request.token['id']
+        token = request.token
     else:
         token = Everyone
 
@@ -94,7 +94,7 @@ def put_model(request):
         pass
 
     if request.token:
-        token = request.token['id']
+        token = request.token
     else:
         token = Everyone
 
