@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from collections import defaultdict
+from six import iteritems
 from pyramid.interfaces import IAuthorizationPolicy
 from pyramid.security import Authenticated, Everyone
 from zope.interface import implementer
@@ -137,7 +138,7 @@ class DaybedAuthorizationPolicy(object):
             hasModel = False
 
         if hasModel:
-            for acl_name, tokens in acls.items():
+            for acl_name, tokens in iteritems(acls):
                 # If one of the principals is in the valid tokens for this,
                 # permission, grant the permission.
                 if set(principals).intersection(tokens):
@@ -183,3 +184,12 @@ def check_api_token(tokenId, tokenKey, request):
         return []
     except TokenNotFound:
         return []
+
+
+def invert_acls_matrix(acls_tokens):
+    """Reverse from {perm: [tokens]} to {token: [perms]}."""
+    tokens_acls = defaultdict(set)
+    for perm, tokens in iteritems(acls_tokens):
+        for token in tokens:
+            tokens_acls[token].add(perm)
+    return dict([(key, sorted(value)) for key, value in iteritems(tokens_acls)])

@@ -7,7 +7,8 @@ import mock
 from pyramid.security import Authenticated
 
 from daybed.acl import (
-    All, Any, DaybedAuthorizationPolicy, build_user_principals
+    All, Any, DaybedAuthorizationPolicy, build_user_principals,
+    invert_acls_matrix
 )
 
 class TestAnyAll(TestCase):
@@ -75,3 +76,18 @@ class TestACL(TestCase):
         self.assertFalse(permits(context, ['Alexis'], 'get_definition'))
         self.assertTrue(permits(context, ['Alexis', Authenticated],
                                 'get_definition'))
+
+    def test_invert_acls_matrix(self):
+        model_acls = {
+            'read_acls': ['admin', 'alexis'],
+            'update_definition': ['admin'],
+            'read_all_records': ['admin', 'remy'],
+            'update_my_record': ['admin'],
+        }
+        tokens_acls = {
+            'admin': ['read_acls', 'read_all_records', 'update_definition',
+                      'update_my_record'],
+            'alexis': ['read_acls'],
+            'remy': ['read_all_records']
+        }
+        self.assertDictEqual(invert_acls_matrix(model_acls), tokens_acls)
