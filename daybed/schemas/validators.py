@@ -7,8 +7,11 @@ import six
 from colander import (
     SchemaNode, Mapping, Sequence, Length, String, null, Invalid
 )
+from pyramid.security import Authenticated, Everyone
 
 from daybed.backends.exceptions import ModelNotFound
+from daybed.acl import PERMISSIONS_SET
+from daybed.backends.exceptions import TokenNotFound
 from . import registry, TypeFieldNode
 
 
@@ -127,3 +130,38 @@ def model_validator(request):
         for record in records:
             validate_against_schema(request, definition_schema, record)
             request.validated['records'].append(record)
+
+
+def acls_validator(request):
+    """Verify that the acls defined are ok."""
+    try:
+        body = json.loads(request.body.decode('utf-8'))
+    except ValueError:
+        request.errors.add('body', 'json value error', "malformed body")
+        return
+
+    request.validated['acls'] = {}
+
+    # Check the definition is valid.
+    for token, acls in six.iteritems(body):
+        error = False
+        perms = set([perm.lstrip('-').lstrip('+').lower() for perm in acls])
+        if "all" in perms:
+            perms = set(PERMISSIONS_SET)
+        if not perms.issubset(PERMISSIONS_SET):
+            request.errors.add('body', token, 'Invalid permissions: %s' %
+                               ', '.join((perms - PERMISSIONS_SET)))
+            error = True
+        if token != "Authenticated" and token != "Everyone":
+            if token != Authenticated and token != Everyone:
+                try:
+                    request.db.get_token(token)
+                except TokenNotFound:
+                    request.errors.add("body", token,
+                                       "Token couldn't be found.")
+                    error = True
+        else:
+            token = token.replace("Authenticated", Authenticated) \
+                         .replace("Everyone", Everyone)
+        if not error:
+            request.validated["acls"][token] = acls

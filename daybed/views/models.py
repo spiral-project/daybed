@@ -1,9 +1,14 @@
+from six import iteritems
+from collections import defaultdict
 from cornice import Service
 from pyramid.security import Everyone
 
-from daybed.acl import get_model_acls, invert_acls_matrix
+from daybed.acl import (
+    get_model_acls, invert_acls_matrix, dict_list2set, dict_set2list,
+    PERMISSIONS_SET
+)
 from daybed.backends.exceptions import ModelNotFound
-from daybed.schemas.validators import model_validator
+from daybed.schemas.validators import model_validator, acls_validator
 
 
 models = Service(name='models', path='/models', description='Models',
@@ -51,6 +56,49 @@ def get_acls(request):
     except ModelNotFound:
         request.response.status = "404 Not Found"
         return {"msg": "%s: model not found" % model_id}
+
+
+@acls.patch(permission='put_acls', validators=(acls_validator,))
+def patch_acls(request):
+    """Update a model acls."""
+    model_id = request.matchdict['model_id']
+    definition = request.db.get_model_definition(model_id)
+    acls = dict_list2set(request.db.get_model_acls(model_id))
+
+    for token, perms in iteritems(request.validated['acls']):
+        # Handle remove all
+        if '-all' in [perm.lower() for perm in perms]:
+            for p in PERMISSIONS_SET:
+                acls[p].discard(token)
+        # Handle add all
+        elif 'all' in [perm.lstrip('+').lower() for perm in perms]:
+            for p in PERMISSIONS_SET:
+                acls[p].add(token)
+        # Handle add/remove perms list
+        else:
+            for perm in perms:
+                perm = perm.lower()
+                if perm.startswith('-'):
+                    acls[perm.lstrip('-')].discard(token)
+                else:
+                    acls[perm.lstrip('+')].add(token)
+
+    request.db.put_model(definition, dict_set2list(acls), model_id)
+    return invert_acls_matrix(acls)
+
+
+@acls.put(permission='put_acls', validators=(acls_validator,))
+def put_acls(request):
+    """Update a model acls."""
+    model_id = request.matchdict['model_id']
+    definition = request.db.get_model_definition(model_id)
+    acls = defaultdict(set)
+    for token, perms in iteritems(request.validated['acls']):
+        for perm in perms:
+            if not perm.startswith('-'):
+                acls[perm.lstrip('+')].add(token)
+    request.db.put_model(definition, dict_set2list(acls))
+    return invert_acls_matrix(acls)
 
 
 @models.post(permission='post_model', validators=(model_validator,))

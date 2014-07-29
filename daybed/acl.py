@@ -62,12 +62,14 @@ AUTHORS_PERMISSIONS = set(['update_my_record', 'delete_my_record',
 
 VIEWS_PERMISSIONS_REQUIRED = {
     'post_model':     All(['create_model']),
-    'get_model':      All(['read_definition', 'read_acls']),
+    'get_model':      All(['read_definition', 'read_acls',
+                           'read_all_records']),
     'put_model':      All(['create_model', 'update_definition', 'update_acls',
                            'delete_model']),
     'delete_model':   All(['delete_model']),
     'get_definition': All(['read_definition']),
     'get_acls':       All(['read_acls']),
+    'put_acls':       All(['update_acls']),
     'post_record':    All(['create_record']),
     'get_records':    All(['read_all_records']),
     'delete_records': All(['delete_all_records']),
@@ -187,11 +189,20 @@ def check_api_token(tokenId, tokenKey, request):
         return []
 
 
+def dict_set2list(dict_set):
+    return dict([(key, sorted(value))
+                 for key, value in iteritems(dict_set)])
+
+
+def dict_list2set(dict_list):
+    return dict([(key, set(value))
+                 for key, value in iteritems(dict_list)])
+
+
 def invert_acls_matrix(acls_tokens):
     """Reverse from {perm: [tokens]} to {token: [perms]}."""
     tokens_acls = defaultdict(set)
     for perm, tokens in iteritems(acls_tokens):
         for token in tokens:
             tokens_acls[token].add(perm)
-    return dict([(key, sorted(value))
-                 for key, value in iteritems(tokens_acls)])
+    return dict_set2list(tokens_acls)

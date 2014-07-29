@@ -26,7 +26,7 @@ a password).
 
 Here is how to get your credentials::
 
-    http post http://0.0.0.0:8000/tokens
+    http POST http://0.0.0.0:8000/tokens
 
     HTTP/1.1 201 Created
     Content-Length: 273
@@ -84,7 +84,7 @@ like this::
          ]
       }}' > definition
 
-    http put http://localhost:8000/models/todo @definition --verbose --auth-type=hawk --auth='ad37fc395b7ba83eb496849f6db022fbb316fa11081491b5f00dfae5b0b1cd22:'
+    http PUT http://localhost:8000/models/todo @definition --verbose --auth-type=hawk --auth='ad37fc395b7ba83eb496849f6db022fbb316fa11081491b5f00dfae5b0b1cd22:'
 
 And we get back::
 
@@ -110,7 +110,7 @@ name and daybed will generate one for you.
 
 We can now get our models back::
 
-    http get http://localhost:8000/models/todo --verbose --auth-type=hawk --auth='ad37fc395b7ba83eb496849f6db022fbb316fa11081491b5f00dfae5b0b1cd22:'
+    http GET http://localhost:8000/models/todo --verbose --auth-type=hawk --auth='ad37fc395b7ba83eb496849f6db022fbb316fa11081491b5f00dfae5b0b1cd22:'
 
     GET /models/todo HTTP/1.1
     Accept: */*
@@ -223,7 +223,7 @@ And we get this in exchange, which is the id of the created document.
 
 Using the GET method, you can get back the data you posted::
 
-    http get http://localhost:8000/models/todo/records\
+    http GET http://localhost:8000/models/todo/records\
     --verbose --auth-type=hawk --auth='ad37fc395b7ba83eb496849f6db022fbb316fa11081491b5f00dfae5b0b1cd22:' --json
 
     GET /models/todo/records HTTP/1.1                                                                                              [5/4051]
@@ -259,7 +259,23 @@ Get back a definition
 
 ::
 
-    curl http://localhost:8000/models/todo/definition -u admin@example.com:apikey | python -m json.tool
+    http GET http://localhost:8000/models/todo/definition \
+	    --verbose --auth-type=hawk \
+	    --auth='504fd8148d7cdca10baa3c5208b63dc9e13cad1387222550950810a7bdd72d2c:'
+
+    GET /models/todo/definition HTTP/1.1
+    Accept: */*
+    Accept-Encoding: gzip, deflate
+    Authorization: Hawk mac="k9edIqpoz7cSUJQTroXgM4vgDoZb2Z2KO2u40QCbtYk=", hash="B0weSUXsMcb5UhL41FZbrUJCAotzSI3HawE1NPLRUz8=", id="220a1c4212d8f005f0f56191c5a91f8fe266282d38b042e6b35cad8034f22871", ts="1406645426", nonce="meNBWv"
+    Host: localhost:8000
+    User-Agent: HTTPie/0.8.0
+
+
+    HTTP/1.1 200 OK
+    Content-Length: 224
+    Content-Type: application/json; charset=UTF-8
+    Date: Tue, 29 Jul 2014 14:50:26 GMT
+    Server: waitress
 
     {
         "description": "A list of my stuff to do",
@@ -286,7 +302,196 @@ Get back a definition
 Manipulating ACLs
 -----------------
 
-XXX Todo
+Get back the model ACLs
+-----------------------
+
+**GET /models/{modelname}/acls**
+
+::
+
+    http GET http://localhost:8000/models/todo/acls --verbose --auth-type=hawk --auth='504fd8148d7cdca10baa3c5208b63dc9e13cad1387222550950810a7bdd72d2c:'
+    GET /models/todo/acls HTTP/1.1
+    Accept: */*
+    Accept-Encoding: gzip, deflate
+    Authorization: Hawk mac="G8PntYqGA0DiP4EC0qvvr70tmCZrsVBdTTTBq9ZeKYg=", hash="B0weSUXsMcb5UhL41FZbrUJCAotzSI3HawE1NPLRUz8=", id="220a1c4212d8f005f0f56191c5a91f8fe266282d38b042e6b35cad8034f22871", ts="1406645480", nonce="4D0z9n"
+    Host: localhost:8000
+    User-Agent: HTTPie/0.8.0
+
+
+    HTTP/1.1 200 OK
+    Content-Length: 293
+    Content-Type: application/json; charset=UTF-8
+    Date: Tue, 29 Jul 2014 14:51:20 GMT
+    Server: waitress
+
+    {
+        "220a1c4212d8f005f0f56191c5a91f8fe266282d38b042e6b35cad8034f22871": [
+            "create_record",
+            "delete_all_records",
+            "delete_model",
+            "delete_my_record",
+            "read_acls",
+            "read_all_records",
+            "read_definition",
+            "read_my_record",
+            "update_acls",
+            "update_all_records",
+            "update_definition",
+            "update_my_record"
+        ]
+    }
+
+
+Add some rights
+---------------
+
+You can add rights to an existing token, Authenticated people or Everyone.
+
+Pyramid define two principals: system.Authenticated and system.Everyone
+To define rights to those, you can also use the shortcut Authenticated or Everyone.
+
+To add `read_definition` and `read_acls` to Authenticated and remove
+`update_acls` to alexis we would write::
+
+    {
+        "Authenticated": ["read_definition", "read_acls"],
+        "alexis": ["-update_acls"]
+    }
+
+For this to be valid, `alexis` must be an existing token.
+
+If you want to add or remove all the right to/from somebody, you can use the shortcut ALL::
+
+    {
+        "Authenticated": ["-ALL"],
+        "alexis": ["+ALL"]
+    }
+
+If you don't provide the `-` or the `+` in front of the right we assume a `+`.
+
+This::
+
+    {
+        "Authenticated": ["all"]
+    }
+
+Is equivalent to::
+
+    {
+        "Authenticated": ["+all"]
+    }
+
+You can write rights both in lower or uppercase.
+
+In case you try to add a non existing right, or to modify right of a
+non existing token, you will get an error.
+
+If you need to remove rights from a removed token, you will have to use the PUT endpoint.
+
+**PATCH /models/{modelname}/acls**
+
+::
+
+   echo '{"Everyone": ["read_definition"]}' | http PATCH http://localhost:8000/models/todo/acls \
+       --verbose --auth-type=hawk \
+	   --auth='504fd8148d7cdca10baa3c5208b63dc9e13cad1387222550950810a7bdd72d2c:' --json
+
+    PATCH /models/todo/acls HTTP/1.1
+    Accept: application/json
+    Accept-Encoding: gzip, deflate
+    Authorization: Hawk mac="CWT9du2YxOoTb2i5d15bBTA4XiSYY/99ybh6g7welLM=", hash="Nt8m2h1nc5lVUItOobOliVj6hul0FYXmwpEmkjyp+WU=", id="220a1c4212d8f005f0f56191c5a91f8fe266282d38b042e6b35cad8034f22871", ts="1406645940", nonce="2il3kl"
+    Content-Length: 34
+    Content-Type: application/json; charset=utf-8
+    Host: localhost:8000
+    User-Agent: HTTPie/0.8.0
+
+    {
+        "Everyone": [
+            "read_definition"
+        ]
+    }
+
+    HTTP/1.1 200 OK
+    Content-Length: 333
+    Content-Type: application/json; charset=UTF-8
+    Date: Tue, 29 Jul 2014 14:59:00 GMT
+    Server: waitress
+
+    {
+        "220a1c4212d8f005f0f56191c5a91f8fe266282d38b042e6b35cad8034f22871": [
+            "create_record",
+            "delete_all_records",
+            "delete_model",
+            "delete_my_record",
+            "read_acls",
+            "read_all_records",
+            "read_definition",
+            "read_my_record",
+            "update_acls",
+            "update_all_records",
+            "update_definition",
+            "update_my_record"
+        ],
+        "system.Everyone": [
+            "read_definition"
+        ]
+    }
+
+**PUT /models/{modelname}/acls**
+
+This is means to replace ACLs for a model. It could be useful in case
+where PATCH doesn't work (remove rights for a removed token.) or to
+replace all ACLs in one call.
+
+::
+
+   echo '{"Everyone": ["read_definition"], "Authenticated": ["ALL"]}' | http PUT http://localhost:8000/models/todo/acls \
+       --verbose --auth-type=hawk \
+	   --auth='504fd8148d7cdca10baa3c5208b63dc9e13cad1387222550950810a7bdd72d2c:' --json
+
+    PATCH /models/todo/acls HTTP/1.1
+    Accept: application/json
+    Accept-Encoding: gzip, deflate
+    Authorization: Hawk mac="CWT9du2YxOoTb2i5d15bBTA4XiSYY/99ybh6g7welLM=", hash="Nt8m2h1nc5lVUItOobOliVj6hul0FYXmwpEmkjyp+WU=", id="220a1c4212d8f005f0f56191c5a91f8fe266282d38b042e6b35cad8034f22871", ts="1406645940", nonce="2il3kl"
+    Content-Length: 34
+    Content-Type: application/json; charset=utf-8
+    Host: localhost:8000
+    User-Agent: HTTPie/0.8.0
+
+    {
+        "Everyone": [
+            "read_definition"
+        ],
+        "Authenticated": [
+            "ALL"
+        ]
+    }
+
+    HTTP/1.1 200 OK
+    Content-Length: 333
+    Content-Type: application/json; charset=UTF-8
+    Date: Tue, 29 Jul 2014 14:59:00 GMT
+    Server: waitress
+
+    {
+        "system.Authenticated": [
+            "create_record",
+            "delete_all_records",
+            "delete_model",
+            "delete_my_record",
+            "read_acls",
+            "read_all_records",
+            "read_definition",
+            "read_my_record",
+            "update_acls",
+            "update_all_records",
+            "update_definition",
+            "update_my_record"
+        ],
+        "system.Everyone": [
+            "read_definition"
+        ]
+    }
 
 
 Listing the supported fields

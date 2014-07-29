@@ -1,5 +1,9 @@
+from pyramid.security import Authenticated, Everyone
 from daybed import __version__ as VERSION
-from daybed.backends.exceptions import RecordNotFound, ModelNotFound
+from daybed.acl import PERMISSIONS_SET
+from daybed.backends.exceptions import (
+    RecordNotFound, ModelNotFound, TokenAlreadyExist
+)
 from daybed.tests.support import BaseWebTest, force_unicode
 from daybed.schemas import registry
 
@@ -102,6 +106,10 @@ class SporeTest(BaseWebTest):
 
 class ModelsViewsTest(BaseWebTest):
 
+    def __init__(self, *args, **kwargs):
+        self.maxDiff = None
+        super(ModelsViewsTest, self).__init__(*args, **kwargs)
+
     def test_model_deletion(self):
         self.app.put_json('/models/test', MODEL_DEFINITION,
                           headers=self.headers)
@@ -152,17 +160,185 @@ class ModelsViewsTest(BaseWebTest):
         self.app.put_json('/models/test',
                           MODEL_DEFINITION,
                           headers=self.headers)
-        # Verify that the schema is the same
+
         resp = self.app.get('/models/test/acls',
                             headers=self.headers)
         acls = force_unicode(MODEL_ACLS)
         self.assertDictEqual(resp.json, acls)
 
+    def test_patch_acls_add(self):
+        self.app.put_json('/models/test',
+                          MODEL_DEFINITION,
+                          headers=self.headers)
+        try:
+            self.db.add_token('alexis', 'bar')
+            self.db.add_token('remy', 'foobar')
+        except TokenAlreadyExist:
+            pass
+
+        resp = self.app.patch_json('/models/test/acls',
+                                   {"alexis": ["read_acls"],
+                                    "remy": ["update_acls"]},
+                                   headers=self.headers)
+        acls = force_unicode(MODEL_ACLS)
+        acls[u"alexis"] = [u"read_acls"]
+        acls[u"remy"] = [u"update_acls"]
+        self.assertDictEqual(resp.json, acls)
+
+    def test_patch_acls_remove(self):
+        self.app.put_json('/models/test',
+                          MODEL_DEFINITION,
+                          headers=self.headers)
+
+        resp = self.app.patch_json('/models/test/acls',
+                                   {"admin": ["-read_acls", "-update_acls"]},
+                                   headers=self.headers)
+        acls = force_unicode(MODEL_ACLS)
+        acls[u"admin"].remove("read_acls")
+        acls[u"admin"].remove("update_acls")
+        self.assertDictEqual(resp.json, acls)
+
+    def test_patch_acls_add_all(self):
+        self.app.put_json('/models/test',
+                          MODEL_DEFINITION,
+                          headers=self.headers)
+        try:
+            self.db.add_token('alexis', 'bar')
+        except TokenAlreadyExist:
+            pass
+
+        resp = self.app.patch_json('/models/test/acls',
+                                   {"alexis": ["ALL"]},
+                                   headers=self.headers)
+        acls = force_unicode(MODEL_ACLS)
+        acls[u"alexis"] = sorted(PERMISSIONS_SET)
+        self.assertDictEqual(resp.json, acls)
+
+    def test_patch_acls_add_system_principals(self):
+        self.app.put_json('/models/test',
+                          MODEL_DEFINITION,
+                          headers=self.headers)
+
+        resp = self.app.patch_json(
+            '/models/test/acls',
+            {Everyone: ["read_definition"],
+             Authenticated: ["read_definition", "read_acls"]},
+            headers=self.headers
+        )
+        acls = force_unicode(MODEL_ACLS)
+        acls[Authenticated] = ["read_acls", "read_definition"]
+        acls[Everyone] = ["read_definition"]
+        self.assertDictEqual(resp.json, acls)
+
+    def test_patch_acls_add_shortcuts_principals(self):
+        self.app.put_json('/models/test',
+                          MODEL_DEFINITION,
+                          headers=self.headers)
+
+        resp = self.app.patch_json(
+            '/models/test/acls',
+            {"Everyone": ["read_definition"],
+             "Authenticated": ["read_definition", "read_acls"]},
+            headers=self.headers
+        )
+        acls = force_unicode(MODEL_ACLS)
+        acls[Authenticated] = ["read_acls", "read_definition"]
+        acls[Everyone] = ["read_definition"]
+        self.assertDictEqual(resp.json, acls)
+
+    def test_patch_acls_remove_all(self):
+        self.app.put_json('/models/test',
+                          MODEL_DEFINITION,
+                          headers=self.headers)
+
+        resp = self.app.patch_json('/models/test/acls',
+                                   {"admin": ["-all"]},
+                                   headers=self.headers)
+        self.assertDictEqual(resp.json, {})
+
+    def test_patch_acls_add_unknown(self):
+        self.app.put_json('/models/test',
+                          MODEL_DEFINITION,
+                          headers=self.headers)
+
+        resp = self.app.patch_json('/models/test/acls',
+                                   {"alexis": ["read_acls"],
+                                    "remy": ["update_acls"]},
+                                   headers=self.headers,
+                                   status=400)
+        self.assertDictEqual(resp.json, {
+            "status": "error",
+            "errors": [
+                {"location": "body", "name": "remy",
+                 "description": "Token couldn't be found."},
+                {"location": "body", "name": "alexis",
+                 "description": "Token couldn't be found."}
+            ]
+        })
+
+    def test_put_acls(self):
+        self.app.put_json('/models/test',
+                          MODEL_DEFINITION,
+                          headers=self.headers)
+        try:
+            self.db.add_token('alexis', 'bar')
+            self.db.add_token('remy', 'foobar')
+        except TokenAlreadyExist:
+            pass
+
+        resp = self.app.put_json('/models/test/acls',
+                                 {"alexis": ["read_acls"],
+                                  "remy": ["update_acls"]},
+                                 headers=self.headers)
+        acls = dict()
+        acls[u"alexis"] = [u"read_acls"]
+        acls[u"remy"] = [u"update_acls"]
+        self.assertDictEqual(resp.json, acls)
+
+    def test_put_acls_wrong_token(self):
+        self.app.put_json('/models/test',
+                          MODEL_DEFINITION,
+                          headers=self.headers)
+
+        resp = self.app.put_json('/models/test/acls',
+                                 {"alexis": ["read_acls"],
+                                  "remy": ["update_acls"]},
+                                 headers=self.headers,
+                                 status=400)
+
+        self.assertDictEqual(resp.json, {
+            "status": "error",
+            "errors": [
+                {"location": "body", "name": "remy",
+                 "description": "Token couldn't be found."},
+                {"location": "body", "name": "alexis",
+                 "description": "Token couldn't be found."}
+            ]
+        })
+
+    def test_put_acls_wrong_perm(self):
+        self.app.put_json('/models/test',
+                          MODEL_DEFINITION,
+                          headers=self.headers)
+
+        resp = self.app.put_json('/models/test/acls',
+                                 {"Everyone": ["foobar", "foo", "read_acls"]},
+                                 headers=self.headers,
+                                 status=400)
+
+        self.assertDictEqual(resp.json, {
+            u"status": u"error",
+            "errors": [
+                {"location": "body", "name": "Everyone",
+                 "description": "Invalid permissions: foobar, foo"}
+            ]
+        })
+
     def test_definition_retrieval(self):
         self.app.put_json('/models/test',
                           MODEL_DEFINITION,
                           headers=self.headers)
-        # Verify that the schema is the same
+
         resp = self.app.get('/models/test/definition',
                             headers=self.headers)
         definition = force_unicode(MODEL_DEFINITION['definition'])

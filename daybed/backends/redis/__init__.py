@@ -87,7 +87,6 @@ class RedisBackend(object):
                 'acls': acls
             })
         )
-        self._db.delete("model.%s.records" % model_id)
         return model_id
 
     def put_record(self, model_id, record, authors, record_id=None):
