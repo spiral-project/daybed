@@ -193,4 +193,5 @@ def invert_acls_matrix(acls_tokens):
     for perm, tokens in iteritems(acls_tokens):
         for token in tokens:
             tokens_acls[token].add(perm)
-    return dict([(key, sorted(value)) for key, value in iteritems(tokens_acls)])
+    return dict([(key, sorted(value))
+                 for key, value in iteritems(tokens_acls)])
