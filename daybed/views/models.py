@@ -1,7 +1,7 @@
 from cornice import Service
 from pyramid.security import Everyone
 
-from daybed.acl import get_model_acls
+from daybed.acl import get_model_acls, invert_acls_matrix
 from daybed.backends.exceptions import ModelNotFound
 from daybed.schemas.validators import model_validator
 
@@ -24,12 +24,30 @@ definition = Service(name='model-definition',
                      cors_origins=('*',))
 
 
+acls = Service(name='model-acls',
+               path='/models/{model_id}/acls',
+               description='Model ACLs',
+               renderer="jsonp",
+               cors_origins=('*',))
+
+
 @definition.get(permission='get_definition')
 def get_definition(request):
     """Retrieves a model definition."""
     model_id = request.matchdict['model_id']
     try:
         return request.db.get_model_definition(model_id)
+    except ModelNotFound:
+        request.response.status = "404 Not Found"
+        return {"msg": "%s: model not found" % model_id}
+
+
+@acls.get(permission='get_acls')
+def get_acls(request):
+    """Retrieves a model acls."""
+    model_id = request.matchdict['model_id']
+    try:
+        return invert_acls_matrix(request.db.get_model_acls(model_id))
     except ModelNotFound:
         request.response.status = "404 Not Found"
         return {"msg": "%s: model not found" % model_id}
@@ -80,7 +98,7 @@ def get_model(request):
 
     return {'definition': definition,
             'records': request.db.get_records(model_id),
-            'acls': request.db.get_model_acls(model_id)}
+            'acls': invert_acls_matrix(request.db.get_model_acls(model_id))}
 
 
 @model.put(validators=(model_validator,), permission='put_model')

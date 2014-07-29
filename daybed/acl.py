@@ -67,6 +67,7 @@ VIEWS_PERMISSIONS_REQUIRED = {
                            'delete_model']),
     'delete_model':   All(['delete_model']),
     'get_definition': All(['read_definition']),
+    'get_acls':       All(['read_acls']),
     'post_record':    All(['create_record']),
     'get_records':    All(['read_all_records']),
     'delete_records': All(['delete_all_records']),

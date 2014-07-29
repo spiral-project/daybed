@@ -4,7 +4,7 @@ from daybed.tests.support import BaseWebTest, force_unicode
 from daybed.schemas import registry
 
 
-SIMPLE_MODEL_DEFINITION = {
+MODEL_DEFINITION = {
     'definition': {
         "title": "simple",
         "description": "One optional field",
@@ -14,7 +14,24 @@ SIMPLE_MODEL_DEFINITION = {
     }
 }
 
-SIMPLE_MODEL_RECORD = {'age': 42}
+MODEL_ACLS = {
+    'admin': [
+        'create_record',
+        'delete_all_records',
+        'delete_model',
+        'delete_my_record',
+        'read_acls',
+        'read_all_records',
+        'read_definition',
+        'read_my_record',
+        'update_acls',
+        'update_all_records',
+        'update_definition',
+        'update_my_record',
+    ]
+}
+
+MODEL_RECORD = {'age': 42}
 
 
 class DaybedViewsTest(BaseWebTest):
@@ -65,24 +82,6 @@ class BasicAuthRegistrationTest(BaseWebTest):
             "fields": [{"name": "age", "type": "int", "required": False}]
         }
 
-    # XXX: We don't create automatically the token on first login attempt.
-    # def test_basic_auth_token_creation(self):
-    #     auth_password = base64.b64encode(
-    #         u'arthur:foo'.encode('ascii')).strip().decode('ascii')
-    #     headers = {
-    #         'Content-Type': 'application/json',
-    #         'Authorization': 'Basic {0}'.format(auth_password),
-    #     }
-    #
-    #     self.app.put_json('/models/%s' % self.model_id,
-    #                       {'definition': self.valid_definition},
-    #                       headers=headers)
-    #
-    #     try:
-    #         self.db.get_token('arthur')
-    #     except TokenNotFound:
-    #         self.fail("BasicAuth didn't create the token arthur.")
-
     def test_forbidden(self):
         self.app.put_json('/models/%s' % self.model_id,
                           {'definition': self.valid_definition},
@@ -104,10 +103,10 @@ class SporeTest(BaseWebTest):
 class ModelsViewsTest(BaseWebTest):
 
     def test_model_deletion(self):
-        self.app.put_json('/models/test', SIMPLE_MODEL_DEFINITION,
+        self.app.put_json('/models/test', MODEL_DEFINITION,
                           headers=self.headers)
         resp = self.app.post_json('/models/test/records',
-                                  SIMPLE_MODEL_RECORD,
+                                  MODEL_RECORD,
                                   headers=self.headers)
         record_id = resp.json['id']
         resp = self.app.delete('/models/test',
@@ -123,38 +122,25 @@ class ModelsViewsTest(BaseWebTest):
                         headers=self.headers,
                         status=404)
 
-    def test_retrieve_whole_model_definition(self):
-        self.app.put_json('/models/test', SIMPLE_MODEL_DEFINITION,
+    def test_retrieve_whole_model(self):
+        self.app.put_json('/models/test', MODEL_DEFINITION,
                           headers=self.headers)
         resp = self.app.get('/models/test', {},
                             headers=self.headers)
         self.assertEqual(resp.json['records'], [])
-        self.assertDictEqual(resp.json['acls'], {
-            'read_acls': ['admin'],
-            'update_definition': ['admin'],
-            'delete_all_records': ['admin'],
-            'read_all_records': ['admin'],
-            'update_my_record': ['admin'],
-            'read_my_record': ['admin'],
-            'read_definition': ['admin'],
-            'delete_my_record': ['admin'],
-            'update_acls': ['admin'],
-            'create_record': ['admin'],
-            'update_all_records': ['admin'],
-            'delete_model': ['admin']
-        })
+        self.assertDictEqual(resp.json['acls'], MODEL_ACLS)
 
     def test_post_model_definition_without_definition(self):
         self.app.post_json('/models', {}, headers=self.headers, status=400)
 
     def test_post_model_definition_without_records(self):
         resp = self.app.post_json('/models',
-                                  SIMPLE_MODEL_DEFINITION,
+                                  MODEL_DEFINITION,
                                   headers=self.headers)
         model_id = resp.json['id']
 
         definition = self.db.get_model_definition(model_id)
-        self.assertEquals(definition, SIMPLE_MODEL_DEFINITION['definition'])
+        self.assertEquals(definition, MODEL_DEFINITION['definition'])
 
     def test_cors_support_on_404(self):
         response = self.app.get('/models/unknown/definition',
@@ -162,27 +148,37 @@ class ModelsViewsTest(BaseWebTest):
                                 status=404)
         self.assertIn('Access-Control-Allow-Origin', response.headers)
 
+    def test_acls_retrieval(self):
+        self.app.put_json('/models/test',
+                          MODEL_DEFINITION,
+                          headers=self.headers)
+        # Verify that the schema is the same
+        resp = self.app.get('/models/test/acls',
+                            headers=self.headers)
+        acls = force_unicode(MODEL_ACLS)
+        self.assertDictEqual(resp.json, acls)
+
     def test_definition_retrieval(self):
         self.app.put_json('/models/test',
-                          SIMPLE_MODEL_DEFINITION,
+                          MODEL_DEFINITION,
                           headers=self.headers)
         # Verify that the schema is the same
         resp = self.app.get('/models/test/definition',
                             headers=self.headers)
-        definition = force_unicode(SIMPLE_MODEL_DEFINITION['definition'])
+        definition = force_unicode(MODEL_DEFINITION['definition'])
         self.assertDictEqual(resp.json, definition)
 
     def test_post_model_definition_with_records(self):
-        model = SIMPLE_MODEL_DEFINITION.copy()
-        model['records'] = [SIMPLE_MODEL_RECORD, SIMPLE_MODEL_RECORD]
+        model = MODEL_DEFINITION.copy()
+        model['records'] = [MODEL_RECORD, MODEL_RECORD]
         resp = self.app.post_json('/models', model,
                                   headers=self.headers)
         model_id = resp.json['id']
         self.assertEquals(len(self.db.get_records(model_id)), 2)
 
     def test_put_model_definition_without_records(self):
-        model = SIMPLE_MODEL_DEFINITION.copy()
-        model['records'] = [SIMPLE_MODEL_RECORD, SIMPLE_MODEL_RECORD]
+        model = MODEL_DEFINITION.copy()
+        model['records'] = [MODEL_RECORD, MODEL_RECORD]
         resp = self.app.post_json('/models', model,
                                   headers=self.headers)
         model_id = resp.json['id']
@@ -194,20 +190,20 @@ class ModelsViewsTest(BaseWebTest):
         self.assertEquals(len(self.db.get_records(model_id)), 0)
 
     def test_put_model_definition_with_records(self):
-        model = SIMPLE_MODEL_DEFINITION.copy()
-        model['records'] = [SIMPLE_MODEL_RECORD, SIMPLE_MODEL_RECORD]
+        model = MODEL_DEFINITION.copy()
+        model['records'] = [MODEL_RECORD, MODEL_RECORD]
         resp = self.app.post_json('/models', model,
                                   headers=self.headers)
         model_id = resp.json['id']
 
-        model['records'] = [SIMPLE_MODEL_RECORD]
+        model['records'] = [MODEL_RECORD]
         resp = self.app.put_json('/models/%s' % model_id, model,
                                  headers=self.headers)
 
         self.assertEquals(len(self.db.get_records(model_id)), 1)
 
     def test_malformed_definition_creation(self):
-        definition_without_title = SIMPLE_MODEL_DEFINITION['definition'].copy()
+        definition_without_title = MODEL_DEFINITION['definition'].copy()
         definition_without_title.pop('title')
         resp = self.app.put_json('/models/test',
                                  {'definition': definition_without_title},
@@ -227,7 +223,7 @@ class ModelsViewsTest(BaseWebTest):
 class RecordsViewsTest(BaseWebTest):
 
     def test_delete_model_records(self):
-        self.app.put_json('/models/test', SIMPLE_MODEL_DEFINITION,
+        self.app.put_json('/models/test', MODEL_DEFINITION,
                           headers=self.headers)
         self.app.delete('/models/test/records', {},
                         headers=self.headers)
@@ -249,15 +245,15 @@ class RecordsViewsTest(BaseWebTest):
         self.assertIn('"status": "error"', resp.body.decode('utf-8'))
 
     def test_unknown_record_returns_404(self):
-        self.app.put_json('/models/test', SIMPLE_MODEL_DEFINITION,
+        self.app.put_json('/models/test', MODEL_DEFINITION,
                           headers=self.headers)
         self.app.get('/models/test/records/1234',
                      headers=self.headers, status=404)
 
     def test_record_deletion(self):
-        self.app.put_json('/models/test', SIMPLE_MODEL_DEFINITION,
+        self.app.put_json('/models/test', MODEL_DEFINITION,
                           headers=self.headers)
-        resp = self.app.post_json('/models/test/records', SIMPLE_MODEL_RECORD,
+        resp = self.app.post_json('/models/test/records', MODEL_RECORD,
                                   headers=self.headers)
         record_id = resp.json['id']
         # Test 200

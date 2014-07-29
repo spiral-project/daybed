@@ -129,6 +129,22 @@ We can now get our models back::
     Server: waitress
 
     {
+        "acls": {
+            "e0394574578356252e2033b829b90291e2ff1f33ccbcbcec777485f3a5a10bca": [
+                'create_record',
+                'delete_all_records',
+                'delete_model',
+                'delete_my_record',
+                'read_acls',
+                'read_all_records',
+                'read_definition',
+                'read_my_record',
+                'update_acls',
+                'update_all_records',
+                'update_definition',
+                'update_my_record',
+            ]
+        },
         "definition": [
             {
                 "description": "A list of my stuff to do",
