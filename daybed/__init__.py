@@ -99,6 +99,12 @@ def main(global_config, **settings):
 
     config.add_subscriber(add_db_to_request, NewRequest)
 
+    def add_default_accept(event):
+        if "Accept" not in event.request.headers:
+            event.request.headers["Accept"] = "application/json"
+
+    config.add_subscriber(add_default_accept, NewRequest)
+
     config.add_renderer('jsonp', JSONP(param_name='callback'))
 
     config.add_renderer('geojson', GeoJSON())

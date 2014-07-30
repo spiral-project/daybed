@@ -507,6 +507,22 @@ class RecordsViewsTest(BaseWebTest):
         })
         self.assertEqual(len(resp.json["records"]), 1)
 
+    def test_get_model_records_auto_json(self):
+        self.app.put_json('/models/test', MODEL_DEFINITION,
+                          headers=self.headers)
+        self.app.patch_json('/models/test/acls',
+                            {"Everyone": ["create_record", "read_my_record",
+                                          "delete_my_record"]},
+                            headers=self.headers)
+        self.app.post_json('/models/test/records', MODEL_RECORD)
+        self.app.post_json('/models/test/records', MODEL_RECORD2,
+                           headers=self.headers)
+
+        resp = self.app.get('/models/test/records')
+        self.assertEqual(resp.headers['Content-Type'],
+                         "application/json; charset=UTF-8")
+        self.assertEqual(len(resp.json["records"]), 1)
+
     def test_unknown_record_returns_404(self):
         self.app.put_json('/models/test', MODEL_DEFINITION,
                           headers=self.headers)
