@@ -36,6 +36,7 @@ MODEL_ACLS = {
 }
 
 MODEL_RECORD = {'age': 42}
+MODEL_RECORD2 = {'age': 25}
 
 
 class DaybedViewsTest(BaseWebTest):
@@ -86,7 +87,7 @@ class BasicAuthRegistrationTest(BaseWebTest):
             "fields": [{"name": "age", "type": "int", "required": False}]
         }
 
-    def test_forbidden(self):
+    def test_unauthorized(self):
         self.app.put_json('/models/%s' % self.model_id,
                           {'definition': self.valid_definition},
                           headers=self.headers)
@@ -94,6 +95,18 @@ class BasicAuthRegistrationTest(BaseWebTest):
                             headers={'Content-Type': 'application/json'},
                             status=401)
         self.assertIn('401', resp)
+
+    def test_forbidden(self):
+        self.app.put_json('/models/%s' % self.model_id,
+                          {'definition': self.valid_definition},
+                          headers=self.headers)
+        self.app.patch_json('/models/%s/acls' % self.model_id,
+                            {"admin": ["-ALL"]},
+                            headers=self.headers)
+        resp = self.app.get('/models/%s' % self.model_id,
+                            headers=self.headers,
+                            status=403)
+        self.assertIn('403', resp)
 
 
 class SporeTest(BaseWebTest):
@@ -262,19 +275,16 @@ class ModelsViewsTest(BaseWebTest):
                           headers=self.headers)
 
         resp = self.app.patch_json('/models/test/acls',
-                                   {"alexis": ["read_acls"],
-                                    "remy": ["update_acls"]},
+                                   {"alexis": ["read_acls"]},
                                    headers=self.headers,
                                    status=400)
-        self.assertDictEqual(resp.json, {
+        self.assertDictEqual(resp.json, force_unicode({
             "status": "error",
             "errors": [
-                {"location": "body", "name": "remy",
-                 "description": "Token couldn't be found."},
                 {"location": "body", "name": "alexis",
                  "description": "Token couldn't be found."}
             ]
-        })
+        }))
 
     def test_put_acls(self):
         self.app.put_json('/models/test',
@@ -291,9 +301,9 @@ class ModelsViewsTest(BaseWebTest):
                                   "remy": ["update_acls"]},
                                  headers=self.headers)
         acls = dict()
-        acls[u"alexis"] = [u"read_acls"]
-        acls[u"remy"] = [u"update_acls"]
-        self.assertDictEqual(resp.json, acls)
+        acls["alexis"] = ["read_acls"]
+        acls["remy"] = ["update_acls"]
+        self.assertDictEqual(resp.json, force_unicode(acls))
 
     def test_put_acls_wrong_token(self):
         self.app.put_json('/models/test',
@@ -301,20 +311,17 @@ class ModelsViewsTest(BaseWebTest):
                           headers=self.headers)
 
         resp = self.app.put_json('/models/test/acls',
-                                 {"alexis": ["read_acls"],
-                                  "remy": ["update_acls"]},
+                                 {"alexis": ["read_acls"]},
                                  headers=self.headers,
                                  status=400)
 
-        self.assertDictEqual(resp.json, {
+        self.assertDictEqual(resp.json, force_unicode({
             "status": "error",
             "errors": [
-                {"location": "body", "name": "remy",
-                 "description": "Token couldn't be found."},
                 {"location": "body", "name": "alexis",
                  "description": "Token couldn't be found."}
             ]
-        })
+        }))
 
     def test_put_acls_wrong_perm(self):
         self.app.put_json('/models/test',
@@ -322,17 +329,17 @@ class ModelsViewsTest(BaseWebTest):
                           headers=self.headers)
 
         resp = self.app.put_json('/models/test/acls',
-                                 {"Everyone": ["foobar", "foo", "read_acls"]},
+                                 {"Everyone": ["foo", "read_acls"]},
                                  headers=self.headers,
                                  status=400)
 
-        self.assertDictEqual(resp.json, {
-            u"status": u"error",
+        self.assertDictEqual(resp.json, force_unicode({
+            "status": "error",
             "errors": [
                 {"location": "body", "name": "Everyone",
-                 "description": "Invalid permissions: foobar, foo"}
+                 "description": "Invalid permissions: foo"}
             ]
-        })
+        }))
 
     def test_definition_retrieval(self):
         self.app.put_json('/models/test',
@@ -378,6 +385,20 @@ class ModelsViewsTest(BaseWebTest):
 
         self.assertEquals(len(self.db.get_records(model_id)), 1)
 
+    def test_put_model_definition_new(self):
+        model = MODEL_DEFINITION.copy()
+        resp = self.app.put_json('/models/toto', model)
+        self.assertIn("id", resp.json)
+
+    def test_put_model_definition_update(self):
+        model = MODEL_DEFINITION.copy()
+        resp = self.app.put_json('/models/toto', model,
+                                 headers=self.headers)
+        self.assertIn("id", resp.json)
+        self.assertEqual("toto", resp.json["id"])
+
+        resp = self.app.put_json('/models/toto', model, status=401)
+
     def test_malformed_definition_creation(self):
         definition_without_title = MODEL_DEFINITION['definition'].copy()
         definition_without_title.pop('title')
@@ -419,6 +440,27 @@ class RecordsViewsTest(BaseWebTest):
                                   headers={'Content-Type': 'application/json'},
                                   status=404)
         self.assertIn('"status": "error"', resp.body.decode('utf-8'))
+
+    def test_get_model_records(self):
+        self.app.put_json('/models/test', MODEL_DEFINITION,
+                          headers=self.headers)
+        self.app.patch_json('/models/test/acls',
+                            {"Everyone": ["create_record", "read_my_record",
+                                          "delete_my_record"]},
+                            headers=self.headers)
+        self.app.post_json('/models/test/records', MODEL_RECORD)
+        self.app.post_json('/models/test/records', MODEL_RECORD2,
+                           headers=self.headers)
+
+        resp = self.app.get('/models/test/records',
+                            headers=self.headers)
+        self.assertEqual(len(resp.json["records"]), 2)
+
+        resp = self.app.get('/models/test/records', headers={
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+        })
+        self.assertEqual(len(resp.json["records"]), 1)
 
     def test_unknown_record_returns_404(self):
         self.app.put_json('/models/test', MODEL_DEFINITION,

@@ -44,11 +44,15 @@ class MemoryBackend(object):
         self.__get_raw_model(model_id)
         return self._db['records'].get(model_id, {}).values()
 
-    def get_records(self, model_id):
+    def get_records(self, model_id, with_authors=False):
         records = []
         for item in self.__get_raw_records(model_id):
             item['record']['id'] = item['_id']
-            records.append(deepcopy(item['record']))
+            if with_authors:
+                records.append({"authors": deepcopy(item['authors']),
+                                "record": deepcopy(item['record'])})
+            else:
+                records.append(deepcopy(item['record']))
         return records
 
     def __get_raw_record(self, model_id, record_id):

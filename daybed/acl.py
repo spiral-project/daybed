@@ -63,15 +63,15 @@ AUTHORS_PERMISSIONS = set(['update_my_record', 'delete_my_record',
 VIEWS_PERMISSIONS_REQUIRED = {
     'post_model':     All(['create_model']),
     'get_model':      All(['read_definition', 'read_acls',
-                           'read_all_records']),
+                           Any(['read_all_records', 'read_my_records'])]),
     'put_model':      All(['create_model', 'update_definition', 'update_acls',
                            'delete_model']),
-    'delete_model':   All(['delete_model']),
+    'delete_model':   All(['delete_model', 'delete_all_records']),
     'get_definition': All(['read_definition']),
     'get_acls':       All(['read_acls']),
     'put_acls':       All(['update_acls']),
     'post_record':    All(['create_record']),
-    'get_records':    All(['read_all_records']),
+    'get_records':    Any(['read_all_records', 'read_my_record']),
     'delete_records': All(['delete_all_records']),
     'get_record':     Any(['read_my_record', 'read_all_records']),
     'put_record':     All(['create_record',
@@ -158,6 +158,10 @@ class DaybedAuthorizationPolicy(object):
                 finally:
                     if not set(principals).intersection(authors):
                         token_permissions -= AUTHORS_PERMISSIONS
+
+        # Expose permissions and principals for in_view checks
+        context.request.permissions = token_permissions
+        context.request.principals = principals
 
         # Check view permission matches token permissions.
         return permissions_required.matches(token_permissions)

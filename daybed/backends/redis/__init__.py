@@ -56,10 +56,14 @@ class RedisBackend(object):
         else:
             return []
 
-    def get_records(self, model_id):
+    def get_records(self, model_id, with_authors=False):
         records = []
         for item in self.__get_raw_records(model_id):
-            records.append(item['record'])
+            if with_authors:
+                records.append({"authors": item["authors"],
+                                "record": item["record"]})
+            else:
+                records.append(item["record"])
         return records
 
     def __get_raw_record(self, model_id, record_id):
@@ -108,6 +112,7 @@ class RedisBackend(object):
         else:
             record_id = self._generate_id()
 
+        doc['record']['id'] = record_id
         self._db.set(
             "model.%s.record.%s" % (model_id, record_id),
             json.dumps(doc)

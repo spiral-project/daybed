@@ -26,7 +26,7 @@ from pyramid_multiauth import MultiAuthenticationPolicy
 from daybed.acl import (
     RootFactory, DaybedAuthorizationPolicy, check_api_token,
 )
-from daybed.views.errors import unauthorized_view
+from daybed.views.errors import forbidden_view
 from daybed.renderers import GeoJSON
 from daybed.backends.exceptions import TokenNotFound
 
@@ -71,7 +71,7 @@ def main(global_config, **settings):
     authn_policy = MultiAuthenticationPolicy(policies)
 
     # Unauthorized view
-    config.add_forbidden_view(unauthorized_view)
+    config.add_forbidden_view(forbidden_view)
 
     # Authorization policy
     authz_policy = DaybedAuthorizationPolicy(

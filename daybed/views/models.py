@@ -8,6 +8,7 @@ from daybed.acl import (
     PERMISSIONS_SET
 )
 from daybed.backends.exceptions import ModelNotFound
+from daybed.views.errors import forbidden_view
 from daybed.schemas.validators import model_validator, acls_validator
 
 
@@ -144,20 +145,38 @@ def get_model(request):
         request.response.status = "404 Not Found"
         return {"msg": "%s: model not found" % model_id}
 
+    records = request.db.get_records(model_id)
+
+    if "read_all_records" not in request.permissions:
+        records = [r for r in records
+                   if set(request.principals).intersection(r.authors)]
+
     return {'definition': definition,
-            'records': request.db.get_records(model_id),
+            'records': records,
             'acls': invert_acls_matrix(request.db.get_model_acls(model_id))}
 
 
-@model.put(validators=(model_validator,), permission='put_model')
+@model.put(validators=(model_validator,), permission='post_model')
 def put_model(request):
     model_id = request.matchdict['model_id']
 
-    # DELETE ALL THE THINGS.
     try:
-        request.db.delete_model(model_id)
+        request.db.get_model_definition(model_id)
+
+        if request.has_permission('put_model'):
+            try:
+                request.db.delete_model(model_id)
+            except ModelNotFound:
+                pass
+            return handle_put_model(request)
     except ModelNotFound:
-        pass
+        return handle_put_model(request)
+
+    return forbidden_view(request)
+
+
+def handle_put_model(request):
+    model_id = request.matchdict['model_id']
 
     if request.token:
         token = request.token

@@ -74,7 +74,20 @@ class BackendTestBase(object):
     def test_get_records(self):
         self._create_model()
         self.db.put_record('modelname', self.record, ['author'])
-        self.assertEqual(len(self.db.get_records('modelname')), 1)
+        records = self.db.get_records('modelname')
+        self.assertEqual(len(records), 1)
+        self.assertIn('id', records[0])
+        del records[0]['id']
+        self.assertDictEqual(records[0], {u'age': 7})
+
+    def test_get_records_with_authors(self):
+        self._create_model()
+        self.db.put_record('modelname', self.record, ['author'])
+        records = self.db.get_records('modelname', with_authors=True)
+        self.assertEqual(len(records), 1)
+        self.assertIn('id', records[0]['record'])
+        del records[0]['record']['id']
+        self.assertDictEqual(records[0], {'authors': [u'author'], 'record': {u'age': 7}})
 
     def test_get_records_empty(self):
         self._create_model()
