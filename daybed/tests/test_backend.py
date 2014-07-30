@@ -154,7 +154,7 @@ class TestRedisBackend(BackendTestBase, TestCase):
         self.db = RedisBackend(
             host='localhost',
             port=6379,
-            db=0,
+            db=5,
             id_generator=lambda: six.text_type(uuid4())
         )
         super(TestRedisBackend, self).setUp()
