@@ -140,6 +140,7 @@ def delete_model(request):
             "error": "404 Not Found",
             "msg": "%s: model not found" % model_id
         }
+    model["acls"] = invert_acls_matrix(model["acls"])
     return model
 
 

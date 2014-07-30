@@ -136,11 +136,11 @@ class RedisBackend(object):
     def delete_records(self, model_id):
         records = self.get_records(model_id)
         existing_records_keys = [
-            "model.%s.record.%s" % (model_id, r.id) for r in records
+            "model.%s.record.%s" % (model_id, r["id"]) for r in records
         ]
         existing_records_keys.append("model.%s.records" % model_id)
 
-        self._db.delete(existing_records_keys)
+        self._db.delete(*existing_records_keys)
         return records
 
     def delete_model(self, model_id):
