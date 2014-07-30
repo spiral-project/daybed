@@ -32,10 +32,12 @@ def get_records(request):
         request.response.status = "404 Not Found"
         return {"msg": "%s: model not found" % model_id}
     # Return array of records
-    results = request.db.get_records(model_id, with_authors=True)
     if "read_all_records" not in request.permissions:
-        results = [r for r in results
+        results = request.db.get_records(model_id, with_authors=True)
+        results = [r['record'] for r in results
                    if set(request.principals).intersection(r['authors'])]
+    else:
+        results = request.db.get_records(model_id)
     return {'records': results}
 
 
