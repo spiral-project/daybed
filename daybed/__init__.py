@@ -16,7 +16,6 @@ from pyramid.config import Configurator
 from pyramid.events import NewRequest
 from pyramid.renderers import JSONP
 from pyramid.authentication import BasicAuthAuthenticationPolicy
-from pyramid.security import unauthenticated_userid
 
 from pyramid_hawkauth import HawkAuthenticationPolicy
 from pyramid_multiauth import MultiAuthenticationPolicy
@@ -82,7 +81,11 @@ def main(global_config, **settings):
     )
     config.set_authentication_policy(authn_policy)
     config.set_authorization_policy(authz_policy)
-    config.add_request_method(unauthenticated_userid, 'token', reify=True)
+
+    def get_token(request):
+        return request.unauthenticated_userid
+
+    config.add_request_method(get_token, 'token', reify=True)
 
     # We need to scan AFTER setting the authn / authz policies
     config.scan("daybed.views")
