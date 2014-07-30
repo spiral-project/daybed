@@ -157,11 +157,12 @@ def get_model(request):
             "msg": "%s: model not found" % model_id
         }
 
-    records = request.db.get_records(model_id)
-
     if "read_all_records" not in request.permissions:
-        records = [r for r in records
-                   if set(request.principals).intersection(r.authors)]
+        records = request.db.get_records(model_id, with_authors=True)
+        records = [r["record"] for r in records
+                   if set(request.principals).intersection(r["authors"])]
+    else:
+        records = request.db.get_records(model_id)
 
     return {'definition': definition,
             'records': records,
