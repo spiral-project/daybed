@@ -134,15 +134,15 @@ We can now get our models back::
                 'create_record',
                 'delete_all_records',
                 'delete_model',
-                'delete_my_record',
+                'delete_own_records',
                 'read_acls',
                 'read_all_records',
                 'read_definition',
-                'read_my_record',
+                'read_own_records',
                 'update_acls',
                 'update_all_records',
                 'update_definition',
-                'update_my_record',
+                'update_own_records',
             ]
         },
         "definition": [
@@ -329,15 +329,15 @@ Get back the model ACLs
             "create_record",
             "delete_all_records",
             "delete_model",
-            "delete_my_record",
+            "delete_own_records",
             "read_acls",
             "read_all_records",
             "read_definition",
-            "read_my_record",
+            "read_own_records",
             "update_acls",
             "update_all_records",
             "update_definition",
-            "update_my_record"
+            "update_own_records"
         ]
     }
 
@@ -422,15 +422,15 @@ If you need to remove rights from a removed token, you will have to use the PUT 
             "create_record",
             "delete_all_records",
             "delete_model",
-            "delete_my_record",
+            "delete_own_records",
             "read_acls",
             "read_all_records",
             "read_definition",
-            "read_my_record",
+            "read_own_records",
             "update_acls",
             "update_all_records",
             "update_definition",
-            "update_my_record"
+            "update_own_records"
         ],
         "system.Everyone": [
             "read_definition"
@@ -478,15 +478,15 @@ replace all ACLs in one call.
             "create_record",
             "delete_all_records",
             "delete_model",
-            "delete_my_record",
+            "delete_own_records",
             "read_acls",
             "read_all_records",
             "read_definition",
-            "read_my_record",
+            "read_own_records",
             "update_acls",
             "update_all_records",
             "update_definition",
-            "update_my_record"
+            "update_own_records"
         ],
         "system.Everyone": [
             "read_definition"

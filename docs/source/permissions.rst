@@ -29,9 +29,9 @@ model.
 - **read_all_records**: You can read all model's records
 - **update_all_records**: You can update all model's records
 - **delete_all_records**: You can delete any model's records
-- **read_my_record**: You can read records on which you are an author
-- **update_my_record**: You can update and change records on which you are an author
-- **delete_my_record**: You can delete records on which you are an author
+- **read_own_records**: You can read records on which you are an author
+- **update_own_records**: You can update and change records on which you are an author
+- **delete_own_records**: You can delete records on which you are an author
 
 These are permissions that you can set on a model.
 
@@ -54,4 +54,4 @@ access to a page.
 
 For example, if you want to get a model you will need to have the
 right for `read_definition` and `read_acls` as well as
-`read_all_records` or `read_my_records`
+`read_all_records` or `read_own_records`

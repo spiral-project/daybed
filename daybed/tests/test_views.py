@@ -24,15 +24,15 @@ MODEL_ACLS = {
         'create_record',
         'delete_all_records',
         'delete_model',
-        'delete_my_record',
+        'delete_own_records',
         'read_acls',
         'read_all_records',
         'read_definition',
-        'read_my_record',
+        'read_own_records',
         'update_acls',
         'update_all_records',
         'update_definition',
-        'update_my_record',
+        'update_own_records',
     ]
 }
 
@@ -490,8 +490,8 @@ class RecordsViewsTest(BaseWebTest):
         self.app.put_json('/models/test', MODEL_DEFINITION,
                           headers=self.headers)
         self.app.patch_json('/models/test/acls',
-                            {"Everyone": ["create_record", "read_my_record",
-                                          "delete_my_record"]},
+                            {"Everyone": ["create_record", "read_own_records",
+                                          "delete_own_records"]},
                             headers=self.headers)
         self.app.post_json('/models/test/records', MODEL_RECORD)
         self.app.post_json('/models/test/records', MODEL_RECORD2,
@@ -511,8 +511,8 @@ class RecordsViewsTest(BaseWebTest):
         self.app.put_json('/models/test', MODEL_DEFINITION,
                           headers=self.headers)
         self.app.patch_json('/models/test/acls',
-                            {"Everyone": ["create_record", "read_my_record",
-                                          "delete_my_record"]},
+                            {"Everyone": ["create_record", "read_own_records",
+                                          "delete_own_records"]},
                             headers=self.headers)
         self.app.post_json('/models/test/records', MODEL_RECORD)
         self.app.post_json('/models/test/records', MODEL_RECORD2,
