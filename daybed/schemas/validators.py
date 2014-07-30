@@ -24,16 +24,6 @@ class DefinitionSchema(SchemaNode):
                             name='fields', validator=Length(min=1)))
 
 
-class RolesSchema(SchemaNode):
-    def __init__(self):
-        super(RolesSchema, self).__init__(Mapping(unknown='preserve'))
-        self.add(SchemaNode(Sequence(), SchemaNode(String()),
-                            name='admins', validator=Length(min=1)))
-
-        # XXX Control that the values of the sequence are valid tokens.
-        # (we need to merge master to fix this. see #86)
-
-
 class RecordSchema(SchemaNode):
     def __init__(self, definition):
         super(RecordSchema, self).__init__(Mapping())

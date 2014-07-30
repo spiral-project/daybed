@@ -30,7 +30,10 @@ def get_records(request):
         request.db.get_model_definition(model_id)
     except ModelNotFound:
         request.response.status = "404 Not Found"
-        return {"msg": "%s: model not found" % model_id}
+        return {
+            "error": "404 Not Found",
+            "msg": "%s: model not found" % model_id
+        }
     # Return array of records
     if "read_all_records" not in request.permissions:
         results = request.db.get_records(model_id, with_authors=True)
@@ -75,7 +78,10 @@ def delete_records(request):
         request.db.delete_records(model_id)
     except ModelNotFound:
         request.response.status = "404 Not Found"
-        return {"msg": "%s: model not found" % model_id}
+        return {
+            "error": "404 Not Found",
+            "msg": "%s: model not found" % model_id
+        }
     return {"msg": "ok"}
 
 
@@ -88,7 +94,10 @@ def get(request):
         return request.db.get_record(model_id, record_id)
     except RecordNotFound:
         request.response.status = "404 Not Found"
-        return {"msg": "%s: record not found %s" % (model_id, record_id)}
+        return {
+            "error": "404 Not Found",
+            "msg": "%s: record not found %s" % (model_id, record_id)
+        }
 
 
 @record.put(validators=record_validator, permission='put_record')
@@ -122,7 +131,10 @@ def patch(request):
         records = request.db.get_record(model_id, record_id)
     except RecordNotFound:
         request.response.status = "404 Not Found"
-        return {"msg": "%s: record not found %s" % (model_id, record_id)}
+        return {
+            "error": "404 Not Found",
+            "msg": "%s: record not found %s" % (model_id, record_id)
+        }
 
     records.update(json.loads(request.body.decode('utf-8')))
     definition = request.db.get_model_definition(model_id)
@@ -142,5 +154,8 @@ def delete(request):
         deleted = request.db.delete_record(model_id, record_id)
     except RecordNotFound:
         request.response.status = "404 Not Found"
-        return {"msg": "%s: record not found %s" % (model_id, record_id)}
+        return {
+            "error": "404 Not Found",
+            "msg": "%s: record not found %s" % (model_id, record_id)
+        }
     return deleted

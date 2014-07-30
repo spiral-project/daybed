@@ -16,9 +16,7 @@ from pyramid.config import Configurator
 from pyramid.events import NewRequest
 from pyramid.renderers import JSONP
 from pyramid.authentication import BasicAuthAuthenticationPolicy
-from pyramid.security import (
-    unauthenticated_userid
-)
+from pyramid.security import unauthenticated_userid
 
 from pyramid_hawkauth import HawkAuthenticationPolicy
 from pyramid_multiauth import MultiAuthenticationPolicy

@@ -188,8 +188,12 @@ def check_api_token(tokenId, tokenKey, request):
         secret = request.db.get_token(tokenId)
         if secret == tokenKey:
             return build_user_principals(tokenId, request)
+        request.token = None
+        request.principals = [Everyone]
         return []
     except TokenNotFound:
+        request.token = None
+        request.principals = [Everyone]
         return []
 
 

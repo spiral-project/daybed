@@ -1,3 +1,4 @@
+import base64
 from pyramid.security import Authenticated, Everyone
 from daybed import __version__ as VERSION
 from daybed.acl import PERMISSIONS_SET
@@ -96,6 +97,22 @@ class BasicAuthRegistrationTest(BaseWebTest):
                             status=401)
         self.assertIn('401', resp)
 
+    def test_unauthorized_token(self):
+        self.app.put_json('/models/%s' % self.model_id,
+                          {'definition': self.valid_definition},
+                          headers=self.headers)
+
+        auth = base64.b64encode(
+            u'foo:bar'.encode('ascii')).strip().decode('ascii')
+
+        resp = self.app.get('/models/%s' % self.model_id,
+                            headers={
+                                'Content-Type': 'application/json',
+                                'Authorization': 'Basic {0}'.format(auth)
+                            },
+                            status=401)
+        self.assertIn('401', resp)
+
     def test_forbidden(self):
         self.app.put_json('/models/%s' % self.model_id,
                           {'definition': self.valid_definition},
@@ -168,6 +185,13 @@ class ModelsViewsTest(BaseWebTest):
                                 headers={'Origin': 'notmyidea.org'},
                                 status=404)
         self.assertIn('Access-Control-Allow-Origin', response.headers)
+
+    def test_acls_unknown_retrieval(self):
+        resp = self.app.get('/models/test/acls',
+                            headers=self.headers, status=404)
+        self.assertDictEqual(
+            resp.json, force_unicode({"error": "404 Not Found",
+                                      "msg": 'test: model not found'}))
 
     def test_acls_retrieval(self):
         self.app.put_json('/models/test',
@@ -426,20 +450,41 @@ class RecordsViewsTest(BaseWebTest):
                         headers=self.headers)
 
     def test_delete_unknown_model_records(self):
-        self.app.delete('/models/unknown/records', {},
-                        headers=self.headers,
-                        status=404)
+        resp = self.app.delete('/models/unknown/records', {},
+                               headers=self.headers,
+                               status=404)
+        self.assertDictEqual(
+            resp.json, force_unicode({"error": "404 Not Found",
+                                      "msg": 'unknown: model not found'}))
 
     def test_unknown_model_raises_404(self):
-        self.app.get('/models/unknown/records', {},
-                     headers=self.headers,
-                     status=404)
+        resp = self.app.get('/models/unknown/records', {},
+                            headers=self.headers,
+                            status=404)
+        self.assertDictEqual(
+            resp.json, force_unicode({"error": "404 Not Found",
+                                      "msg": 'unknown: model not found'}))
 
     def test_unknown_model_records_creation(self):
         resp = self.app.post_json('/models/unknown/records', {},
                                   headers={'Content-Type': 'application/json'},
                                   status=404)
-        self.assertIn('"status": "error"', resp.body.decode('utf-8'))
+        self.assertDictEqual(
+            resp.json, force_unicode({
+                "errors": [{
+                    "description": "Unknown model unknown",
+                    "location": "path",
+                    "name": "modelname"
+                }],
+                "status": 'error'}
+            ))
+
+    def test_get_model_unknown(self):
+        resp = self.app.get('/models/test',
+                            headers=self.headers, status=404)
+        self.assertDictEqual(
+            resp.json, force_unicode({"error": "404 Not Found",
+                                      "msg": 'test: model not found'}))
 
     def test_get_model_records(self):
         self.app.put_json('/models/test', MODEL_DEFINITION,
@@ -465,8 +510,11 @@ class RecordsViewsTest(BaseWebTest):
     def test_unknown_record_returns_404(self):
         self.app.put_json('/models/test', MODEL_DEFINITION,
                           headers=self.headers)
-        self.app.get('/models/test/records/1234',
-                     headers=self.headers, status=404)
+        resp = self.app.get('/models/test/records/1234',
+                            headers=self.headers, status=404)
+        self.assertDictEqual(
+            resp.json, force_unicode({"error": "404 Not Found",
+                                      "msg": 'test: record not found 1234'}))
 
     def test_record_deletion(self):
         self.app.put_json('/models/test', MODEL_DEFINITION,
@@ -481,8 +529,14 @@ class RecordsViewsTest(BaseWebTest):
         self.assertRaises(RecordNotFound, self.db.get_record,
                           'test', record_id)
         # Test 404
-        self.app.delete('/models/test/records/%s' % record_id,
-                        headers=self.headers, status=404)
+        resp = self.app.delete('/models/test/records/%s' % record_id,
+                               headers=self.headers, status=404)
+        self.assertEqual(resp.json["error"], "404 Not Found")
+        self.assertStartsWith(resp.json["msg"], "test: record not found")
+
+    def assertStartsWith(self, a, b):
+        if not a.startswith(b):
+            self.fail("'%s' doesn't startswith '%s'" % (a, b))
 
 
 class TokensViewsTest(BaseWebTest):

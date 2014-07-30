@@ -45,7 +45,10 @@ def get_definition(request):
         return request.db.get_model_definition(model_id)
     except ModelNotFound:
         request.response.status = "404 Not Found"
-        return {"msg": "%s: model not found" % model_id}
+        return {
+            "error": "404 Not Found",
+            "msg": "%s: model not found" % model_id
+        }
 
 
 @acls.get(permission='get_acls')
@@ -56,7 +59,10 @@ def get_acls(request):
         return invert_acls_matrix(request.db.get_model_acls(model_id))
     except ModelNotFound:
         request.response.status = "404 Not Found"
-        return {"msg": "%s: model not found" % model_id}
+        return {
+            "error": "404 Not Found",
+            "msg": "%s: model not found" % model_id
+        }
 
 
 @acls.patch(permission='put_acls', validators=(acls_validator,))
@@ -131,7 +137,10 @@ def delete_model(request):
         model = request.db.delete_model(model_id)
     except ModelNotFound:
         request.response.status = "404 Not Found"
-        return {"msg": "%s: model not found" % model_id}
+        return {
+            "error": "404 Not Found",
+            "msg": "%s: model not found" % model_id
+        }
     return model
 
 
@@ -143,7 +152,10 @@ def get_model(request):
         definition = request.db.get_model_definition(model_id),
     except ModelNotFound:
         request.response.status = "404 Not Found"
-        return {"msg": "%s: model not found" % model_id}
+        return {
+            "error": "404 Not Found",
+            "msg": "%s: model not found" % model_id
+        }
 
     records = request.db.get_records(model_id)
 
