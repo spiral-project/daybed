@@ -152,8 +152,8 @@ def acls_validator(request):
             request.errors.add('body', token, 'Invalid permissions: %s' %
                                ', '.join((perms - PERMISSIONS_SET)))
             error = True
-        if token != "Authenticated" and token != "Everyone":
-            if token != Authenticated and token != Everyone:
+        if token not in ("Authenticated", "Everyone"):
+            if token not in (Authenticated, Everyone):
                 try:
                     request.db.get_token(token)
                 except TokenNotFound:
