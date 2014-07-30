@@ -10,14 +10,12 @@ from daybed.schemas.validators import (RecordSchema, record_validator,
 
 records = Service(name='records',
                   path='/models/{model_id}/records',
-                  description='Collection of records',
-                  renderer='jsonp')
+                  description='Collection of records')
 
 
 record = Service(name='record',
                  path='/models/{model_id}/records/{record_id}',
-                 description='Single record',
-                 renderer="jsonp")
+                 description='Single record')
 
 
 @records.get(permission='get_records')

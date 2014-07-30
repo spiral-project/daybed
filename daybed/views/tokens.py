@@ -2,14 +2,12 @@ from cornice import Service
 
 from daybed.tokens import get_hawk_credentials
 
-tokens = Service(name='tokens', path='/tokens', description='Tokens',
-                 renderer="jsonp", cors_origins=('*',))
+tokens = Service(name='tokens', path='/tokens', description='Tokens')
 
 
 token = Service(name='token',
                 path='/tokens/{token_id}',
                 description='Token',
-                renderer="jsonp",
                 cors_origins=('*',))
 
 

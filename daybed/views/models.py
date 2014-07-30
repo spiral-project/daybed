@@ -12,8 +12,7 @@ from daybed.views.errors import forbidden_view
 from daybed.schemas.validators import model_validator, acls_validator
 
 
-models = Service(name='models', path='/models', description='Models',
-                 renderer="jsonp", cors_origins=('*',))
+models = Service(name='models', path='/models', description='Models')
 
 
 model = Service(name='model',
