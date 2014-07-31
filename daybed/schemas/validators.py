@@ -1,5 +1,6 @@
 from __future__ import absolute_import
 from functools import partial
+from copy import deepcopy
 import json
 import datetime
 
@@ -27,6 +28,7 @@ class DefinitionSchema(SchemaNode):
 class RecordSchema(SchemaNode):
     def __init__(self, definition):
         super(RecordSchema, self).__init__(Mapping())
+        definition = deepcopy(definition)
         for field in definition['fields']:
             fieldtype = field.pop('type')
             self.add(registry.validation(fieldtype, **field))
