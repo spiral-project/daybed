@@ -10,14 +10,12 @@ from daybed.schemas.validators import (RecordSchema, record_validator,
 
 records = Service(name='records',
                   path='/models/{model_id}/records',
-                  description='Collection of records',
-                  renderer='jsonp')
+                  description='Collection of records')
 
 
 record = Service(name='record',
                  path='/models/{model_id}/records/{record_id}',
-                 description='Single record',
-                 renderer="jsonp")
+                 description='Single record')
 
 
 @records.get(permission='get_records')
@@ -29,10 +27,16 @@ def get_records(request):
     try:
         request.db.get_model_definition(model_id)
     except ModelNotFound:
-        request.response.status = "404 Not Found"
-        return {"msg": "%s: model not found" % model_id}
+        request.errors.add('path', model_id, "model not found")
+        request.errors.status = "404 Not Found"
+        return
     # Return array of records
-    results = request.db.get_records(model_id)
+    if "read_all_records" not in request.permissions:
+        results = request.db.get_records_with_authors(model_id)
+        results = [r['record'] for r in results
+                   if set(request.principals).intersection(r['authors'])]
+    else:
+        results = request.db.get_records(model_id)
     return {'records': results}
 
 
@@ -45,7 +49,7 @@ def post_record(request):
 
     """
     # if we are asked only for validation, don't do anything more.
-    if request.headers.get('X-Daybed-Validate-Only', 'false') == 'true':
+    if request.headers.get('Validate-Only', 'false') == 'true':
         return
 
     model_id = request.matchdict['model_id']
@@ -67,11 +71,12 @@ def delete_records(request):
     """Deletes all records of model."""
     model_id = request.matchdict['model_id']
     try:
-        request.db.delete_records(model_id)
+        records = request.db.delete_records(model_id)
     except ModelNotFound:
-        request.response.status = "404 Not Found"
-        return {"msg": "%s: model not found" % model_id}
-    return {"msg": "ok"}
+        request.errors.add('path', model_id, "model not found")
+        request.errors.status = "404 Not Found"
+        return
+    return {"records": records}
 
 
 @record.get(permission='get_record')
@@ -82,13 +87,17 @@ def get(request):
     try:
         return request.db.get_record(model_id, record_id)
     except RecordNotFound:
-        request.response.status = "404 Not Found"
-        return {"msg": "%s: record not found %s" % (model_id, record_id)}
+        request.errors.add('path', record_id, "record not found")
+        request.errors.status = "404 Not Found"
 
 
 @record.put(validators=record_validator, permission='put_record')
 def put(request):
     """Updates or creates a record."""
+    # if we are asked only for validation, don't do anything more.
+    if request.headers.get('Validate-Only', 'false') == 'true':
+        return
+
     model_id = request.matchdict['model_id']
     record_id = request.matchdict['record_id']
 
@@ -116,8 +125,9 @@ def patch(request):
     try:
         records = request.db.get_record(model_id, record_id)
     except RecordNotFound:
-        request.response.status = "404 Not Found"
-        return {"msg": "%s: record not found %s" % (model_id, record_id)}
+        request.errors.add('path', record_id, "record not found")
+        request.errors.status = "404 Not Found"
+        return
 
     records.update(json.loads(request.body.decode('utf-8')))
     definition = request.db.get_model_definition(model_id)
@@ -136,6 +146,7 @@ def delete(request):
     try:
         deleted = request.db.delete_record(model_id, record_id)
     except RecordNotFound:
-        request.response.status = "404 Not Found"
-        return {"msg": "%s: record not found %s" % (model_id, record_id)}
+        request.errors.add('path', record_id, "record not found")
+        request.errors.status = "404 Not Found"
+        return
     return deleted

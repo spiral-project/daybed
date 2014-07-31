@@ -7,8 +7,7 @@ from daybed import __version__ as VERSION
 
 spore = Service(name="spore",
                 path='/spore',
-                description="Spore endpoint",
-                renderer="jsonp")
+                description="Spore endpoint")
 
 
 @spore.get()

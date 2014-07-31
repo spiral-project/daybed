@@ -56,10 +56,17 @@ class RedisBackend(object):
         else:
             return []
 
-    def get_records(self, model_id):
+    def get_records(self, model_id, raw_records=None):
+        return [r["record"] for r in
+                self.get_records_with_authors(model_id, raw_records)]
+
+    def get_records_with_authors(self, model_id, raw_records=None):
+        if raw_records is None:
+            raw_records = self.__get_raw_records(model_id)
         records = []
         for item in self.__get_raw_records(model_id):
-            records.append(item['record'])
+            records.append({"authors": item["authors"],
+                            "record": item["record"]})
         return records
 
     def __get_raw_record(self, model_id, record_id):
@@ -87,7 +94,6 @@ class RedisBackend(object):
                 'acls': acls
             })
         )
-        self._db.delete("model.%s.records" % model_id)
         return model_id
 
     def put_record(self, model_id, record, authors, record_id=None):
@@ -109,6 +115,7 @@ class RedisBackend(object):
         else:
             record_id = self._generate_id()
 
+        doc['record']['id'] = record_id
         self._db.set(
             "model.%s.record.%s" % (model_id, record_id),
             json.dumps(doc)
@@ -132,11 +139,11 @@ class RedisBackend(object):
     def delete_records(self, model_id):
         records = self.get_records(model_id)
         existing_records_keys = [
-            "model.%s.record.%s" % (model_id, r.id) for r in records
+            "model.%s.record.%s" % (model_id, r["id"]) for r in records
         ]
         existing_records_keys.append("model.%s.records" % model_id)
 
-        self._db.delete(existing_records_keys)
+        self._db.delete(*existing_records_keys)
         return records
 
     def delete_model(self, model_id):

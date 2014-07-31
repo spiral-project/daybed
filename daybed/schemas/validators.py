@@ -1,5 +1,6 @@
 from __future__ import absolute_import
 from functools import partial
+from copy import deepcopy
 import json
 import datetime
 
@@ -7,8 +8,11 @@ import six
 from colander import (
     SchemaNode, Mapping, Sequence, Length, String, null, Invalid
 )
+from pyramid.security import Authenticated, Everyone
 
 from daybed.backends.exceptions import ModelNotFound
+from daybed.acl import PERMISSIONS_SET
+from daybed.backends.exceptions import TokenNotFound
 from . import registry, TypeFieldNode
 
 
@@ -21,19 +25,10 @@ class DefinitionSchema(SchemaNode):
                             name='fields', validator=Length(min=1)))
 
 
-class RolesSchema(SchemaNode):
-    def __init__(self):
-        super(RolesSchema, self).__init__(Mapping(unknown='preserve'))
-        self.add(SchemaNode(Sequence(), SchemaNode(String()),
-                            name='admins', validator=Length(min=1)))
-
-        # XXX Control that the values of the sequence are valid tokens.
-        # (we need to merge master to fix this. see #86)
-
-
 class RecordSchema(SchemaNode):
     def __init__(self, definition):
         super(RecordSchema, self).__init__(Mapping())
+        definition = deepcopy(definition)
         for field in definition['fields']:
             fieldtype = field.pop('type')
             self.add(registry.validation(fieldtype, **field))
@@ -127,3 +122,42 @@ def model_validator(request):
         for record in records:
             validate_against_schema(request, definition_schema, record)
             request.validated['records'].append(record)
+
+
+def acls_validator(request):
+    """Verify that the acls defined in the request body are valid:
+         - tokens exists
+         - rights are valids
+
+    """
+    try:
+        body = json.loads(request.body.decode('utf-8'))
+    except ValueError:
+        request.errors.add('body', 'json value error', "malformed body")
+        return
+
+    request.validated['acls'] = {}
+
+    # Check the definition is valid.
+    for token, acls in six.iteritems(body):
+        error = False
+        perms = set([perm.lstrip('-').lstrip('+').lower() for perm in acls])
+        if "all" in perms:
+            perms = set(PERMISSIONS_SET)
+        if not perms.issubset(PERMISSIONS_SET):
+            request.errors.add('body', token, 'Invalid permissions: %s' %
+                               ', '.join((perms - PERMISSIONS_SET)))
+            error = True
+        if token not in ("Authenticated", "Everyone"):
+            if token not in (Authenticated, Everyone):
+                try:
+                    request.db.get_token(token)
+                except TokenNotFound:
+                    request.errors.add("body", token,
+                                       "Token couldn't be found.")
+                    error = True
+        else:
+            token = token.replace("Authenticated", Authenticated) \
+                         .replace("Everyone", Everyone)
+        if not error:
+            request.validated["acls"][token] = acls

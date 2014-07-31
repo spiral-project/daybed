@@ -16,9 +16,6 @@ from pyramid.config import Configurator
 from pyramid.events import NewRequest
 from pyramid.renderers import JSONP
 from pyramid.authentication import BasicAuthAuthenticationPolicy
-from pyramid.security import (
-    unauthenticated_userid
-)
 
 from pyramid_hawkauth import HawkAuthenticationPolicy
 from pyramid_multiauth import MultiAuthenticationPolicy
@@ -26,7 +23,7 @@ from pyramid_multiauth import MultiAuthenticationPolicy
 from daybed.acl import (
     RootFactory, DaybedAuthorizationPolicy, check_api_token,
 )
-from daybed.views.errors import unauthorized_view
+from daybed.views.errors import forbidden_view
 from daybed.renderers import GeoJSON
 from daybed.backends.exceptions import TokenNotFound
 
@@ -71,7 +68,7 @@ def main(global_config, **settings):
     authn_policy = MultiAuthenticationPolicy(policies)
 
     # Unauthorized view
-    config.add_forbidden_view(unauthorized_view)
+    config.add_forbidden_view(forbidden_view)
 
     # Authorization policy
     authz_policy = DaybedAuthorizationPolicy(
@@ -84,7 +81,11 @@ def main(global_config, **settings):
     )
     config.set_authentication_policy(authn_policy)
     config.set_authorization_policy(authz_policy)
-    config.add_request_method(unauthenticated_userid, 'token', reify=True)
+
+    def get_token(request):
+        return request.authenticated_userid
+
+    config.add_request_method(get_token, 'token', reify=True)
 
     # We need to scan AFTER setting the authn / authz policies
     config.scan("daybed.views")
@@ -97,6 +98,14 @@ def main(global_config, **settings):
         event.request.db = config.registry.backend
 
     config.add_subscriber(add_db_to_request, NewRequest)
+
+    def add_default_accept(event):
+        # If the user doesn't give us an Accept header, force the use
+        # of the JSON renderer
+        if "Accept" not in event.request.headers:
+            event.request.headers["Accept"] = "application/json"
+
+    config.add_subscriber(add_default_accept, NewRequest)
 
     config.add_renderer('jsonp', JSONP(param_name='callback'))
 

@@ -15,7 +15,7 @@ PERMISSIONS_SET = set([
     'delete_model',
     'create_record',
     'read_all_records', 'update_all_records', 'delete_all_records',
-    'read_my_record', 'update_my_record', 'delete_my_record'
+    'read_own_records', 'update_own_records', 'delete_own_records'
 ])
 
 
@@ -57,26 +57,28 @@ class All(list):
         return check
 
 
-AUTHORS_PERMISSIONS = set(['update_my_record', 'delete_my_record',
-                           'read_my_record'])
+AUTHORS_PERMISSIONS = set(['update_own_records', 'delete_own_records',
+                           'read_own_records'])
 
 VIEWS_PERMISSIONS_REQUIRED = {
     'post_model':     All(['create_model']),
-    'get_model':      All(['read_definition', 'read_acls']),
+    'get_model':      All(['read_definition', 'read_acls',
+                           Any(['read_all_records', 'read_own_recordss'])]),
     'put_model':      All(['create_model', 'update_definition', 'update_acls',
                            'delete_model']),
-    'delete_model':   All(['delete_model']),
+    'delete_model':   All(['delete_model', 'delete_all_records']),
     'get_definition': All(['read_definition']),
     'get_acls':       All(['read_acls']),
+    'put_acls':       All(['update_acls']),
     'post_record':    All(['create_record']),
-    'get_records':    All(['read_all_records']),
+    'get_records':    Any(['read_all_records', 'read_own_records']),
     'delete_records': All(['delete_all_records']),
-    'get_record':     Any(['read_my_record', 'read_all_records']),
+    'get_record':     Any(['read_own_records', 'read_all_records']),
     'put_record':     All(['create_record',
-                           Any(['update_my_record', 'update_all_records']),
-                           Any(['delete_my_record', 'delete_all_records'])]),
-    'patch_record':   Any(['update_my_record', 'update_all_records']),
-    'delete_record':  Any(['delete_my_record', 'delete_all_records']),
+                           Any(['update_own_records', 'update_all_records']),
+                           Any(['delete_own_records', 'delete_all_records'])]),
+    'patch_record':   Any(['update_own_records', 'update_all_records']),
+    'delete_record':  Any(['delete_own_records', 'delete_all_records']),
     'get_tokens':     All(['manage_tokens']),
     'post_token':    Any(['create_token', 'manage_tokens']),
     'delete_token':   All(['manage_tokens']),
@@ -157,6 +159,10 @@ class DaybedAuthorizationPolicy(object):
                     if not set(principals).intersection(authors):
                         token_permissions -= AUTHORS_PERMISSIONS
 
+        # Expose permissions and principals for in_view checks
+        context.request.permissions = token_permissions
+        context.request.principals = principals
+
         # Check view permission matches token permissions.
         return permissions_required.matches(token_permissions)
 
@@ -182,9 +188,23 @@ def check_api_token(tokenId, tokenKey, request):
         secret = request.db.get_token(tokenId)
         if secret == tokenKey:
             return build_user_principals(tokenId, request)
+        request.token = None
+        request.principals = [Everyone]
         return []
     except TokenNotFound:
+        request.token = None
+        request.principals = [Everyone]
         return []
+
+
+def dict_set2list(dict_set):
+    return dict([(key, sorted(value))
+                 for key, value in iteritems(dict_set)])
+
+
+def dict_list2set(dict_list):
+    return dict([(key, set(value))
+                 for key, value in iteritems(dict_list)])
 
 
 def invert_acls_matrix(acls_tokens):
@@ -193,5 +213,4 @@ def invert_acls_matrix(acls_tokens):
     for perm, tokens in iteritems(acls_tokens):
         for token in tokens:
             tokens_acls[token].add(perm)
-    return dict([(key, sorted(value))
-                 for key, value in iteritems(tokens_acls)])
+    return dict_set2list(tokens_acls)

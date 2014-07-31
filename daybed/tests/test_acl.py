@@ -8,7 +8,7 @@ from pyramid.security import Authenticated
 
 from daybed.acl import (
     All, Any, DaybedAuthorizationPolicy, build_user_principals,
-    invert_acls_matrix
+    invert_acls_matrix, dict_set2list, dict_list2set
 )
 
 class TestAnyAll(TestCase):
@@ -76,6 +76,21 @@ class TestACL(TestCase):
         self.assertFalse(permits(context, ['Alexis'], 'get_definition'))
         self.assertTrue(permits(context, ['Alexis', Authenticated],
                                 'get_definition'))
+
+    def test_dict_set2list(self):
+        self.assertDictEqual(dict_set2list({
+            'toto': set(['titi', 'tutu']),
+            'titi': set(['tata'])
+        }), {'toto': ['titi', 'tutu'], 'titi': ['tata']})
+
+    def test_dict_set2list(self):
+        self.assertDictEqual(dict_list2set({
+            'toto': ['titi', 'tutu'],
+            'titi': ['tata']
+        }), {
+            'toto': set(['titi', 'tutu']),
+            'titi': set(['tata'])
+        })
 
     def test_invert_acls_matrix(self):
         model_acls = {

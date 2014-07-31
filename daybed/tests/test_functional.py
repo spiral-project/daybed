@@ -75,7 +75,9 @@ class FunctionalTest(object):
         resp = self.app.get('/models/%s/records/%s' % (self.model_id,
                                                        record_id),
                             headers=self.headers)
-        self.assertDataCorrect(resp.json, force_unicode(self.valid_record))
+        valid_record = force_unicode(self.valid_record)
+        valid_record["id"] = record_id
+        self.assertDataCorrect(resp.json, valid_record)
 
     def test_record_update(self):
         # Put data against this definition
@@ -112,11 +114,12 @@ class FunctionalTest(object):
 
         new_item = self.valid_record.copy()
         new_item.update(entry)
+        new_item["id"] = record_id
         self.assertEquals(record, new_item)
 
     def test_record_validation(self):
         headers = self.headers.copy()
-        headers['X-Daybed-Validate-Only'] = 'true'
+        headers['Validate-Only'] = 'true'
         self.app.post_json('/models/%s/records' % self.model_id,
                            self.valid_record,
                            headers=headers, status=200)

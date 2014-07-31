@@ -69,13 +69,22 @@ class CouchDBBackend(object):
         return self.__get_raw_model(model_id)['definition']
 
     def __get_raw_records(self, model_id):
+        # Make sure the model exists.
+        self.__get_raw_model(model_id)
         return views.records(self._db)[model_id]
 
-    def get_records(self, model_id):
+    def get_records(self, model_id, raw_records=None):
+        return [r["record"] for r in
+                self.get_records_with_authors(model_id, raw_records)]
+
+    def get_records_with_authors(self, model_id, raw_records=None):
+        if raw_records is None:
+            raw_records = self.__get_raw_records(model_id)
         records = []
-        for item in self.__get_raw_records(model_id):
+        for item in raw_records:
             item.value['record']['id'] = item.value['_id'].split('-')[1]
-            records.append(item.value['record'])
+            records.append({"authors": item.value['authors'],
+                            "record": item.value['record']})
         return records
 
     def __get_raw_record(self, model_id, record_id):
@@ -87,7 +96,9 @@ class CouchDBBackend(object):
 
     def get_record(self, model_id, record_id):
         doc = self.__get_raw_record(model_id, record_id)
-        return doc['record']
+        record = doc['record']
+        record['id'] = record_id
+        return record
 
     def get_record_authors(self, model_id, record_id):
         doc = self.__get_raw_record(model_id, record_id)
@@ -97,11 +108,15 @@ class CouchDBBackend(object):
         if model_id is None:
             model_id = self._generate_id()
 
-        definition_id, _ = self._db.save({
-            'type': 'definition',
-            '_id': model_id,
-            'definition': definition,
-            'acls': acls})
+        try:
+            doc = self.__get_raw_model(model_id)
+        except ModelNotFound:
+            doc = {'_id': model_id,
+                   'type': 'definition'}
+        doc['definition'] = definition
+        doc['acls'] = acls
+
+        definition_id, _ = self._db.save(doc)
         return definition_id
 
     def put_record(self, model_id, record, authors, record_id=None):
@@ -138,13 +153,13 @@ class CouchDBBackend(object):
         results = self.__get_raw_records(model_id)
         for result in results:
             self._db.delete(result.value)
-        return results
+        return self.get_records(model_id, raw_records=results)
 
     def delete_model(self, model_id):
         """DELETE ALL THE THINGS"""
 
         # Delete the associated data if any.
-        self.delete_records(model_id)
+        records = self.delete_records(model_id)
 
         try:
             doc = views.model_definitions(self._db)[model_id].rows[0].value
@@ -153,7 +168,9 @@ class CouchDBBackend(object):
 
         # Delete the model definition if it exists.
         self._db.delete(doc)
-        return doc
+        return {"definition": doc["definition"],
+                "acls": doc["acls"],
+                "records": records}
 
     def __get_raw_token(self, tokenHmacId):
         try:

@@ -2,10 +2,7 @@ from cornice import Service
 from daybed import __version__ as VERSION
 
 
-hello = Service(name="hello",
-                path='/',
-                description="Welcome",
-                renderer="jsonp")
+hello = Service(name="hello", path='/', description="Welcome")
 
 
 @hello.get()

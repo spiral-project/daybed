@@ -74,7 +74,20 @@ class BackendTestBase(object):
     def test_get_records(self):
         self._create_model()
         self.db.put_record('modelname', self.record, ['author'])
-        self.assertEqual(len(self.db.get_records('modelname')), 1)
+        records = self.db.get_records('modelname')
+        self.assertEqual(len(records), 1)
+        self.assertIn('id', records[0])
+        del records[0]['id']
+        self.assertDictEqual(records[0], {u'age': 7})
+
+    def test_get_records_with_authors(self):
+        self._create_model()
+        self.db.put_record('modelname', self.record, ['author'])
+        records = self.db.get_records_with_authors('modelname')
+        self.assertEqual(len(records), 1)
+        self.assertIn('id', records[0]['record'])
+        del records[0]['record']['id']
+        self.assertDictEqual(records[0], {'authors': [u'author'], 'record': {u'age': 7}})
 
     def test_get_records_empty(self):
         self._create_model()
@@ -83,8 +96,9 @@ class BackendTestBase(object):
     def test_get_record(self):
         self._create_model()
         self.db.put_record('modelname', self.record, ['author'], 'record')
-        self.assertEqual(self.db.get_record('modelname', 'record'),
-                         self.record)
+        record = self.record.copy()
+        record["id"] = "record"
+        self.assertEqual(self.db.get_record('modelname', 'record'), record)
 
     def test_get_record_authors(self):
         self._create_model()
@@ -105,10 +119,21 @@ class BackendTestBase(object):
                           self.definition)
 
     def test_delete_model(self):
-        self._create_model()
-        self.db.delete_model('modelname')
+        self._create_model("modelname")
+        self.db.put_record("modelname", self.record, ['Remy'], "123456")
+
+        resp = self.db.delete_model('modelname')
+        self.assertEqual(resp, {
+            "definition": self.definition,
+            "acls": self.acls,
+            "records": [{"age": 7, "id": "123456"}]
+        })
         self.assertRaises(ModelNotFound, self.db.get_model_definition,
                           'modelname')
+        self.assertRaises(ModelNotFound, self.db.get_records,
+                          'modelname')
+        self.assertRaises(RecordNotFound, self.db.get_record,
+                          'modelname', '123456')
 
     def test_model_deletion_raises_if_unknown(self):
         self.assertRaises(ModelNotFound, self.db.delete_model, 'unknown')
@@ -138,10 +163,12 @@ class TestCouchDBBackend(BackendTestBase, TestCase):
 class TestRedisBackend(BackendTestBase, TestCase):
 
     def setUp(self):
+        # Running Redis tests on the 5th db to avoid flushing existing
+        # redis data on 0
         self.db = RedisBackend(
             host='localhost',
             port=6379,
-            db=0,
+            db=5,
             id_generator=lambda: six.text_type(uuid4())
         )
         super(TestRedisBackend, self).setUp()

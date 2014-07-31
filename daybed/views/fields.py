@@ -6,8 +6,7 @@ from daybed.schemas import registry
 
 fields = Service(name='fields',
                  path='/fields',
-                 description='The resource containing all the fields',
-                 renderer='jsonp')
+                 description='The resource containing all the fields')
 
 
 @fields.get()
