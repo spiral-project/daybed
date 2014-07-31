@@ -100,10 +100,14 @@ def put_acls(request):
     definition = request.db.get_model_definition(model_id)
     acls = defaultdict(set)
     for token, perms in iteritems(request.validated['acls']):
+        perms = [p.lstrip('+').lower() for p in perms]
+        if 'all' in perms:
+            perms = PERMISSIONS_SET
         for perm in perms:
             if not perm.startswith('-'):
-                acls[perm.lstrip('+')].add(token)
-    request.db.put_model(definition, dict_set2list(acls))
+                acls[perm].add(token)
+    acls = dict_set2list(acls)
+    request.db.put_model(definition, acls, model_id)
     return invert_acls_matrix(acls)
 
 
