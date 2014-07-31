@@ -43,11 +43,8 @@ def get_definition(request):
     try:
         return request.db.get_model_definition(model_id)
     except ModelNotFound:
-        request.response.status = "404 Not Found"
-        return {
-            "error": "404 Not Found",
-            "msg": "%s: model not found" % model_id
-        }
+        request.errors.add('path', model_id, "model not found")
+        request.errors.status = "404 Not Found"
 
 
 @acls.get(permission='get_acls')
@@ -57,11 +54,8 @@ def get_acls(request):
     try:
         return invert_acls_matrix(request.db.get_model_acls(model_id))
     except ModelNotFound:
-        request.response.status = "404 Not Found"
-        return {
-            "error": "404 Not Found",
-            "msg": "%s: model not found" % model_id
-        }
+        request.errors.add('path', model_id, "model not found")
+        request.errors.status = "404 Not Found"
 
 
 @acls.patch(permission='put_acls', validators=(acls_validator,))
@@ -74,12 +68,12 @@ def patch_acls(request):
     for token, perms in iteritems(request.validated['acls']):
         # Handle remove all
         if '-all' in [perm.lower() for perm in perms]:
-            for p in PERMISSIONS_SET:
-                acls[p].discard(token)
+            for perm in PERMISSIONS_SET:
+                acls[perm].discard(token)
         # Handle add all
         elif 'all' in [perm.lstrip('+').lower() for perm in perms]:
-            for p in PERMISSIONS_SET:
-                acls[p].add(token)
+            for perm in PERMISSIONS_SET:
+                acls[perm].add(token)
         # Handle add/remove perms list
         else:
             for perm in perms:
@@ -139,11 +133,9 @@ def delete_model(request):
     try:
         model = request.db.delete_model(model_id)
     except ModelNotFound:
-        request.response.status = "404 Not Found"
-        return {
-            "error": "404 Not Found",
-            "msg": "%s: model not found" % model_id
-        }
+        request.errors.status = "404 Not Found"
+        request.errors.add('path', model_id, "model not found")
+        return
     model["acls"] = invert_acls_matrix(model["acls"])
     return model
 
@@ -155,11 +147,9 @@ def get_model(request):
     try:
         definition = request.db.get_model_definition(model_id),
     except ModelNotFound:
-        request.response.status = "404 Not Found"
-        return {
-            "error": "404 Not Found",
-            "msg": "%s: model not found" % model_id
-        }
+        request.errors.add('path', model_id, "model not found")
+        request.errors.status = "404 Not Found"
+        return
 
     if "read_all_records" not in request.permissions:
         records = request.db.get_records_with_authors(model_id)

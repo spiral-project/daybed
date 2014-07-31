@@ -3,7 +3,7 @@ from pyramid.security import Authenticated, Everyone
 from daybed import __version__ as VERSION
 from daybed.acl import PERMISSIONS_SET
 from daybed.backends.exceptions import (
-    RecordNotFound, ModelNotFound, TokenAlreadyExist
+    RecordNotFound, ModelNotFound
 )
 from daybed.tests.support import BaseWebTest, force_unicode
 from daybed.schemas import registry
@@ -190,8 +190,12 @@ class ModelsViewsTest(BaseWebTest):
         resp = self.app.get('/models/test/acls',
                             headers=self.headers, status=404)
         self.assertDictEqual(
-            resp.json, force_unicode({"error": "404 Not Found",
-                                      "msg": 'test: model not found'}))
+            resp.json, force_unicode({
+                "errors": [{
+                    "location": "path",
+                    "name": "test",
+                    "description": "model not found"}],
+                "status": "error"}))
 
     def test_acls_retrieval(self):
         self.app.put_json('/models/test',
@@ -207,11 +211,8 @@ class ModelsViewsTest(BaseWebTest):
         self.app.put_json('/models/test',
                           MODEL_DEFINITION,
                           headers=self.headers)
-        try:
-            self.db.add_token('alexis', 'bar')
-            self.db.add_token('remy', 'foobar')
-        except TokenAlreadyExist:
-            pass
+        self.db.add_token('alexis', 'bar')
+        self.db.add_token('remy', 'foobar')
 
         resp = self.app.patch_json('/models/test/acls',
                                    {"alexis": ["read_acls"],
@@ -239,10 +240,7 @@ class ModelsViewsTest(BaseWebTest):
         self.app.put_json('/models/test',
                           MODEL_DEFINITION,
                           headers=self.headers)
-        try:
-            self.db.add_token('alexis', 'bar')
-        except TokenAlreadyExist:
-            pass
+        self.db.add_token('alexis', 'bar')
 
         resp = self.app.patch_json('/models/test/acls',
                                    {"alexis": ["ALL"]},
@@ -314,11 +312,8 @@ class ModelsViewsTest(BaseWebTest):
         self.app.put_json('/models/test',
                           MODEL_DEFINITION,
                           headers=self.headers)
-        try:
-            self.db.add_token('alexis', 'bar')
-            self.db.add_token('remy', 'foobar')
-        except TokenAlreadyExist:
-            pass
+        self.db.add_token('alexis', 'bar')
+        self.db.add_token('remy', 'foobar')
 
         resp = self.app.put_json('/models/test/acls',
                                  {"alexis": ["read_acls"],
@@ -452,11 +447,8 @@ class ModelsViewsTest(BaseWebTest):
         record = MODEL_RECORD.copy()
         record["id"] = resp.json["id"]
 
-        try:
-            self.db.add_token('alexis', 'bar')
-            self.db.add_token('remy', 'foobar')
-        except TokenAlreadyExist:
-            pass
+        self.db.add_token('alexis', 'bar')
+        self.db.add_token('remy', 'foobar')
 
         acls = {"admin": ["delete_all_records", "delete_model"],
                 "alexis": ["read_acls"],
@@ -495,16 +487,24 @@ class RecordsViewsTest(BaseWebTest):
                                headers=self.headers,
                                status=404)
         self.assertDictEqual(
-            resp.json, force_unicode({"error": "404 Not Found",
-                                      "msg": 'unknown: model not found'}))
+            resp.json, force_unicode({
+                "errors": [{
+                    "location": "path",
+                    "name": "unknown",
+                    "description": "model not found"}],
+                "status": "error"}))
 
     def test_unknown_model_raises_404(self):
         resp = self.app.get('/models/unknown/records', {},
                             headers=self.headers,
                             status=404)
         self.assertDictEqual(
-            resp.json, force_unicode({"error": "404 Not Found",
-                                      "msg": 'unknown: model not found'}))
+            resp.json, force_unicode({
+                "errors": [{
+                    "location": "path",
+                    "name": "unknown",
+                    "description": "model not found"}],
+                "status": "error"}))
 
     def test_unknown_model_records_creation(self):
         resp = self.app.post_json('/models/unknown/records', {},
@@ -524,8 +524,12 @@ class RecordsViewsTest(BaseWebTest):
         resp = self.app.get('/models/test',
                             headers=self.headers, status=404)
         self.assertDictEqual(
-            resp.json, force_unicode({"error": "404 Not Found",
-                                      "msg": 'test: model not found'}))
+            resp.json, force_unicode({
+                "errors": [{
+                    "location": "path",
+                    "name": "test",
+                    "description": "model not found"}],
+                "status": "error"}))
 
     def test_get_model_records(self):
         self.app.put_json('/models/test', MODEL_DEFINITION,
@@ -570,8 +574,12 @@ class RecordsViewsTest(BaseWebTest):
         resp = self.app.get('/models/test/records/1234',
                             headers=self.headers, status=404)
         self.assertDictEqual(
-            resp.json, force_unicode({"error": "404 Not Found",
-                                      "msg": 'test: record not found 1234'}))
+            resp.json, force_unicode({
+                "errors": [{
+                    "location": "path",
+                    "name": "1234",
+                    "description": "record not found"}],
+                "status": "error"}))
 
     def test_record_deletion(self):
         self.app.put_json('/models/test', MODEL_DEFINITION,
@@ -588,8 +596,13 @@ class RecordsViewsTest(BaseWebTest):
         # Test 404
         resp = self.app.delete('/models/test/records/%s' % record_id,
                                headers=self.headers, status=404)
-        self.assertEqual(resp.json["error"], "404 Not Found")
-        self.assertStartsWith(resp.json["msg"], "test: record not found")
+
+        self.assertDictEqual(resp.json, force_unicode({
+            "errors": [{
+                "location": "path",
+                "name": record_id,
+                "description": "record not found"}],
+            "status": "error"}))
 
     def assertStartsWith(self, a, b):
         if not a.startswith(b):

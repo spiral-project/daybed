@@ -27,11 +27,9 @@ def get_records(request):
     try:
         request.db.get_model_definition(model_id)
     except ModelNotFound:
-        request.response.status = "404 Not Found"
-        return {
-            "error": "404 Not Found",
-            "msg": "%s: model not found" % model_id
-        }
+        request.errors.add('path', model_id, "model not found")
+        request.errors.status = "404 Not Found"
+        return
     # Return array of records
     if "read_all_records" not in request.permissions:
         results = request.db.get_records_with_authors(model_id)
@@ -75,11 +73,9 @@ def delete_records(request):
     try:
         records = request.db.delete_records(model_id)
     except ModelNotFound:
-        request.response.status = "404 Not Found"
-        return {
-            "error": "404 Not Found",
-            "msg": "%s: model not found" % model_id
-        }
+        request.errors.add('path', model_id, "model not found")
+        request.errors.status = "404 Not Found"
+        return
     return {"records": records}
 
 
@@ -91,11 +87,8 @@ def get(request):
     try:
         return request.db.get_record(model_id, record_id)
     except RecordNotFound:
-        request.response.status = "404 Not Found"
-        return {
-            "error": "404 Not Found",
-            "msg": "%s: record not found %s" % (model_id, record_id)
-        }
+        request.errors.add('path', record_id, "record not found")
+        request.errors.status = "404 Not Found"
 
 
 @record.put(validators=record_validator, permission='put_record')
@@ -132,11 +125,9 @@ def patch(request):
     try:
         records = request.db.get_record(model_id, record_id)
     except RecordNotFound:
-        request.response.status = "404 Not Found"
-        return {
-            "error": "404 Not Found",
-            "msg": "%s: record not found %s" % (model_id, record_id)
-        }
+        request.errors.add('path', record_id, "record not found")
+        request.errors.status = "404 Not Found"
+        return
 
     records.update(json.loads(request.body.decode('utf-8')))
     definition = request.db.get_model_definition(model_id)
@@ -155,9 +146,7 @@ def delete(request):
     try:
         deleted = request.db.delete_record(model_id, record_id)
     except RecordNotFound:
-        request.response.status = "404 Not Found"
-        return {
-            "error": "404 Not Found",
-            "msg": "%s: record not found %s" % (model_id, record_id)
-        }
+        request.errors.add('path', record_id, "record not found")
+        request.errors.status = "404 Not Found"
+        return
     return deleted

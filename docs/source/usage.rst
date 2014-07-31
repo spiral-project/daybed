@@ -84,7 +84,10 @@ like this::
          ]
       }}' > definition
 
-    http PUT http://localhost:8000/models/todo @definition --verbose --auth-type=hawk --auth='ad37fc395b7ba83eb496849f6db022fbb316fa11081491b5f00dfae5b0b1cd22:'
+    http PUT http://localhost:8000/models/todo @definition \
+	    --verbose \
+		--auth-type=hawk \
+		--auth='ad37fc395b7ba83eb496849f6db022fbb316fa11081491b5f00dfae5b0b1cd22:'
 
 And we get back::
 
@@ -99,7 +102,7 @@ And we get back::
     }
 
 Note that you could have done this call without being authenticated, by
-authenticating, you and only you have the right to do some changes to this
+authenticating, you and only you have the permission to do some changes to this
 model. You can change the permissions, we will see how to do so later on.
 
 In case you don't want to define a name yourself for your model, you can do the
@@ -110,7 +113,10 @@ name and daybed will generate one for you.
 
 We can now get our models back::
 
-    http GET http://localhost:8000/models/todo --verbose --auth-type=hawk --auth='ad37fc395b7ba83eb496849f6db022fbb316fa11081491b5f00dfae5b0b1cd22:'
+    http GET http://localhost:8000/models/todo \
+	    --verbose \
+	    --auth-type=hawk \
+		--auth='ad37fc395b7ba83eb496849f6db022fbb316fa11081491b5f00dfae5b0b1cd22:'
 
     GET /models/todo HTTP/1.1
     Accept: */*
@@ -182,8 +188,10 @@ Pushing data
 
 Now that we defined the schema, we want to push some real data there!::
 
-    http POST http://localhost:8000/models/todo/records item="work on daybed" status="done"\
-    --verbose --auth-type=hawk --auth='ad37fc395b7ba83eb496849f6db022fbb316fa11081491b5f00dfae5b0b1cd22:'
+    http POST http://localhost:8000/models/todo/records item="work on daybed" status="done" \
+        --verbose \
+		--auth-type=hawk \
+		--auth='ad37fc395b7ba83eb496849f6db022fbb316fa11081491b5f00dfae5b0b1cd22:'
 
     POST /models/todo/records HTTP/1.1
     Accept: application/json
@@ -223,8 +231,11 @@ And we get this in exchange, which is the id of the created document.
 
 Using the GET method, you can get back the data you posted::
 
-    http GET http://localhost:8000/models/todo/records\
-    --verbose --auth-type=hawk --auth='ad37fc395b7ba83eb496849f6db022fbb316fa11081491b5f00dfae5b0b1cd22:' --json
+    http GET http://localhost:8000/models/todo/records \
+        --json \
+	    --verbose \
+        --auth-type=hawk \
+		--auth='ad37fc395b7ba83eb496849f6db022fbb316fa11081491b5f00dfae5b0b1cd22:'
 
     GET /models/todo/records HTTP/1.1                                                                                              [5/4051]
     Accept: application/json
@@ -260,7 +271,8 @@ Get back a definition
 ::
 
     http GET http://localhost:8000/models/todo/definition \
-	    --verbose --auth-type=hawk \
+	    --verbose \
+		--auth-type=hawk \
 	    --auth='504fd8148d7cdca10baa3c5208b63dc9e13cad1387222550950810a7bdd72d2c:'
 
     GET /models/todo/definition HTTP/1.1
@@ -309,7 +321,11 @@ Get back the model ACLs
 
 ::
 
-    http GET http://localhost:8000/models/todo/acls --verbose --auth-type=hawk --auth='504fd8148d7cdca10baa3c5208b63dc9e13cad1387222550950810a7bdd72d2c:'
+    http GET http://localhost:8000/models/todo/acls \
+	    --verbose \
+		--auth-type=hawk \
+		--auth='504fd8148d7cdca10baa3c5208b63dc9e13cad1387222550950810a7bdd72d2c:'
+
     GET /models/todo/acls HTTP/1.1
     Accept: */*
     Accept-Encoding: gzip, deflate
@@ -342,13 +358,13 @@ Get back the model ACLs
     }
 
 
-Add some rights
----------------
+Add some permissions
+--------------------
 
-You can add rights to an existing token, Authenticated people or Everyone.
+You can add permissions to an existing token, Authenticated people or Everyone.
 
-Pyramid define two principals: system.Authenticated and system.Everyone
-To define rights to those, you can also use the shortcut Authenticated or Everyone.
+As well as tokens you can define permissions to system.Authenticated and system.Everyone
+To define permissions to those, you can also use the shortcut Authenticated or Everyone.
 
 To add `read_definition` and `read_acls` to Authenticated and remove
 `update_acls` to alexis we would write::
@@ -360,41 +376,41 @@ To add `read_definition` and `read_acls` to Authenticated and remove
 
 For this to be valid, `alexis` must be an existing token.
 
-If you want to add or remove all the right to/from somebody, you can use the shortcut ALL::
+If you want to add or remove all the permission to/from somebody, you can use the ALL shortcut::
 
     {
         "Authenticated": ["-ALL"],
         "alexis": ["+ALL"]
     }
 
-If you don't provide the `-` or the `+` in front of the right we assume a `+`.
+If you don't provide the `-` or the `+` in front of the permission we assume you want to add the permission.
 
 This::
 
     {
-        "Authenticated": ["all"]
+        "Authenticated": ["ALL"]
     }
 
 Is equivalent to::
 
     {
-        "Authenticated": ["+all"]
+        "Authenticated": ["+ALL"]
     }
 
-You can write rights both in lower or uppercase.
-
-In case you try to add a non existing right, or to modify right of a
+In case you try to add a non existing permission, or to modify permission of a
 non existing token, you will get an error.
 
-If you need to remove rights from a removed token, you will have to use the PUT endpoint.
+If you need to remove permissions from a removed token, you will have to use the PUT endpoint.
 
 **PATCH /models/{modelname}/acls**
 
 ::
 
-   echo '{"Everyone": ["read_definition"]}' | http PATCH http://localhost:8000/models/todo/acls \
-       --verbose --auth-type=hawk \
-	   --auth='504fd8148d7cdca10baa3c5208b63dc9e13cad1387222550950810a7bdd72d2c:' --json
+   echo '{"Everyone": ["read_definition"]}' | http PATCH http://localhost:8000/models/todo/acls  \
+       --json \
+       --verbose \
+	   --auth-type=hawk \
+	   --auth='504fd8148d7cdca10baa3c5208b63dc9e13cad1387222550950810a7bdd72d2c:'
 
     PATCH /models/todo/acls HTTP/1.1
     Accept: application/json
@@ -439,15 +455,17 @@ If you need to remove rights from a removed token, you will have to use the PUT 
 
 **PUT /models/{modelname}/acls**
 
-This is means to replace ACLs for a model. It could be useful in case
-where PATCH doesn't work (remove rights for a removed token.) or to
-replace all ACLs in one call.
+This endpoint let you replace a set of ACLs for a model. It could be useful in case
+where PATCH doesn't work (remove permissions for a removed token.) or to
+replace all permissions in one call.
 
 ::
 
    echo '{"Everyone": ["read_definition"], "Authenticated": ["ALL"]}' | http PUT http://localhost:8000/models/todo/acls \
-       --verbose --auth-type=hawk \
-	   --auth='504fd8148d7cdca10baa3c5208b63dc9e13cad1387222550950810a7bdd72d2c:' --json
+       --json \
+       --verbose \
+	   --auth-type=hawk \
+	   --auth='504fd8148d7cdca10baa3c5208b63dc9e13cad1387222550950810a7bdd72d2c:'
 
     PATCH /models/todo/acls HTTP/1.1
     Accept: application/json

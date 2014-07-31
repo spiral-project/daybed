@@ -17,8 +17,7 @@ This documentation describes how they work and how to use them.
 Models permissions
 ==================
 
-There is a list of 12 permissions that you can add to a token on a
-model.
+These are the permissions you can define on a model:
 
 - **read_definition**: You can read the model definition
 - **read_acls**: You can read the model acls (who can do what)
@@ -33,24 +32,22 @@ model.
 - **update_own_records**: You can update and change records on which you are an author
 - **delete_own_records**: You can delete records on which you are an author
 
-These are permissions that you can set on a model.
-
 
 Global permissions
 ==================
 
-There is three more permissions that are configured at the server level:
+There are three more permissions that are configured at the server level:
 
-- **create_model**: List of people that have the right to create a model
-- **create_token**: List of people that can create tokens
-- **manage_tokens**: List of people that have the right to delete tokens
+- **create_model**: List of token with allows to create a model
+- **create_token**: List of token with allows to create tokens
+- **manage_tokens**: List of token with allows to delete tokens
 
 
 Views permissions
 =================
 
 At the API level, you will often need more than one permissions to get
-access to a page.
+access to an API ressource.
 
 For example, if you want to get a model you will need to have the
 right for `read_definition` and `read_acls` as well as
