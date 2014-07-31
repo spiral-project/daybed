@@ -119,10 +119,21 @@ class BackendTestBase(object):
                           self.definition)
 
     def test_delete_model(self):
-        self._create_model()
-        self.db.delete_model('modelname')
+        self._create_model("modelname")
+        self.db.put_record("modelname", self.record, ['Remy'], "123456")
+
+        resp = self.db.delete_model('modelname')
+        self.assertEqual(resp, {
+            "definition": self.definition,
+            "acls": self.acls,
+            "records": [{"age": 7, "id": "123456"}]
+        })
         self.assertRaises(ModelNotFound, self.db.get_model_definition,
                           'modelname')
+        self.assertRaises(ModelNotFound, self.db.get_records,
+                          'modelname')
+        self.assertRaises(RecordNotFound, self.db.get_record,
+                          'modelname', '123456')
 
     def test_model_deletion_raises_if_unknown(self):
         self.assertRaises(ModelNotFound, self.db.delete_model, 'unknown')

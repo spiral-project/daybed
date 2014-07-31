@@ -158,7 +158,7 @@ class CouchDBBackend(object):
         """DELETE ALL THE THINGS"""
 
         # Delete the associated data if any.
-        self.delete_records(model_id)
+        records = self.delete_records(model_id)
 
         try:
             doc = views.model_definitions(self._db)[model_id].rows[0].value
@@ -167,7 +167,9 @@ class CouchDBBackend(object):
 
         # Delete the model definition if it exists.
         self._db.delete(doc)
-        return doc
+        return {"definition": doc["definition"],
+                "acls": doc["acls"],
+                "records": records}
 
     def __get_raw_token(self, tokenHmacId):
         try:

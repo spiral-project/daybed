@@ -40,9 +40,10 @@ class MemoryBackend(object):
         return self.__get_raw_model(model_id)['definition']
 
     def __get_raw_records(self, model_id):
-        # Check that model_id exists and raises if not.
-        self.__get_raw_model(model_id)
-        return self._db['records'].get(model_id, {}).values()
+        try:
+            return deepcopy(self._db['records'][model_id].values())
+        except KeyError:
+            raise ModelNotFound(model_id)
 
     def get_records(self, model_id, with_authors=False):
         records = []
@@ -79,7 +80,8 @@ class MemoryBackend(object):
             'definition': definition,
             'acls': acls,
         }
-        self._db['records'][model_id] = {}
+        if model_id not in self._db['records']:
+            self._db['records'][model_id] = {}
         return model_id
 
     def put_record(self, model_id, record, authors, record_id=None):
@@ -94,10 +96,9 @@ class MemoryBackend(object):
             except RecordNotFound:
                 doc['_id'] = record_id
             else:
-                authors = list(set(authors) | set(old_doc['authors']))
-                doc['authors'] = authors
-                old_doc.update(doc)
+                old_doc["record"].update(doc["record"])
                 doc = old_doc
+                doc['authors'] = list(set(authors) | set(old_doc['authors']))
         else:
             record_id = self._generate_id()
             doc['_id'] = record_id
@@ -113,16 +114,16 @@ class MemoryBackend(object):
 
     def delete_records(self, model_id):
         results = self.get_records(model_id)
-        records_ids = [r['id'] for r in results]
-        for record_id in records_ids:
-            self.delete_record(model_id, record_id)
+        del self._db['records'][model_id]
         return results
 
     def delete_model(self, model_id):
-        self.delete_records(model_id)
+        records = self.delete_records(model_id)
         doc = self._db['models'][model_id]
         del self._db['models'][model_id]
-        return doc
+        return {"definition": doc["definition"],
+                "acls": doc["acls"],
+                "records": records}
 
     def get_token(self, tokenHmacId):
         try:

@@ -440,6 +440,41 @@ class ModelsViewsTest(BaseWebTest):
                             status=400)
         self.assertIn('"status": "error"', resp.body.decode('utf-8'))
 
+    def test_delete_model(self):
+        # 1. Test that the model and its records have been dropped
+        self.app.put_json('/models/test',
+                          MODEL_DEFINITION,
+                          headers=self.headers)
+
+        resp = self.app.put_json('/models/test/records/123456',
+                                 MODEL_RECORD, headers=self.headers)
+
+        record = MODEL_RECORD.copy()
+        record["id"] = resp.json["id"]
+
+        try:
+            self.db.add_token('alexis', 'bar')
+            self.db.add_token('remy', 'foobar')
+        except TokenAlreadyExist:
+            pass
+
+        acls = {"admin": ["delete_all_records", "delete_model"],
+                "alexis": ["read_acls"],
+                "remy": ["update_acls"]}
+
+        resp = self.app.put_json(
+            '/models/test/acls',
+            acls,
+            headers=self.headers)
+
+        resp = self.app.delete('/models/test', headers=self.headers)
+
+        # 2. Test that the returned data is right
+        self.assertEqual(resp.json, force_unicode({
+            'definition': MODEL_DEFINITION["definition"],
+            'records': [record],
+            'acls': acls}))
+
 
 class RecordsViewsTest(BaseWebTest):
 

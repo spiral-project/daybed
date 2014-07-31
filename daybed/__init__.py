@@ -100,6 +100,8 @@ def main(global_config, **settings):
     config.add_subscriber(add_db_to_request, NewRequest)
 
     def add_default_accept(event):
+        # If the user doesn't give us an Accept header, force the use
+        # of the JSON renderer
         if "Accept" not in event.request.headers:
             event.request.headers["Accept"] = "application/json"
 
