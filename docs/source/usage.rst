@@ -223,7 +223,7 @@ And we get this in exchange, which is the id of the created document.
 
 .. note::
     When you push some data, you can also send a special header, named
-    `Daybed-Validate-Only`, which will allow you to only validate the
+    `Validate-Only`, which will allow you to only validate the
     resource you are sending, without actually recording it to the database.
 
 
