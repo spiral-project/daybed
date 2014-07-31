@@ -96,8 +96,9 @@ class BackendTestBase(object):
     def test_get_record(self):
         self._create_model()
         self.db.put_record('modelname', self.record, ['author'], 'record')
-        self.assertEqual(self.db.get_record('modelname', 'record'),
-                         self.record)
+        record = self.record.copy()
+        record["id"] = "record"
+        self.assertEqual(self.db.get_record('modelname', 'record'), record)
 
     def test_get_record_authors(self):
         self._create_model()

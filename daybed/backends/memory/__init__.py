@@ -63,7 +63,9 @@ class MemoryBackend(object):
 
     def get_record(self, model_id, record_id):
         doc = self.__get_raw_record(model_id, record_id)
-        return doc['record']
+        record = doc['record']
+        record['id'] = record_id
+        return record
 
     def get_record_authors(self, model_id, record_id):
         doc = self.__get_raw_record(model_id, record_id)
