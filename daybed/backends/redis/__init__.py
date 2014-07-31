@@ -56,14 +56,17 @@ class RedisBackend(object):
         else:
             return []
 
-    def get_records(self, model_id, with_authors=False):
+    def get_records(self, model_id, raw_records=None):
+        return [r["record"] for r in
+                self.get_records_with_authors(model_id, raw_records)]
+
+    def get_records_with_authors(self, model_id, raw_records=None):
+        if raw_records is None:
+            raw_records = self.__get_raw_records(model_id)
         records = []
         for item in self.__get_raw_records(model_id):
-            if with_authors:
-                records.append({"authors": item["authors"],
-                                "record": item["record"]})
-            else:
-                records.append(item["record"])
+            records.append({"authors": item["authors"],
+                            "record": item["record"]})
         return records
 
     def __get_raw_record(self, model_id, record_id):

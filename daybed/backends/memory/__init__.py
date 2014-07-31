@@ -41,19 +41,22 @@ class MemoryBackend(object):
 
     def __get_raw_records(self, model_id):
         try:
-            return deepcopy(self._db['records'][model_id].values())
+            return self._db['records'][model_id].values()
         except KeyError:
             raise ModelNotFound(model_id)
 
-    def get_records(self, model_id, with_authors=False):
+    def get_records(self, model_id, raw_records=None):
+        return [r["record"] for r in
+                self.get_records_with_authors(model_id, raw_records)]
+
+    def get_records_with_authors(self, model_id, raw_records=None):
+        if raw_records is None:
+            raw_records = self.__get_raw_records(model_id)
         records = []
-        for item in self.__get_raw_records(model_id):
+        for item in raw_records:
             item['record']['id'] = item['_id']
-            if with_authors:
-                records.append({"authors": deepcopy(item['authors']),
-                                "record": deepcopy(item['record'])})
-            else:
-                records.append(deepcopy(item['record']))
+            records.append({"authors": deepcopy(item['authors']),
+                            "record": deepcopy(item['record'])})
         return records
 
     def __get_raw_record(self, model_id, record_id):

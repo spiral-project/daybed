@@ -73,17 +73,18 @@ class CouchDBBackend(object):
         self.__get_raw_model(model_id)
         return views.records(self._db)[model_id]
 
-    def get_records(self, model_id, with_authors=False, raw_records=None):
+    def get_records(self, model_id, raw_records=None):
+        return [r["record"] for r in
+                self.get_records_with_authors(model_id, raw_records)]
+
+    def get_records_with_authors(self, model_id, raw_records=None):
         if raw_records is None:
             raw_records = self.__get_raw_records(model_id)
         records = []
         for item in raw_records:
             item.value['record']['id'] = item.value['_id'].split('-')[1]
-            if with_authors:
-                records.append({"authors": item.value['authors'],
-                                "record": item.value['record']})
-            else:
-                records.append(item.value['record'])
+            records.append({"authors": item.value['authors'],
+                            "record": item.value['record']})
         return records
 
     def __get_raw_record(self, model_id, record_id):

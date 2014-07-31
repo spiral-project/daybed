@@ -162,7 +162,7 @@ def get_model(request):
         }
 
     if "read_all_records" not in request.permissions:
-        records = request.db.get_records(model_id, with_authors=True)
+        records = request.db.get_records_with_authors(model_id)
         records = [r["record"] for r in records
                    if set(request.principals).intersection(r["authors"])]
     else:

@@ -125,7 +125,11 @@ def model_validator(request):
 
 
 def acls_validator(request):
-    """Verify that the acls defined are ok."""
+    """Verify that the acls defined in the request body are valid:
+         - tokens exists
+         - rights are valids
+
+    """
     try:
         body = json.loads(request.body.decode('utf-8'))
     except ValueError:

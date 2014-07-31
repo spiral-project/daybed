@@ -83,7 +83,7 @@ class BackendTestBase(object):
     def test_get_records_with_authors(self):
         self._create_model()
         self.db.put_record('modelname', self.record, ['author'])
-        records = self.db.get_records('modelname', with_authors=True)
+        records = self.db.get_records_with_authors('modelname')
         self.assertEqual(len(records), 1)
         self.assertIn('id', records[0]['record'])
         del records[0]['record']['id']
@@ -163,6 +163,8 @@ class TestCouchDBBackend(BackendTestBase, TestCase):
 class TestRedisBackend(BackendTestBase, TestCase):
 
     def setUp(self):
+        # Running Redis tests on the 5th db to avoid flushing existing
+        # redis data on 0
         self.db = RedisBackend(
             host='localhost',
             port=6379,
