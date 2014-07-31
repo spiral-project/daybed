@@ -51,7 +51,7 @@ def post_record(request):
 
     """
     # if we are asked only for validation, don't do anything more.
-    if request.headers.get('X-Daybed-Validate-Only', 'false') == 'true':
+    if request.headers.get('Daybed-Validate-Only', 'false') == 'true':
         return
 
     model_id = request.matchdict['model_id']
@@ -101,6 +101,10 @@ def get(request):
 @record.put(validators=record_validator, permission='put_record')
 def put(request):
     """Updates or creates a record."""
+    # if we are asked only for validation, don't do anything more.
+    if request.headers.get('Daybed-Validate-Only', 'false') == 'true':
+        return
+
     model_id = request.matchdict['model_id']
     record_id = request.matchdict['record_id']
 

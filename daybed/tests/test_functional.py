@@ -119,7 +119,7 @@ class FunctionalTest(object):
 
     def test_record_validation(self):
         headers = self.headers.copy()
-        headers['X-Daybed-Validate-Only'] = 'true'
+        headers['Daybed-Validate-Only'] = 'true'
         self.app.post_json('/models/%s/records' % self.model_id,
                            self.valid_record,
                            headers=headers, status=200)
