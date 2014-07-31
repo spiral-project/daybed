@@ -83,7 +83,7 @@ def main(global_config, **settings):
     config.set_authorization_policy(authz_policy)
 
     def get_token(request):
-        return request.unauthenticated_userid
+        return request.authenticated_userid
 
     config.add_request_method(get_token, 'token', reify=True)
 
