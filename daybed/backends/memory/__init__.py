@@ -110,8 +110,8 @@ class MemoryBackend(object):
         return doc
 
     def delete_records(self, model_id):
-        results = self.__get_raw_records(model_id)
-        records_ids = [r['_id'] for r in results]
+        results = self.get_records(model_id)
+        records_ids = [r['id'] for r in results]
         for record_id in records_ids:
             self.delete_record(model_id, record_id)
         return results

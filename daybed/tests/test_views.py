@@ -446,8 +446,14 @@ class RecordsViewsTest(BaseWebTest):
     def test_delete_model_records(self):
         self.app.put_json('/models/test', MODEL_DEFINITION,
                           headers=self.headers)
-        self.app.delete('/models/test/records', {},
-                        headers=self.headers)
+        self.app.post_json('/models/test/records', MODEL_RECORD,
+                           headers=self.headers)
+        resp = self.app.delete('/models/test/records',
+                               headers=self.headers)
+        self.assertIn("records", resp.json)
+        self.assertTrue(len(resp.json["records"]), 1)
+        self.assertIn("id", resp.json["records"][0])
+        self.assertEqual(resp.json["records"][0]["age"], 42)
 
     def test_delete_unknown_model_records(self):
         resp = self.app.delete('/models/unknown/records', {},
