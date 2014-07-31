@@ -317,16 +317,16 @@ Manipulating ACLs
 Get back the model ACLs
 -----------------------
 
-**GET /models/{modelname}/acls**
+**GET /models/{modelname}/permissions**
 
 ::
 
-    http GET http://localhost:8000/models/todo/acls \
+    http GET http://localhost:8000/models/todo/permissions \
 	    --verbose \
 		--auth-type=hawk \
 		--auth='504fd8148d7cdca10baa3c5208b63dc9e13cad1387222550950810a7bdd72d2c:'
 
-    GET /models/todo/acls HTTP/1.1
+    GET /models/todo/permissions HTTP/1.1
     Accept: */*
     Accept-Encoding: gzip, deflate
     Authorization: Hawk mac="G8PntYqGA0DiP4EC0qvvr70tmCZrsVBdTTTBq9ZeKYg=", hash="B0weSUXsMcb5UhL41FZbrUJCAotzSI3HawE1NPLRUz8=", id="220a1c4212d8f005f0f56191c5a91f8fe266282d38b042e6b35cad8034f22871", ts="1406645480", nonce="4D0z9n"
@@ -402,17 +402,17 @@ non existing token, you will get an error.
 
 If you need to remove permissions from a removed token, you will have to use the PUT endpoint.
 
-**PATCH /models/{modelname}/acls**
+**PATCH /models/{modelname}/permissions**
 
 ::
 
-   echo '{"Everyone": ["read_definition"]}' | http PATCH http://localhost:8000/models/todo/acls  \
+   echo '{"Everyone": ["read_definition"]}' | http PATCH http://localhost:8000/models/todo/permissions  \
        --json \
        --verbose \
 	   --auth-type=hawk \
 	   --auth='504fd8148d7cdca10baa3c5208b63dc9e13cad1387222550950810a7bdd72d2c:'
 
-    PATCH /models/todo/acls HTTP/1.1
+    PATCH /models/todo/permissions HTTP/1.1
     Accept: application/json
     Accept-Encoding: gzip, deflate
     Authorization: Hawk mac="CWT9du2YxOoTb2i5d15bBTA4XiSYY/99ybh6g7welLM=", hash="Nt8m2h1nc5lVUItOobOliVj6hul0FYXmwpEmkjyp+WU=", id="220a1c4212d8f005f0f56191c5a91f8fe266282d38b042e6b35cad8034f22871", ts="1406645940", nonce="2il3kl"
@@ -453,7 +453,7 @@ If you need to remove permissions from a removed token, you will have to use the
         ]
     }
 
-**PUT /models/{modelname}/acls**
+**PUT /models/{modelname}/permissions**
 
 This endpoint let you replace a set of ACLs for a model. It could be useful in case
 where PATCH doesn't work (remove permissions for a removed token.) or to
@@ -461,13 +461,13 @@ replace all permissions in one call.
 
 ::
 
-   echo '{"Everyone": ["read_definition"], "Authenticated": ["ALL"]}' | http PUT http://localhost:8000/models/todo/acls \
+   echo '{"Everyone": ["read_definition"], "Authenticated": ["ALL"]}' | http PUT http://localhost:8000/models/todo/permissions \
        --json \
        --verbose \
 	   --auth-type=hawk \
 	   --auth='504fd8148d7cdca10baa3c5208b63dc9e13cad1387222550950810a7bdd72d2c:'
 
-    PATCH /models/todo/acls HTTP/1.1
+    PATCH /models/todo/permissions HTTP/1.1
     Accept: application/json
     Accept-Encoding: gzip, deflate
     Authorization: Hawk mac="CWT9du2YxOoTb2i5d15bBTA4XiSYY/99ybh6g7welLM=", hash="Nt8m2h1nc5lVUItOobOliVj6hul0FYXmwpEmkjyp+WU=", id="220a1c4212d8f005f0f56191c5a91f8fe266282d38b042e6b35cad8034f22871", ts="1406645940", nonce="2il3kl"

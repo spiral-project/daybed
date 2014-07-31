@@ -117,7 +117,7 @@ class BasicAuthRegistrationTest(BaseWebTest):
         self.app.put_json('/models/%s' % self.model_id,
                           {'definition': self.valid_definition},
                           headers=self.headers)
-        self.app.patch_json('/models/%s/acls' % self.model_id,
+        self.app.patch_json('/models/%s/permissions' % self.model_id,
                             {"admin": ["-ALL"]},
                             headers=self.headers)
         resp = self.app.get('/models/%s' % self.model_id,
@@ -187,7 +187,7 @@ class ModelsViewsTest(BaseWebTest):
         self.assertIn('Access-Control-Allow-Origin', response.headers)
 
     def test_acls_unknown_retrieval(self):
-        resp = self.app.get('/models/test/acls',
+        resp = self.app.get('/models/test/permissions',
                             headers=self.headers, status=404)
         self.assertDictEqual(
             resp.json, force_unicode({
@@ -202,7 +202,7 @@ class ModelsViewsTest(BaseWebTest):
                           MODEL_DEFINITION,
                           headers=self.headers)
 
-        resp = self.app.get('/models/test/acls',
+        resp = self.app.get('/models/test/permissions',
                             headers=self.headers)
         acls = force_unicode(MODEL_ACLS)
         self.assertDictEqual(resp.json, acls)
@@ -214,7 +214,7 @@ class ModelsViewsTest(BaseWebTest):
         self.db.add_token('alexis', 'bar')
         self.db.add_token('remy', 'foobar')
 
-        resp = self.app.patch_json('/models/test/acls',
+        resp = self.app.patch_json('/models/test/permissions',
                                    {"alexis": ["read_acls"],
                                     "remy": ["update_acls"]},
                                    headers=self.headers)
@@ -228,7 +228,7 @@ class ModelsViewsTest(BaseWebTest):
                           MODEL_DEFINITION,
                           headers=self.headers)
 
-        resp = self.app.patch_json('/models/test/acls',
+        resp = self.app.patch_json('/models/test/permissions',
                                    {"admin": ["-read_acls", "-update_acls"]},
                                    headers=self.headers)
         acls = force_unicode(MODEL_ACLS)
@@ -242,7 +242,7 @@ class ModelsViewsTest(BaseWebTest):
                           headers=self.headers)
         self.db.add_token('alexis', 'bar')
 
-        resp = self.app.patch_json('/models/test/acls',
+        resp = self.app.patch_json('/models/test/permissions',
                                    {"alexis": ["ALL"]},
                                    headers=self.headers)
         acls = force_unicode(MODEL_ACLS)
@@ -255,7 +255,7 @@ class ModelsViewsTest(BaseWebTest):
                           headers=self.headers)
 
         resp = self.app.patch_json(
-            '/models/test/acls',
+            '/models/test/permissions',
             {Everyone: ["read_definition"],
              Authenticated: ["read_definition", "read_acls"]},
             headers=self.headers
@@ -271,7 +271,7 @@ class ModelsViewsTest(BaseWebTest):
                           headers=self.headers)
 
         resp = self.app.patch_json(
-            '/models/test/acls',
+            '/models/test/permissions',
             {"Everyone": ["read_definition"],
              "Authenticated": ["read_definition", "read_acls"]},
             headers=self.headers
@@ -286,7 +286,7 @@ class ModelsViewsTest(BaseWebTest):
                           MODEL_DEFINITION,
                           headers=self.headers)
 
-        resp = self.app.patch_json('/models/test/acls',
+        resp = self.app.patch_json('/models/test/permissions',
                                    {"admin": ["-all"]},
                                    headers=self.headers)
         self.assertDictEqual(resp.json, {})
@@ -296,7 +296,7 @@ class ModelsViewsTest(BaseWebTest):
                           MODEL_DEFINITION,
                           headers=self.headers)
 
-        resp = self.app.patch_json('/models/test/acls',
+        resp = self.app.patch_json('/models/test/permissions',
                                    {"alexis": ["read_acls"]},
                                    headers=self.headers,
                                    status=400)
@@ -315,7 +315,7 @@ class ModelsViewsTest(BaseWebTest):
         self.db.add_token('alexis', 'bar')
         self.db.add_token('remy', 'foobar')
 
-        resp = self.app.put_json('/models/test/acls',
+        resp = self.app.put_json('/models/test/permissions',
                                  {"alexis": ["read_acls"],
                                   "remy": ["update_acls"]},
                                  headers=self.headers)
@@ -329,7 +329,7 @@ class ModelsViewsTest(BaseWebTest):
                           MODEL_DEFINITION,
                           headers=self.headers)
 
-        resp = self.app.put_json('/models/test/acls',
+        resp = self.app.put_json('/models/test/permissions',
                                  {"alexis": ["read_acls"]},
                                  headers=self.headers,
                                  status=400)
@@ -347,7 +347,7 @@ class ModelsViewsTest(BaseWebTest):
                           MODEL_DEFINITION,
                           headers=self.headers)
 
-        resp = self.app.put_json('/models/test/acls',
+        resp = self.app.put_json('/models/test/permissions',
                                  {"Everyone": ["foo", "read_acls"]},
                                  headers=self.headers,
                                  status=400)
@@ -455,7 +455,7 @@ class ModelsViewsTest(BaseWebTest):
                 "remy": ["update_acls"]}
 
         resp = self.app.put_json(
-            '/models/test/acls',
+            '/models/test/permissions',
             acls,
             headers=self.headers)
 
@@ -534,7 +534,7 @@ class RecordsViewsTest(BaseWebTest):
     def test_get_model_records(self):
         self.app.put_json('/models/test', MODEL_DEFINITION,
                           headers=self.headers)
-        self.app.patch_json('/models/test/acls',
+        self.app.patch_json('/models/test/permissions',
                             {"Everyone": ["create_record", "read_own_records",
                                           "delete_own_records"]},
                             headers=self.headers)
@@ -555,7 +555,7 @@ class RecordsViewsTest(BaseWebTest):
     def test_get_model_records_auto_json(self):
         self.app.put_json('/models/test', MODEL_DEFINITION,
                           headers=self.headers)
-        self.app.patch_json('/models/test/acls',
+        self.app.patch_json('/models/test/permissions',
                             {"Everyone": ["create_record", "read_own_records",
                                           "delete_own_records"]},
                             headers=self.headers)

@@ -30,7 +30,7 @@ definition = Service(name='model-definition',
 
 
 acls = Service(name='model-acls',
-               path='/models/{model_id}/acls',
+               path='/models/{model_id}/permissions',
                description='Model ACLs',
                renderer="jsonp",
                cors_origins=('*',))
