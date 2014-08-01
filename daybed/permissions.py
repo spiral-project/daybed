@@ -62,9 +62,10 @@ AUTHORS_PERMISSIONS = set(['update_own_records', 'delete_own_records',
                            'read_own_records'])
 
 VIEWS_PERMISSIONS_REQUIRED = {
+    'get_models':      All(),
     'post_model':      All(['create_model']),
     'get_model':       All(['read_definition', 'read_permissions',
-                           Any(['read_all_records', 'read_own_recordss'])]),
+                            Any(['read_all_records', 'read_own_recordss'])]),
     'put_model':       All(['create_model', 'update_definition',
                             'update_permissions', 'delete_model']),
     'delete_model':    All(['delete_model', 'delete_all_records']),

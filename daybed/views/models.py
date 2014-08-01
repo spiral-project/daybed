@@ -108,6 +108,12 @@ def put_permissions(request):
     return invert_permissions_matrix(permissions)
 
 
+@models.get(permission='get_models')
+def get_models(request):
+    """Return the list of modelname readable by the user."""
+    return request.db.get_models(request.principals)
+
+
 @models.post(permission='post_model', validators=(model_validator,))
 def post_models(request):
     """Creates a model with the given definition and records, if any."""

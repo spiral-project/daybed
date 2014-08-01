@@ -52,6 +52,31 @@ class BackendTestBase(object):
         self.db.add_token("Remy", "Foo")
         self.assertRaises(TokenAlreadyExist, self.db.add_token, "Remy", "Bar")
 
+    def test_get_models(self):
+        self._create_model()
+        self.db.put_model(self.definition, {
+            'read_definition': ['Remy']
+        }, "rems")
+
+        self.db.put_model(self.definition, {
+            'read_definition': ['Alexis']
+        }, "alex")
+
+        remy_models = self.db.get_models(["Remy"])
+        self.assertEqual(len(remy_models), 2)
+        self.assertEqual(set(remy_models), set(["rems", "modelname"]))
+
+        alex_models = self.db.get_models(["Alexis"])
+        self.assertEqual(len(alex_models), 2)
+        self.assertEqual(set(alex_models), set(["alex", "modelname"]))
+
+        principal_models = self.db.get_models(["Remy", "Alexis"])
+        self.assertEqual(len(principal_models), 3)
+        self.assertEqual(set(principal_models), set(["rems", "alex", "modelname"]))
+
+    def test_get_models_unknown(self):
+        self._create_model()
+        self.assertEqual(self.db.get_models(["unknown"]), [])
 
     def test_get_model_permissions(self):
         self._create_model()

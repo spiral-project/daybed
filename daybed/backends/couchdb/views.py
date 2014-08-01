@@ -2,6 +2,17 @@ from couchdb.design import ViewDefinition
 
 # Definition of CouchDB design documents, a.k.a. permanent views.
 
+""" Models id."""
+models = ViewDefinition('models', 'by_principals', """
+function(doc) {
+  if (doc.type == "definition") {
+    for (var i = 0; i < doc.permissions.read_definition.length; i++) {
+      var principal = doc.permissions.read_definition[i];
+      emit(principal, doc._id);
+    }
+  }
+}""")
+
 
 """ Model definitions, by model id."""
 model_definitions = ViewDefinition('definitions', 'all', """

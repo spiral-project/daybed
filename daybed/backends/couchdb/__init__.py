@@ -58,6 +58,13 @@ class CouchDBBackend(object):
     def sync_views(self):
         ViewDefinition.sync_many(self.server[self.db_name], docs)
 
+    def get_models(self, principals):
+        principals = set(principals)
+        models = []
+        for principal in principals:
+            models += [d.value for d in views.models(self._db)[principal].rows]
+        return list(set(models))
+
     def __get_raw_model(self, model_id):
         try:
             doc = views.model_definitions(self._db, key=model_id).rows[0]
