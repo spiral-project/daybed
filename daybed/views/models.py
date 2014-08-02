@@ -154,7 +154,7 @@ def get_model(request):
     """Retrieves the full model, definition and records."""
     model_id = request.matchdict['model_id']
     try:
-        definition = request.db.get_model_definition(model_id),
+        definition = request.db.get_model_definition(model_id)
     except ModelNotFound:
         request.errors.add('path', model_id, "model not found")
         request.errors.status = "404 Not Found"

@@ -32,11 +32,13 @@ class RedisBackend(object):
     def get_models(self, principals):
         principals = set(principals)
         models_id = self._db.keys("model.*")
-        models = [json.loads(m.decode("utf-8"))
-                  for m in self._db.mget(*models_id) if m]
-        return [m['id'] for m in models if
-                principals.intersection(m['permissions']['read_definition']) !=
-                set()]
+        if models_id:
+            models = [json.loads(m.decode("utf-8"))
+                      for m in self._db.mget(*models_id) if m]
+            return [m['id'] for m in models if principals.intersection(
+                m['permissions']['read_definition']) != set()]
+        else:
+            return []
 
     def __get_raw_model(self, model_id):
         model = self._db.get("model.%s" % model_id)
