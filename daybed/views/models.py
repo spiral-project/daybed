@@ -111,7 +111,7 @@ def put_permissions(request):
 @models.get(permission='get_models')
 def get_models(request):
     """Return the list of modelname readable by the user."""
-    return request.db.get_models(request.principals)
+    return {"models": request.db.get_models(request.principals)}
 
 
 @models.post(permission='post_model', validators=(model_validator,))

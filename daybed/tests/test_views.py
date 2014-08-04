@@ -144,10 +144,14 @@ class ModelsViewsTest(BaseWebTest):
         self.app.put_json('/models/test', MODEL_DEFINITION,
                           headers=self.headers)
         resp = self.app.get('/models', headers=self.headers)
-        self.assertDictEqual(resp.json[0], {
-            "id": "test",
-            "title": "simple",
-            "description": "One optional field",
+        self.assertDictEqual(resp.json, {
+            "models": [
+                {
+                    "id": "test",
+                    "title": "simple",
+                    "description": "One optional field",
+                }
+            ]
         })
 
     def test_model_deletion(self):
