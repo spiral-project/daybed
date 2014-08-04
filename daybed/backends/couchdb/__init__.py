@@ -60,10 +60,17 @@ class CouchDBBackend(object):
 
     def get_models(self, principals):
         principals = set(principals)
-        models = []
+        models = {}
         for principal in principals:
-            models += [d.value for d in views.models(self._db)[principal].rows]
-        return list(set(models))
+            for result in views.models(self._db)[principal].rows:
+                doc = result.value
+                _id = doc["_id"]
+                models[_id] = {
+                    "id": _id,
+                    "title": doc["definition"].get("title", _id),
+                    "description": doc["definition"].get("description", "")
+                }
+        return list(models.values())
 
     def __get_raw_model(self, model_id):
         try:

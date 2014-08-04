@@ -35,8 +35,11 @@ class RedisBackend(object):
         if models_id:
             models = [json.loads(m.decode("utf-8"))
                       for m in self._db.mget(*models_id) if m]
-            return [m['id'] for m in models if principals.intersection(
-                m['permissions']['read_definition']) != set()]
+            return [{"id": m['id'],
+                     "title": m['definition']['title'],
+                     "description": m['definition']['description']}
+                    for m in models if principals.intersection(
+                        m['permissions']['read_definition']) != set()]
         else:
             return []
 
