@@ -114,9 +114,44 @@ In case you don't want to define a name yourself for your model, you can do the
 exact same call, replacing the http method from **PUT** to **POST**.
 In that case, Daybe will pick a name for your model.
 
+
 **GET /models**
 
-We can now get our model definition back::
+It return the list of models the user can read the definition::
+
+    http GET http://localhost:8000/models --verbose \
+	    --auth-type=hawk \
+		--auth='ad37fc395b7ba83eb496849f6db022fbb316fa11081491b5f00dfae5b0b1cd22:'
+
+    GET /models HTTP/1.1
+    Accept: */*
+    Accept-Encoding: gzip, deflate
+    Authorization: Hawk mac="3NXv...=", hash="B0we...=", id="36...0", ts="1407166852", nonce="tQlJHv"
+    Host: localhost:8000
+    User-Agent: HTTPie/0.8.0
+
+
+    HTTP/1.1 200 OK
+    Content-Length: 202
+    Content-Type: application/json; charset=UTF-8
+    Date: Mon, 04 Aug 2014 15:40:52 GMT
+    Server: waitress
+
+    {
+        "models": [
+            {
+                "description": "A list of my stuff to do.",
+                "id": "todo",
+                "title": "Todo"
+            }
+        ]
+    }
+
+
+
+**GET /models/{modelname}**
+
+We can now get our models back::
 
     http GET http://localhost:8000/models/todo \
       --verbose \
