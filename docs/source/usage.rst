@@ -117,10 +117,10 @@ In that case, Daybe will pick a name for your model.
 
 **GET /models**
 
-It return the list of models the user can read the definition::
+Returns the list of models the user can read the definition::
 
     http GET http://localhost:8000/models --verbose \
-	    --auth-type=hawk \
+	  --auth-type=hawk \
 		--auth='ad37fc395b7ba83eb496849f6db022fbb316fa11081491b5f00dfae5b0b1cd22:'
 
     GET /models HTTP/1.1

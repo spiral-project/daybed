@@ -6,15 +6,9 @@ from couchdb.design import ViewDefinition
 models = ViewDefinition('models', 'by_principals', """
 function(doc) {
   if (doc.type == "definition") {
-<<<<<<< HEAD
     for (var i = 0; i < doc.permissions.read_definition.length; i++) {
       var principal = doc.permissions.read_definition[i];
-      emit(principal, doc._id);
-=======
-    for (var i = 0; i < doc.acls.read_definition.length; i++) {
-      var principal = doc.acls.read_definition[i];
       emit(principal, doc);
->>>>>>> On GET /models return the list of models with title and description
     }
   }
 }""")
