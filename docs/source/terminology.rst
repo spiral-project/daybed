@@ -17,6 +17,9 @@ software.
         and potential parameters.
 
     Field
+        A model definition is composed of multiple fields. Each one contains a
+        name and a type.
+
     Field type
         A type, among those available, whose purpose is to validate values
         (e.g. ``int``, ``date``, ...).
