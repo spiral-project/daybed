@@ -60,7 +60,7 @@ class CouchDBBackend(object):
 
     def __get_raw_model(self, model_id):
         try:
-            doc = views.model_definitions(self._db)[model_id].rows[0]
+            doc = views.model_definitions(self._db, key=model_id).rows[0]
             return doc.value
         except IndexError:
             raise ModelNotFound(model_id)
@@ -71,7 +71,7 @@ class CouchDBBackend(object):
     def __get_raw_records(self, model_id):
         # Make sure the model exists.
         self.__get_raw_model(model_id)
-        return views.records(self._db)[model_id]
+        return views.records(self._db, key=model_id).rows
 
     def get_records(self, model_id, raw_records=None):
         return [r["record"] for r in
@@ -90,7 +90,7 @@ class CouchDBBackend(object):
     def __get_raw_record(self, model_id, record_id):
         key = u'-'.join((model_id, record_id))
         try:
-            return views.records_all(self._db)[key].rows[0].value
+            return views.records_all(self._db, key=key).rows[0].value
         except IndexError:
             raise RecordNotFound(u'(%s, %s)' % (model_id, record_id))
 
@@ -162,7 +162,7 @@ class CouchDBBackend(object):
         records = self.delete_records(model_id)
 
         try:
-            doc = views.model_definitions(self._db)[model_id].rows[0].value
+            doc = views.model_definitions(self._db, key=model_id).rows[0].value
         except IndexError:
             raise ModelNotFound(model_id)
 
@@ -174,7 +174,7 @@ class CouchDBBackend(object):
 
     def __get_raw_token(self, tokenHmacId):
         try:
-            return views.tokens(self._db)[tokenHmacId].rows[0].value
+            return views.tokens(self._db, key=tokenHmacId).rows[0].value
         except IndexError:
             raise TokenNotFound(tokenHmacId)
 
