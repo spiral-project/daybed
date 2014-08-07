@@ -16,12 +16,17 @@ software.
         A schema defined as a list of fields, each one with a name, a type
         and potential parameters.
 
+    Field
+        A model definition is composed of multiple fields. Each one contains a
+        name and a type.
+
     Field type
         A type, among those available, whose purpose is to validate values
         (e.g. ``int``, ``date``, ...).
         It may have mandatory or optional parameters, when used in a definition
         (e.g. ``choices``, ``regex``, ...).
 
+    Records
     Record
         An item to be stored in a :term:`model`. It should provide a value for each required
         :term:`field` of the :term:`definition`.
@@ -30,6 +35,7 @@ software.
         A reusable set of :term:`permissions` given to records authors, users in general
         or groups.
 
+    Permissions
     Permission
         A boolean flag approving the ability to change the model :term:`definition`,
         as well as create, read, update or delete the model :term:`records`.

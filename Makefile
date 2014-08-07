@@ -3,6 +3,7 @@ VENV := $(shell echo $${VIRTUAL_ENV-.venv})
 PYTHON=$(VENV)/bin/python
 DEV_STAMP=$(VENV)/.dev_env_installed.stamp
 INSTALL_STAMP=$(VENV)/.install.stamp
+SPHINX_BUILD = sphinx-build
 
 .IGNORE: clean
 .PHONY: all docs install virtualenv tests
@@ -25,7 +26,7 @@ $(PYTHON):
 	virtualenv $(VENV)
 
 docs:
-	sphinx-build -b html ./docs/source docs/_build
+	$(SPHINX_BUILD) -b html ./docs/source docs/_build
 
 clean:
 	rm -fr $(OBJECTS) $(DEV_STAMP) $(INSTALL_STAMP)

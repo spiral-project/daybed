@@ -8,23 +8,23 @@ Why ?
 =====
 
 Usually, when a Web application requires a backend for storage and validation,
-one of the following solutions is employed :
+one of the following solution is employed :
 
 * A custom API is developed and deployed (*reinvent the wheel*)
 * A commercial and closed-source service is used (*Google Forms*)
 * A CMS is used as a backoffice for customizable content types (*twist*)
 
 To avoid those situations and make it easy to get your storage backend ready
-in seconds, we created *Daybed*.
+in seconds, we've created *Daybed*.
 
 *Daybed* is :
 
 * a minimalist, robust, dynamic and generic API ;
 * a validation layer with schemaless storage ;
 * a reusable layer of permissions logic ;
-* a universal REST end-point for Web and mobile apps ;
+* a universal REST endpoint for Web and mobile apps ;
 * a key component for rapid application building ;
-* a simple service deployed and integrated without coding ;
+* a simple service deployed and integrated without coding.
 
 
 How ?
@@ -32,11 +32,11 @@ How ?
 
 #. Create a model by posting its definition (*title, fields, ...*)
 #. Define the permissions sets (*modify definition, create, update or delete records, ...*)
-#. Use the allocated RESTful end-point in your application (*GET, POST, PUT, ...*)
-#. Store and query the records !
+#. Use the allocated RESTful endpoint in your application (*GET, POST, PUT, ...*)
+#. Store and query records !
 
 Since *Daybed* talks REST and JSON, you can basically use it as a remote storage with
-any of your favorite technologies (*python, Android, iOS, AngularJS, Ember.js, Backbone.js, etc.*).
+any of your favorite technologies (*Python, Android, iOS, AngularJS, Ember.js, Backbone.js, etc.*).
 
 :notes:
 
@@ -44,7 +44,7 @@ any of your favorite technologies (*python, Android, iOS, AngularJS, Ember.js, B
     <https://github.com/hueniverse/hawk>`_
 
 
-Use-cases
+Use Cases
 =========
 
 * Mobile apps
