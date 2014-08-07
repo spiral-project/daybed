@@ -8,7 +8,7 @@ Why ?
 =====
 
 Usually, when a Web application requires a backend for storage and validation,
-one of the following solution is employed :
+one of the following solutions is employed :
 
 * A custom API is developed and deployed (*reinvent the wheel*)
 * A commercial and closed-source service is used (*Google Forms*)
