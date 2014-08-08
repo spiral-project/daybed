@@ -20,7 +20,7 @@ from pyramid.authentication import BasicAuthAuthenticationPolicy
 from pyramid_hawkauth import HawkAuthenticationPolicy
 from pyramid_multiauth import MultiAuthenticationPolicy
 
-from daybed.acl import (
+from daybed.permissions import (
     RootFactory, DaybedAuthorizationPolicy, check_api_token,
 )
 from daybed.views.errors import forbidden_view
@@ -59,7 +59,7 @@ def main(global_config, **settings):
     config = Configurator(settings=settings, root_factory=RootFactory)
     config.include("cornice")
 
-    # ACL management
+    # Permission management
 
     policies = [
         BasicAuthAuthenticationPolicy(check_api_token),

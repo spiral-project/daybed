@@ -21,9 +21,9 @@ Models permissions
 Here's a list of permissions you can define on a model:
 
 - **read_definition**: read the model definition
-- **read_acls**: read the model acls (who can do what)
+- **read_permissions**: read the model permissions (who can do what)
 - **update_definition**: update the model definition
-- **update_acls**: change the ACLs on the models
+- **update_permissions**: change the permissions on the models
 - **delete_model**: delete a model
 - **create_record**: add an entry to the model
 - **read_all_records**: read all model's records
@@ -51,5 +51,5 @@ At the API level, you will often need more than one permissions to get
 access to an API resource.
 
 For example, if you want to get a model, you will need to have the
-right for `read_definition` and `read_acls` as well as
+right for `read_definition` and `read_permissions` as well as
 `read_all_records` or `read_own_records`

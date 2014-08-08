@@ -31,7 +31,7 @@ class BackendTestBase(object):
     interface, all the tests should pass in the same way.
     """
     def setUp(self):
-        self.acls = {
+        self.permissions = {
             'read_definition': ['Remy', 'Alexis']
         }
 
@@ -43,9 +43,9 @@ class BackendTestBase(object):
         self.record = {'age': 7}
 
     def _create_model(self, model_id='modelname'):
-        self.db.put_model(self.definition, self.acls, model_id)
+        self.db.put_model(self.definition, self.permissions, model_id)
 
-    def test_add_acls_merges_redundant_acls(self):
+    def test_add_permissions_merges_redundant_permissions(self):
         pass
 
     def test_add_token_fails_if_already_exist(self):
@@ -53,9 +53,9 @@ class BackendTestBase(object):
         self.assertRaises(TokenAlreadyExist, self.db.add_token, "Remy", "Bar")
 
 
-    def test_get_model_acls(self):
+    def test_get_model_permissions(self):
         self._create_model()
-        self.assertEqual(self.db.get_model_acls('modelname'), {
+        self.assertEqual(self.db.get_model_permissions('modelname'), {
             'read_definition': ['Remy', 'Alexis']
         })
 
@@ -125,7 +125,7 @@ class BackendTestBase(object):
         resp = self.db.delete_model('modelname')
         self.assertEqual(resp, {
             "definition": self.definition,
-            "acls": self.acls,
+            "permissions": self.permissions,
             "records": [{"age": 7, "id": "123456"}]
         })
         self.assertRaises(ModelNotFound, self.db.get_model_definition,
