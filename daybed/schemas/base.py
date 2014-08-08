@@ -67,7 +67,7 @@ class EnumField(TypeField):
     hint = _('A choice among values')
 
     @classmethod
-    def definition(cls):
+    def definition(cls, **kwargs):
         schema = super(EnumField, cls).definition()
         schema.add(SchemaNode(Sequence(), SchemaNode(String()),
                               name='choices', validator=Length(min=1)))
@@ -85,7 +85,7 @@ class ChoicesField(TypeField):
     hint = _('Some choices among values')
 
     @classmethod
-    def definition(cls):
+    def definition(cls, **kwargs):
         schema = super(ChoicesField, cls).definition()
         schema.add(SchemaNode(Sequence(), SchemaNode(String()),
                               name='choices', validator=Length(min=1)))
@@ -103,7 +103,7 @@ class RangeField(TypeField):
     hint = _('A number with limits')
 
     @classmethod
-    def definition(cls):
+    def definition(cls, **kwargs):
         schema = super(RangeField, cls).definition()
         schema.add(SchemaNode(Int(), name='min'))
         schema.add(SchemaNode(Int(), name='max'))
@@ -123,7 +123,7 @@ class RegexField(TypeField):
     hint = _('A string matching a pattern')
 
     @classmethod
-    def definition(cls):
+    def definition(cls, **kwargs):
         schema = super(RegexField, cls).definition()
         schema.add(SchemaNode(String(), name='regex', validator=Length(min=1)))
         return schema
@@ -176,7 +176,7 @@ class AutoNowMixin(object):
     autonow = False
 
     @classmethod
-    def definition(cls):
+    def definition(cls, **kwargs):
         schema = super(AutoNowMixin, cls).definition()
         schema.add(SchemaNode(Boolean(), name='autonow',
                               missing=cls.autonow))

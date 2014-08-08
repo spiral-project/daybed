@@ -47,7 +47,7 @@ class TypeFieldNodeTests(unittest.TestCase):
     def setUp(self):
         class FooField(TypeField):
             @classmethod
-            def definition(self):
+            def definition(self, **kwargs):
                 mocked = mock.Mock()
                 mocked.deserialize.return_value = 'blah'
                 return mocked
