@@ -64,7 +64,7 @@ class TestPermission(TestCase):
         request.db = db
         return request
 
-    def test_acl_permits(self):
+    def test_permissions_permits(self):
         authz_policy = DaybedAuthorizationPolicy()
         permits = authz_policy.permits
 

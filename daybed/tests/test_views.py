@@ -229,7 +229,8 @@ class ModelsViewsTest(BaseWebTest):
                           headers=self.headers)
 
         resp = self.app.patch_json('/models/test/permissions',
-                                   {"admin": ["-read_permissions", "-update_permissions"]},
+                                   {"admin": ["-read_permissions",
+                                              "-update_permissions"]},
                                    headers=self.headers)
         permissions = force_unicode(MODEL_PERMISSIONS)
         permissions[u"admin"].remove("read_permissions")
@@ -451,8 +452,8 @@ class ModelsViewsTest(BaseWebTest):
         self.db.add_token('remy', 'foobar')
 
         permissions = {"admin": ["delete_all_records", "delete_model"],
-                "alexis": ["read_permissions"],
-                "remy": ["update_permissions"]}
+                       "alexis": ["read_permissions"],
+                       "remy": ["update_permissions"]}
 
         resp = self.app.put_json(
             '/models/test/permissions',

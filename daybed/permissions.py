@@ -11,7 +11,8 @@ from daybed.backends.exceptions import (
 from daybed import logger
 
 PERMISSIONS_SET = set([
-    'read_definition', 'read_permissions', 'update_definition', 'update_permissions',
+    'read_definition', 'update_permissions',
+    'read_permissions', 'update_definition',
     'delete_model',
     'create_record',
     'read_all_records', 'update_all_records', 'delete_all_records',
@@ -19,7 +20,7 @@ PERMISSIONS_SET = set([
 ])
 
 
-def get_model_permissions(token, permissions_list=PERMISSIONS_SET, permissions=None):
+def get_model_permissions(token, all_perms=PERMISSIONS_SET, permissions=None):
     # - Add the token to given permissions.
     # - By default give all permissions to the token
     # - You can pass existing permissions if you want to add the token to some
@@ -29,7 +30,7 @@ def get_model_permissions(token, permissions_list=PERMISSIONS_SET, permissions=N
     else:
         permissions = defaultdict(list, **permissions)
 
-    for perm in permissions_list:
+    for perm in all_perms:
         permissions[perm].append(token)
 
     return permissions
@@ -61,27 +62,27 @@ AUTHORS_PERMISSIONS = set(['update_own_records', 'delete_own_records',
                            'read_own_records'])
 
 VIEWS_PERMISSIONS_REQUIRED = {
-    'post_model':     All(['create_model']),
-    'get_model':      All(['read_definition', 'read_permissions',
+    'post_model':      All(['create_model']),
+    'get_model':       All(['read_definition', 'read_permissions',
                            Any(['read_all_records', 'read_own_recordss'])]),
-    'put_model':      All(['create_model', 'update_definition', 'update_permissions',
-                           'delete_model']),
-    'delete_model':   All(['delete_model', 'delete_all_records']),
-    'get_definition': All(['read_definition']),
-    'get_permissions':       All(['read_permissions']),
-    'put_permissions':       All(['update_permissions']),
-    'post_record':    All(['create_record']),
-    'get_records':    Any(['read_all_records', 'read_own_records']),
-    'delete_records': All(['delete_all_records']),
-    'get_record':     Any(['read_own_records', 'read_all_records']),
-    'put_record':     All(['create_record',
+    'put_model':       All(['create_model', 'update_definition',
+                            'update_permissions', 'delete_model']),
+    'delete_model':    All(['delete_model', 'delete_all_records']),
+    'get_definition':  All(['read_definition']),
+    'get_permissions': All(['read_permissions']),
+    'put_permissions': All(['update_permissions']),
+    'post_record':     All(['create_record']),
+    'get_records':     Any(['read_all_records', 'read_own_records']),
+    'delete_records':  All(['delete_all_records']),
+    'get_record':      Any(['read_own_records', 'read_all_records']),
+    'put_record':      All(['create_record',
                            Any(['update_own_records', 'update_all_records']),
                            Any(['delete_own_records', 'delete_all_records'])]),
-    'patch_record':   Any(['update_own_records', 'update_all_records']),
-    'delete_record':  Any(['delete_own_records', 'delete_all_records']),
-    'get_tokens':     All(['manage_tokens']),
-    'post_token':    Any(['create_token', 'manage_tokens']),
-    'delete_token':   All(['manage_tokens']),
+    'patch_record':    Any(['update_own_records', 'update_all_records']),
+    'delete_record':   Any(['delete_own_records', 'delete_all_records']),
+    'get_tokens':      All(['manage_tokens']),
+    'post_token':      Any(['create_token', 'manage_tokens']),
+    'delete_token':    All(['manage_tokens']),
 }
 
 
@@ -134,18 +135,18 @@ class DaybedAuthorizationPolicy(object):
 
         if context.model_id:
             try:
-                permissions = context.db.get_model_permissions(context.model_id)
+                perms = context.db.get_model_permissions(context.model_id)
             except ModelNotFound:
                 return True
         else:
             hasModel = False
 
         if hasModel:
-            for acl_name, tokens in iteritems(permissions):
+            for perm_name, tokens in iteritems(perms):
                 # If one of the principals is in the valid tokens for this,
                 # permission, grant the permission.
                 if set(principals).intersection(tokens):
-                    token_permissions.add(acl_name)
+                    token_permissions.add(perm_name)
 
             logger.debug("token permissions: %s", token_permissions)
 

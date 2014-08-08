@@ -4,8 +4,8 @@ from cornice import Service
 from pyramid.security import Everyone
 
 from daybed.permissions import (
-    get_model_permissions, invert_permissions_matrix, dict_list2set, dict_set2list,
-    PERMISSIONS_SET
+    get_model_permissions, invert_permissions_matrix,
+    dict_list2set, dict_set2list, PERMISSIONS_SET
 )
 from daybed.backends.exceptions import ModelNotFound
 from daybed.views.errors import forbidden_view
@@ -30,10 +30,10 @@ definition = Service(name='model-definition',
 
 
 permissions = Service(name='model-permissions',
-               path='/models/{model_id}/permissions',
-               description='Model permissions',
-               renderer="jsonp",
-               cors_origins=('*',))
+                      path='/models/{model_id}/permissions',
+                      description='Model permissions',
+                      renderer="jsonp",
+                      cors_origins=('*',))
 
 
 @definition.get(permission='get_definition')
@@ -52,13 +52,15 @@ def get_permissions(request):
     """Retrieves a model permissions."""
     model_id = request.matchdict['model_id']
     try:
-        return invert_permissions_matrix(request.db.get_model_permissions(model_id))
+        permissions = request.db.get_model_permissions(model_id)
+        return invert_permissions_matrix(permissions)
     except ModelNotFound:
         request.errors.add('path', model_id, "model not found")
         request.errors.status = "404 Not Found"
 
 
-@permissions.patch(permission='put_permissions', validators=(permissions_validator,))
+@permissions.patch(permission='put_permissions',
+                   validators=(permissions_validator,))
 def patch_permissions(request):
     """Update a model permissions."""
     model_id = request.matchdict['model_id']
@@ -87,7 +89,8 @@ def patch_permissions(request):
     return invert_permissions_matrix(permissions)
 
 
-@permissions.put(permission='put_permissions', validators=(permissions_validator,))
+@permissions.put(permission='put_permissions',
+                 validators=(permissions_validator,))
 def put_permissions(request):
     """Update a model permissions."""
     model_id = request.matchdict['model_id']

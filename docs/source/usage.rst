@@ -140,7 +140,7 @@ We can now get our model definition back::
     Server: waitress
 
     {
-        "acls": {
+        "permissions": {
             "e0394574578356252e2033b829b90291e2ff1f33ccbcbcec777485f3a5a10bca": [
                 'create_record',
                 'delete_all_records',

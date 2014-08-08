@@ -21,7 +21,7 @@ Models permissions
 Here's a list of permissions you can define on a model:
 
 - **read_definition**: read the model definition
-- **read_permissions**: read the model acls (who can do what)
+- **read_permissions**: read the model permissions (who can do what)
 - **update_definition**: update the model definition
 - **update_permissions**: change the permissions on the models
 - **delete_model**: delete a model
