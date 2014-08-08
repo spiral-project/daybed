@@ -4,7 +4,7 @@ Changelog
 1.0 (unreleased)
 ----------------
 
-- Add ACL management
+- Add permissions management
 - Change API endpoints to clean the code and be more RESTful
 - Implement PATCH on records
 - Add authorization policies

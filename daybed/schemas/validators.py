@@ -124,8 +124,8 @@ def model_validator(request):
             request.validated['records'].append(record)
 
 
-def acls_validator(request):
-    """Verify that the acls defined in the request body are valid:
+def permissions_validator(request):
+    """Verify that the permissions defined in the request body are valid:
          - tokens exists
          - rights are valids
 
@@ -136,12 +136,12 @@ def acls_validator(request):
         request.errors.add('body', 'json value error', "malformed body")
         return
 
-    request.validated['acls'] = {}
+    request.validated['permissions'] = {}
 
     # Check the definition is valid.
-    for token, acls in six.iteritems(body):
+    for token, permissions in six.iteritems(body):
         error = False
-        perms = set([perm.lstrip('-').lstrip('+').lower() for perm in acls])
+        perms = set([perm.lstrip('-').lstrip('+').lower() for perm in permissions])
         if "all" in perms:
             perms = set(PERMISSIONS_SET)
         if not perms.issubset(PERMISSIONS_SET):
@@ -160,4 +160,4 @@ def acls_validator(request):
             token = token.replace("Authenticated", Authenticated) \
                          .replace("Everyone", Everyone)
         if not error:
-            request.validated["acls"][token] = acls
+            request.validated["permissions"][token] = permissions

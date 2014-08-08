@@ -41,7 +41,7 @@ class RedisBackend(object):
 
     def get_model_permissions(self, model_id):
         doc = self.__get_raw_model(model_id)
-        return doc['acls']
+        return doc['permissions']
 
     def __get_raw_records(self, model_id):
         # Check if the model still exists or raise
@@ -83,7 +83,7 @@ class RedisBackend(object):
         doc = self.__get_raw_record(model_id, record_id)
         return doc['authors']
 
-    def put_model(self, definition, acls, model_id=None):
+    def put_model(self, definition, permissions, model_id=None):
         if model_id is None:
             model_id = self._generate_id()
 
@@ -91,7 +91,7 @@ class RedisBackend(object):
             "model.%s" % model_id,
             json.dumps({
                 'definition': definition,
-                'acls': acls
+                'permissions': permissions
             })
         )
         return model_id

@@ -19,20 +19,20 @@ PERMISSIONS_SET = set([
 ])
 
 
-def get_model_permissions(token, permissions_list=PERMISSIONS_SET, acls=None):
-    # - Add the token to given acls.
+def get_model_permissions(token, permissions_list=PERMISSIONS_SET, permissions=None):
+    # - Add the token to given permissions.
     # - By default give all permissions to the token
-    # - You can pass existing acls if you want to add the token to some
+    # - You can pass existing permissions if you want to add the token to some
     # permissions
-    if acls is None:
-        acls = defaultdict(list)
+    if permissions is None:
+        permissions = defaultdict(list)
     else:
-        acls = defaultdict(list, **acls)
+        permissions = defaultdict(list, **permissions)
 
     for perm in permissions_list:
-        acls[perm].append(token)
+        permissions[perm].append(token)
 
-    return acls
+    return permissions
 
 
 class Any(list):
@@ -134,14 +134,14 @@ class DaybedAuthorizationPolicy(object):
 
         if context.model_id:
             try:
-                acls = context.db.get_model_permissions(context.model_id)
+                permissions = context.db.get_model_permissions(context.model_id)
             except ModelNotFound:
                 return True
         else:
             hasModel = False
 
         if hasModel:
-            for acl_name, tokens in iteritems(acls):
+            for acl_name, tokens in iteritems(permissions):
                 # If one of the principals is in the valid tokens for this,
                 # permission, grant the permission.
                 if set(principals).intersection(tokens):
@@ -207,10 +207,10 @@ def dict_list2set(dict_list):
                  for key, value in iteritems(dict_list)])
 
 
-def invert_permissions_matrix(acls_tokens):
+def invert_permissions_matrix(permissions_tokens):
     """Reverse from {perm: [tokens]} to {token: [perms]}."""
     tokens_permissions = defaultdict(set)
-    for perm, tokens in iteritems(acls_tokens):
+    for perm, tokens in iteritems(permissions_tokens):
         for token in tokens:
             tokens_permissions[token].add(perm)
     return dict_set2list(tokens_permissions)

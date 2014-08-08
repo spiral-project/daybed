@@ -318,13 +318,13 @@ Get back a definition
     }
 
 
-Manipulating ACLs
------------------
+Manipulating permissions
+------------------------
 
 XXX
 
-Get back the model ACLs
------------------------
+Get back the model permissions
+------------------------------
 
 **GET /models/{modelname}/permissions**
 
@@ -355,14 +355,14 @@ Get back the model ACLs
             "delete_all_records",
             "delete_model",
             "delete_own_records",
-            "read_permissions",
             "read_all_records",
             "read_definition",
             "read_own_records",
-            "update_permissions",
+            "read_permissions",
             "update_all_records",
             "update_definition",
             "update_own_records"
+            "update_permissions",
         ]
     }
 
@@ -449,14 +449,14 @@ If you need to remove permissions from a removed token, you will have to use the
             "delete_all_records",
             "delete_model",
             "delete_own_records",
-            "read_permissions",
             "read_all_records",
             "read_definition",
             "read_own_records",
-            "update_permissions",
+            "read_permissions",
             "update_all_records",
             "update_definition",
             "update_own_records"
+            "update_permissions",
         ],
         "system.Everyone": [
             "read_definition"
@@ -465,7 +465,7 @@ If you need to remove permissions from a removed token, you will have to use the
 
 **PUT /models/{modelname}/permissions**
 
-This endpoint let you replace a set of ACLs for a model. It can be useful if
+This endpoint let you replace a set of permissions for a model. It can be useful if
 the PATCH call doesn't work (remove permissions for a removed token.) or to
 replace all permissions with one call.
 
@@ -508,14 +508,14 @@ replace all permissions with one call.
             "delete_all_records",
             "delete_model",
             "delete_own_records",
-            "read_permissions",
             "read_all_records",
             "read_definition",
             "read_own_records",
-            "update_permissions",
+            "read_permissions",
             "update_all_records",
             "update_definition",
             "update_own_records"
+            "update_permissions",
         ],
         "system.Everyone": [
             "read_definition"

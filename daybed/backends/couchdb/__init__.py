@@ -104,7 +104,7 @@ class CouchDBBackend(object):
         doc = self.__get_raw_record(model_id, record_id)
         return doc['authors']
 
-    def put_model(self, definition, acls, model_id=None):
+    def put_model(self, definition, permissions, model_id=None):
         if model_id is None:
             model_id = self._generate_id()
 
@@ -114,7 +114,7 @@ class CouchDBBackend(object):
             doc = {'_id': model_id,
                    'type': 'definition'}
         doc['definition'] = definition
-        doc['acls'] = acls
+        doc['permissions'] = permissions
 
         definition_id, _ = self._db.save(doc)
         return definition_id
@@ -169,7 +169,7 @@ class CouchDBBackend(object):
         # Delete the model definition if it exists.
         self._db.delete(doc)
         return {"definition": doc["definition"],
-                "acls": doc["acls"],
+                "permissions": doc["permissions"],
                 "records": records}
 
     def __get_raw_token(self, tokenHmacId):
@@ -196,4 +196,4 @@ class CouchDBBackend(object):
 
     def get_model_permissions(self, model_id):
         doc = self.__get_raw_model(model_id)
-        return doc['acls']
+        return doc['permissions']

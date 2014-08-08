@@ -59,7 +59,7 @@ def main(global_config, **settings):
     config = Configurator(settings=settings, root_factory=RootFactory)
     config.include("cornice")
 
-    # ACL management
+    # Permission management
 
     policies = [
         BasicAuthAuthenticationPolicy(check_api_token),

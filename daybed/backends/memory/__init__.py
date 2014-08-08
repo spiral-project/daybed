@@ -26,7 +26,7 @@ class MemoryBackend(object):
         self._db = {
             'models': {},
             'records': {},
-            'acls': {},
+            'permissions': {},
             'tokens': {}
         }
 
@@ -75,13 +75,13 @@ class MemoryBackend(object):
         doc = self.__get_raw_record(model_id, record_id)
         return doc['authors']
 
-    def put_model(self, definition, acls, model_id=None):
+    def put_model(self, definition, permissions, model_id=None):
         if model_id is None:
             model_id = self._generate_id()
 
         self._db['models'][model_id] = {
             'definition': definition,
-            'acls': acls,
+            'permissions': permissions,
         }
         if model_id not in self._db['records']:
             self._db['records'][model_id] = {}
@@ -125,7 +125,7 @@ class MemoryBackend(object):
         doc = self._db['models'][model_id]
         del self._db['models'][model_id]
         return {"definition": doc["definition"],
-                "acls": doc["acls"],
+                "permissions": doc["permissions"],
                 "records": records}
 
     def get_token(self, tokenHmacId):
@@ -146,4 +146,4 @@ class MemoryBackend(object):
 
     def get_model_permissions(self, model_id):
         doc = self.__get_raw_model(model_id)
-        return doc['acls']
+        return doc['permissions']

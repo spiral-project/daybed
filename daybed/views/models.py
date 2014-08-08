@@ -9,7 +9,7 @@ from daybed.permissions import (
 )
 from daybed.backends.exceptions import ModelNotFound
 from daybed.views.errors import forbidden_view
-from daybed.schemas.validators import model_validator, acls_validator
+from daybed.schemas.validators import model_validator, permissions_validator
 
 
 models = Service(name='models', path='/models', description='Models')
@@ -29,9 +29,9 @@ definition = Service(name='model-definition',
                      cors_origins=('*',))
 
 
-acls = Service(name='model-acls',
+permissions = Service(name='model-permissions',
                path='/models/{model_id}/permissions',
-               description='Model ACLs',
+               description='Model permissions',
                renderer="jsonp",
                cors_origins=('*',))
 
@@ -47,9 +47,9 @@ def get_definition(request):
         request.errors.status = "404 Not Found"
 
 
-@acls.get(permission='get_permissions')
+@permissions.get(permission='get_permissions')
 def get_permissions(request):
-    """Retrieves a model acls."""
+    """Retrieves a model permissions."""
     model_id = request.matchdict['model_id']
     try:
         return invert_permissions_matrix(request.db.get_model_permissions(model_id))
@@ -58,51 +58,51 @@ def get_permissions(request):
         request.errors.status = "404 Not Found"
 
 
-@acls.patch(permission='put_permissions', validators=(acls_validator,))
+@permissions.patch(permission='put_permissions', validators=(permissions_validator,))
 def patch_permissions(request):
-    """Update a model acls."""
+    """Update a model permissions."""
     model_id = request.matchdict['model_id']
     definition = request.db.get_model_definition(model_id)
-    acls = dict_list2set(request.db.get_model_permissions(model_id))
+    permissions = dict_list2set(request.db.get_model_permissions(model_id))
 
-    for token, perms in iteritems(request.validated['acls']):
+    for token, perms in iteritems(request.validated['permissions']):
         # Handle remove all
         if '-all' in [perm.lower() for perm in perms]:
             for perm in PERMISSIONS_SET:
-                acls[perm].discard(token)
+                permissions[perm].discard(token)
         # Handle add all
         elif 'all' in [perm.lstrip('+').lower() for perm in perms]:
             for perm in PERMISSIONS_SET:
-                acls[perm].add(token)
+                permissions[perm].add(token)
         # Handle add/remove perms list
         else:
             for perm in perms:
                 perm = perm.lower()
                 if perm.startswith('-'):
-                    acls[perm.lstrip('-')].discard(token)
+                    permissions[perm.lstrip('-')].discard(token)
                 else:
-                    acls[perm.lstrip('+')].add(token)
+                    permissions[perm.lstrip('+')].add(token)
 
-    request.db.put_model(definition, dict_set2list(acls), model_id)
-    return invert_permissions_matrix(acls)
+    request.db.put_model(definition, dict_set2list(permissions), model_id)
+    return invert_permissions_matrix(permissions)
 
 
-@acls.put(permission='put_permissions', validators=(acls_validator,))
+@permissions.put(permission='put_permissions', validators=(permissions_validator,))
 def put_permissions(request):
-    """Update a model acls."""
+    """Update a model permissions."""
     model_id = request.matchdict['model_id']
     definition = request.db.get_model_definition(model_id)
-    acls = defaultdict(set)
-    for token, perms in iteritems(request.validated['acls']):
+    permissions = defaultdict(set)
+    for token, perms in iteritems(request.validated['permissions']):
         perms = [p.lstrip('+').lower() for p in perms]
         if 'all' in perms:
             perms = PERMISSIONS_SET
         for perm in perms:
             if not perm.startswith('-'):
-                acls[perm].add(token)
-    acls = dict_set2list(acls)
-    request.db.put_model(definition, acls, model_id)
-    return invert_permissions_matrix(acls)
+                permissions[perm].add(token)
+    permissions = dict_set2list(permissions)
+    request.db.put_model(definition, permissions, model_id)
+    return invert_permissions_matrix(permissions)
 
 
 @models.post(permission='post_model', validators=(model_validator,))
@@ -115,7 +115,7 @@ def post_models(request):
 
     model_id = request.db.put_model(
         definition=request.validated['definition'],
-        acls=get_model_permissions(token))
+        permissions=get_model_permissions(token))
 
     for record in request.validated['records']:
         request.db.put_record(model_id, record, [token])
@@ -136,7 +136,7 @@ def delete_model(request):
         request.errors.status = "404 Not Found"
         request.errors.add('path', model_id, "model not found")
         return
-    model["acls"] = invert_permissions_matrix(model["acls"])
+    model["permissions"] = invert_permissions_matrix(model["permissions"])
     return model
 
 
@@ -161,7 +161,7 @@ def get_model(request):
     permissions = request.db.get_model_permissions(model_id)
     return {'definition': definition,
             'records': records,
-            'acls': invert_permissions_matrix(permissions)}
+            'permissions': invert_permissions_matrix(permissions)}
 
 
 @model.put(validators=(model_validator,), permission='post_model')

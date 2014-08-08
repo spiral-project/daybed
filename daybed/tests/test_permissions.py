@@ -52,7 +52,7 @@ class TestAnyAll(TestCase):
         self.assertFalse(All([Any(['un', 'deux']), Any(['trois', 'quatre'])])
             .matches(['un', 'deux']))
 
-class TestACL(TestCase):
+class TestPermission(TestCase):
 
     def _get_request(self):
         request = mock.MagicMock()
