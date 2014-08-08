@@ -215,11 +215,23 @@ class DateTimeField(AutoNowMixin, TypeField):
 @registry.add('group')
 class GroupField(TypeField):
     @classmethod
-    def definition(cls):
-        schema = super(GroupField, cls).definition()
+    def definition(cls, **kwargs):
+        schema = super(GroupField, cls).definition(**kwargs)
+        # Keep ``required`` and ``type`` nodes only
         schema.children = [c for c in schema.children
                            if c.name not in ('hint', 'name', 'required')]
         schema.add(SchemaNode(String(), name='description', missing=drop))
         schema.add(SchemaNode(Sequence(), SchemaNode(TypeFieldNode()),
                               name='fields', validator=Length(min=1)))
         return schema
+
+    @classmethod
+    def validation(cls, **kwargs):
+        rootnode = kwargs.pop('root')
+        # Add the group fields to the model definition node
+        for field in kwargs['fields']:
+            field['root'] = rootnode
+            fieldtype = field.pop('type')
+            rootnode.add(registry.validation(fieldtype, **field))
+        # Ignore the group validation itself
+        return SchemaNode(String(), missing=drop)

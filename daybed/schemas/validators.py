@@ -30,6 +30,7 @@ class RecordSchema(SchemaNode):
         super(RecordSchema, self).__init__(Mapping())
         definition = deepcopy(definition)
         for field in definition['fields']:
+            field['root'] = self
             fieldtype = field.pop('type')
             self.add(registry.validation(fieldtype, **field))
 
