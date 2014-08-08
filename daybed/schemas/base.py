@@ -21,7 +21,7 @@ from colander import (
     drop
 )
 
-from . import registry, TypeField
+from . import registry, TypeField, TypeFieldNode
 from .json import JSONList
 
 
@@ -220,6 +220,6 @@ class GroupField(TypeField):
         schema.children = [c for c in schema.children
                            if c.name not in ('hint', 'name', 'required')]
         schema.add(SchemaNode(String(), name='description', missing=drop))
-        schema.add(SchemaNode(Sequence(), TypeField.definition(),
+        schema.add(SchemaNode(Sequence(), SchemaNode(TypeFieldNode()),
                               name='fields', validator=Length(min=1)))
         return schema

@@ -183,7 +183,7 @@ class GroupFieldTests(unittest.TestCase):
             'type': u'group',
             'fields': [{'type': u'int',
                         'name': u'a',
-                        'hint': u'',
+                        'hint': u'An integer',
                         'label': u'',
                         'required': True}]}
 
@@ -209,6 +209,12 @@ class GroupFieldTests(unittest.TestCase):
     def test_a_group_must_have_valid_fields(self):
         definition = self.definition.copy()
         definition['fields'].append({'type': u'int'})
+        self.assertRaises(colander.Invalid, self.schema.deserialize,
+                          definition)
+
+    def test_a_group_must_have_valid_fields_parameters(self):
+        definition = self.definition.copy()
+        definition['fields'][0]['type'] = u'regex'
         self.assertRaises(colander.Invalid, self.schema.deserialize,
                           definition)
 
