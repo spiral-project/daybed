@@ -3,7 +3,7 @@ from collections import defaultdict
 from cornice import Service
 from pyramid.security import Everyone
 
-from daybed.acl import (
+from daybed.permissions import (
     get_model_acls, invert_acls_matrix, dict_list2set, dict_set2list,
     PERMISSIONS_SET
 )

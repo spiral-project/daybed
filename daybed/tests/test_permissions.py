@@ -6,7 +6,7 @@ import mock
 
 from pyramid.security import Authenticated
 
-from daybed.acl import (
+from daybed.permissions import (
     All, Any, DaybedAuthorizationPolicy, build_user_principals,
     invert_acls_matrix, dict_set2list, dict_list2set
 )

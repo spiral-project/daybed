@@ -11,7 +11,7 @@ from colander import (
 from pyramid.security import Authenticated, Everyone
 
 from daybed.backends.exceptions import ModelNotFound
-from daybed.acl import PERMISSIONS_SET
+from daybed.permissions import PERMISSIONS_SET
 from daybed.backends.exceptions import TokenNotFound
 from . import registry, TypeFieldNode
 

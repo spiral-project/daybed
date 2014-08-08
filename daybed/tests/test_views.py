@@ -1,7 +1,7 @@
 import base64
 from pyramid.security import Authenticated, Everyone
 from daybed import __version__ as VERSION
-from daybed.acl import PERMISSIONS_SET
+from daybed.permissions import PERMISSIONS_SET
 from daybed.backends.exceptions import (
     RecordNotFound, ModelNotFound
 )
