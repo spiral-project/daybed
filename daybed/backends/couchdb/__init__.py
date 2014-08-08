@@ -194,6 +194,6 @@ class CouchDBBackend(object):
         doc = dict(secret=secret, name=tokenHmacId, type='token')
         self._db.save(doc)
 
-    def get_model_acls(self, model_id):
+    def get_model_permissions(self, model_id):
         doc = self.__get_raw_model(model_id)
         return doc['acls']

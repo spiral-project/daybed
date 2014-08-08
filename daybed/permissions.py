@@ -11,7 +11,7 @@ from daybed.backends.exceptions import (
 from daybed import logger
 
 PERMISSIONS_SET = set([
-    'read_definition', 'read_acls', 'update_definition', 'update_acls',
+    'read_definition', 'read_permissions', 'update_definition', 'update_permissions',
     'delete_model',
     'create_record',
     'read_all_records', 'update_all_records', 'delete_all_records',
@@ -19,7 +19,7 @@ PERMISSIONS_SET = set([
 ])
 
 
-def get_model_acls(token, permissions_list=PERMISSIONS_SET, acls=None):
+def get_model_permissions(token, permissions_list=PERMISSIONS_SET, acls=None):
     # - Add the token to given acls.
     # - By default give all permissions to the token
     # - You can pass existing acls if you want to add the token to some
@@ -62,14 +62,14 @@ AUTHORS_PERMISSIONS = set(['update_own_records', 'delete_own_records',
 
 VIEWS_PERMISSIONS_REQUIRED = {
     'post_model':     All(['create_model']),
-    'get_model':      All(['read_definition', 'read_acls',
+    'get_model':      All(['read_definition', 'read_permissions',
                            Any(['read_all_records', 'read_own_recordss'])]),
-    'put_model':      All(['create_model', 'update_definition', 'update_acls',
+    'put_model':      All(['create_model', 'update_definition', 'update_permissions',
                            'delete_model']),
     'delete_model':   All(['delete_model', 'delete_all_records']),
     'get_definition': All(['read_definition']),
-    'get_acls':       All(['read_acls']),
-    'put_acls':       All(['update_acls']),
+    'get_permissions':       All(['read_permissions']),
+    'put_permissions':       All(['update_permissions']),
     'post_record':    All(['create_record']),
     'get_records':    Any(['read_all_records', 'read_own_records']),
     'delete_records': All(['delete_all_records']),
@@ -134,7 +134,7 @@ class DaybedAuthorizationPolicy(object):
 
         if context.model_id:
             try:
-                acls = context.db.get_model_acls(context.model_id)
+                acls = context.db.get_model_permissions(context.model_id)
             except ModelNotFound:
                 return True
         else:
@@ -207,10 +207,10 @@ def dict_list2set(dict_list):
                  for key, value in iteritems(dict_list)])
 
 
-def invert_acls_matrix(acls_tokens):
+def invert_permissions_matrix(acls_tokens):
     """Reverse from {perm: [tokens]} to {token: [perms]}."""
-    tokens_acls = defaultdict(set)
+    tokens_permissions = defaultdict(set)
     for perm, tokens in iteritems(acls_tokens):
         for token in tokens:
-            tokens_acls[token].add(perm)
-    return dict_set2list(tokens_acls)
+            tokens_permissions[token].add(perm)
+    return dict_set2list(tokens_permissions)

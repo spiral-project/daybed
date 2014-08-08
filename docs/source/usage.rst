@@ -146,11 +146,11 @@ We can now get our model definition back::
                 'delete_all_records',
                 'delete_model',
                 'delete_own_records',
-                'read_acls',
+                'read_permissions',
                 'read_all_records',
                 'read_definition',
                 'read_own_records',
-                'update_acls',
+                'update_permissions',
                 'update_all_records',
                 'update_definition',
                 'update_own_records',
@@ -355,11 +355,11 @@ Get back the model ACLs
             "delete_all_records",
             "delete_model",
             "delete_own_records",
-            "read_acls",
+            "read_permissions",
             "read_all_records",
             "read_definition",
             "read_own_records",
-            "update_acls",
+            "update_permissions",
             "update_all_records",
             "update_definition",
             "update_own_records"
@@ -376,12 +376,12 @@ As well as tokens, you can define permissions to **system.Authenticated**
 and **system.Everyone**, or use their shortcut notation: **Authenticated** and
 **Everyone**.
 
-To add `read_definition` and `read_acls` to Authenticated and remove
-`update_acls` to alexis we would write::
+To add `read_definition` and `read_permissions` to Authenticated and remove
+`update_permissions` to alexis we would write::
 
     {
-        "Authenticated": ["read_definition", "read_acls"],
-        "alexis": ["-update_acls"]
+        "Authenticated": ["read_definition", "read_permissions"],
+        "alexis": ["-update_permissions"]
     }
 
 For this to be valid, `alexis` must be an existing token.
@@ -449,11 +449,11 @@ If you need to remove permissions from a removed token, you will have to use the
             "delete_all_records",
             "delete_model",
             "delete_own_records",
-            "read_acls",
+            "read_permissions",
             "read_all_records",
             "read_definition",
             "read_own_records",
-            "update_acls",
+            "update_permissions",
             "update_all_records",
             "update_definition",
             "update_own_records"
@@ -508,11 +508,11 @@ replace all permissions with one call.
             "delete_all_records",
             "delete_model",
             "delete_own_records",
-            "read_acls",
+            "read_permissions",
             "read_all_records",
             "read_definition",
             "read_own_records",
-            "update_acls",
+            "update_permissions",
             "update_all_records",
             "update_definition",
             "update_own_records"

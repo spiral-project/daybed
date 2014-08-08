@@ -25,14 +25,14 @@ MODEL_ACLS = {
         'delete_all_records',
         'delete_model',
         'delete_own_records',
-        'read_acls',
         'read_all_records',
         'read_definition',
         'read_own_records',
-        'update_acls',
+        'read_permissions',
         'update_all_records',
         'update_definition',
         'update_own_records',
+        'update_permissions',
     ]
 }
 
@@ -186,7 +186,7 @@ class ModelsViewsTest(BaseWebTest):
                                 status=404)
         self.assertIn('Access-Control-Allow-Origin', response.headers)
 
-    def test_acls_unknown_retrieval(self):
+    def test_permissions_unknown_retrieval(self):
         resp = self.app.get('/models/test/permissions',
                             headers=self.headers, status=404)
         self.assertDictEqual(
@@ -197,7 +197,7 @@ class ModelsViewsTest(BaseWebTest):
                     "description": "model not found"}],
                 "status": "error"}))
 
-    def test_acls_retrieval(self):
+    def test_permissions_retrieval(self):
         self.app.put_json('/models/test',
                           MODEL_DEFINITION,
                           headers=self.headers)
@@ -207,7 +207,7 @@ class ModelsViewsTest(BaseWebTest):
         acls = force_unicode(MODEL_ACLS)
         self.assertDictEqual(resp.json, acls)
 
-    def test_patch_acls_add(self):
+    def test_patch_permissions_add(self):
         self.app.put_json('/models/test',
                           MODEL_DEFINITION,
                           headers=self.headers)
@@ -215,28 +215,28 @@ class ModelsViewsTest(BaseWebTest):
         self.db.add_token('remy', 'foobar')
 
         resp = self.app.patch_json('/models/test/permissions',
-                                   {"alexis": ["read_acls"],
-                                    "remy": ["update_acls"]},
+                                   {"alexis": ["read_permissions"],
+                                    "remy": ["update_permissions"]},
                                    headers=self.headers)
         acls = force_unicode(MODEL_ACLS)
-        acls[u"alexis"] = [u"read_acls"]
-        acls[u"remy"] = [u"update_acls"]
+        acls[u"alexis"] = [u"read_permissions"]
+        acls[u"remy"] = [u"update_permissions"]
         self.assertDictEqual(resp.json, acls)
 
-    def test_patch_acls_remove(self):
+    def test_patch_permissions_remove(self):
         self.app.put_json('/models/test',
                           MODEL_DEFINITION,
                           headers=self.headers)
 
         resp = self.app.patch_json('/models/test/permissions',
-                                   {"admin": ["-read_acls", "-update_acls"]},
+                                   {"admin": ["-read_permissions", "-update_permissions"]},
                                    headers=self.headers)
         acls = force_unicode(MODEL_ACLS)
-        acls[u"admin"].remove("read_acls")
-        acls[u"admin"].remove("update_acls")
+        acls[u"admin"].remove("read_permissions")
+        acls[u"admin"].remove("update_permissions")
         self.assertDictEqual(resp.json, acls)
 
-    def test_patch_acls_add_all(self):
+    def test_patch_permissions_add_all(self):
         self.app.put_json('/models/test',
                           MODEL_DEFINITION,
                           headers=self.headers)
@@ -249,7 +249,7 @@ class ModelsViewsTest(BaseWebTest):
         acls[u"alexis"] = sorted(PERMISSIONS_SET)
         self.assertDictEqual(resp.json, acls)
 
-    def test_patch_acls_add_system_principals(self):
+    def test_patch_permissions_add_system_principals(self):
         self.app.put_json('/models/test',
                           MODEL_DEFINITION,
                           headers=self.headers)
@@ -257,15 +257,15 @@ class ModelsViewsTest(BaseWebTest):
         resp = self.app.patch_json(
             '/models/test/permissions',
             {Everyone: ["read_definition"],
-             Authenticated: ["read_definition", "read_acls"]},
+             Authenticated: ["read_definition", "read_permissions"]},
             headers=self.headers
         )
         acls = force_unicode(MODEL_ACLS)
-        acls[Authenticated] = ["read_acls", "read_definition"]
+        acls[Authenticated] = ["read_definition", "read_permissions"]
         acls[Everyone] = ["read_definition"]
         self.assertDictEqual(resp.json, acls)
 
-    def test_patch_acls_add_shortcuts_principals(self):
+    def test_patch_permissions_add_shortcuts_principals(self):
         self.app.put_json('/models/test',
                           MODEL_DEFINITION,
                           headers=self.headers)
@@ -273,15 +273,15 @@ class ModelsViewsTest(BaseWebTest):
         resp = self.app.patch_json(
             '/models/test/permissions',
             {"Everyone": ["read_definition"],
-             "Authenticated": ["read_definition", "read_acls"]},
+             "Authenticated": ["read_definition", "read_permissions"]},
             headers=self.headers
         )
         acls = force_unicode(MODEL_ACLS)
-        acls[Authenticated] = ["read_acls", "read_definition"]
+        acls[Authenticated] = ["read_definition", "read_permissions"]
         acls[Everyone] = ["read_definition"]
         self.assertDictEqual(resp.json, acls)
 
-    def test_patch_acls_remove_all(self):
+    def test_patch_permissions_remove_all(self):
         self.app.put_json('/models/test',
                           MODEL_DEFINITION,
                           headers=self.headers)
@@ -291,13 +291,13 @@ class ModelsViewsTest(BaseWebTest):
                                    headers=self.headers)
         self.assertDictEqual(resp.json, {})
 
-    def test_patch_acls_add_unknown(self):
+    def test_patch_permissions_add_unknown(self):
         self.app.put_json('/models/test',
                           MODEL_DEFINITION,
                           headers=self.headers)
 
         resp = self.app.patch_json('/models/test/permissions',
-                                   {"alexis": ["read_acls"]},
+                                   {"alexis": ["read_permissions"]},
                                    headers=self.headers,
                                    status=400)
         self.assertDictEqual(resp.json, force_unicode({
@@ -308,7 +308,7 @@ class ModelsViewsTest(BaseWebTest):
             ]
         }))
 
-    def test_put_acls(self):
+    def test_put_permissions(self):
         self.app.put_json('/models/test',
                           MODEL_DEFINITION,
                           headers=self.headers)
@@ -316,21 +316,21 @@ class ModelsViewsTest(BaseWebTest):
         self.db.add_token('remy', 'foobar')
 
         resp = self.app.put_json('/models/test/permissions',
-                                 {"alexis": ["read_acls"],
-                                  "remy": ["update_acls"]},
+                                 {"alexis": ["read_permissions"],
+                                  "remy": ["update_permissions"]},
                                  headers=self.headers)
         acls = dict()
-        acls["alexis"] = ["read_acls"]
-        acls["remy"] = ["update_acls"]
+        acls["alexis"] = ["read_permissions"]
+        acls["remy"] = ["update_permissions"]
         self.assertDictEqual(resp.json, force_unicode(acls))
 
-    def test_put_acls_wrong_token(self):
+    def test_put_permissions_wrong_token(self):
         self.app.put_json('/models/test',
                           MODEL_DEFINITION,
                           headers=self.headers)
 
         resp = self.app.put_json('/models/test/permissions',
-                                 {"alexis": ["read_acls"]},
+                                 {"alexis": ["read_permissions"]},
                                  headers=self.headers,
                                  status=400)
 
@@ -342,13 +342,13 @@ class ModelsViewsTest(BaseWebTest):
             ]
         }))
 
-    def test_put_acls_wrong_perm(self):
+    def test_put_permissions_wrong_perm(self):
         self.app.put_json('/models/test',
                           MODEL_DEFINITION,
                           headers=self.headers)
 
         resp = self.app.put_json('/models/test/permissions',
-                                 {"Everyone": ["foo", "read_acls"]},
+                                 {"Everyone": ["foo", "read_permissions"]},
                                  headers=self.headers,
                                  status=400)
 
@@ -451,8 +451,8 @@ class ModelsViewsTest(BaseWebTest):
         self.db.add_token('remy', 'foobar')
 
         acls = {"admin": ["delete_all_records", "delete_model"],
-                "alexis": ["read_acls"],
-                "remy": ["update_acls"]}
+                "alexis": ["read_permissions"],
+                "remy": ["update_permissions"]}
 
         resp = self.app.put_json(
             '/models/test/permissions',

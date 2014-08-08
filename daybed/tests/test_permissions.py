@@ -8,7 +8,7 @@ from pyramid.security import Authenticated
 
 from daybed.permissions import (
     All, Any, DaybedAuthorizationPolicy, build_user_principals,
-    invert_acls_matrix, dict_set2list, dict_list2set
+    invert_permissions_matrix, dict_set2list, dict_list2set
 )
 
 class TestAnyAll(TestCase):
@@ -69,7 +69,7 @@ class TestACL(TestCase):
         permits = authz_policy.permits
 
         context = mock.MagicMock()
-        context.db.get_model_acls.return_value = {
+        context.db.get_model_permissions.return_value = {
             'read_definition': [Authenticated]
         }
 
@@ -92,17 +92,17 @@ class TestACL(TestCase):
             'titi': set(['tata'])
         })
 
-    def test_invert_acls_matrix(self):
-        model_acls = {
-            'read_acls': ['admin', 'alexis'],
+    def test_invert_permissions_matrix(self):
+        model_permissions = {
+            'read_permissions': ['admin', 'alexis'],
             'update_definition': ['admin'],
             'read_all_records': ['admin', 'remy'],
             'update_my_record': ['admin'],
         }
-        tokens_acls = {
-            'admin': ['read_acls', 'read_all_records', 'update_definition',
+        tokens_permissions = {
+            'admin': ['read_all_records', 'read_permissions', 'update_definition',
                       'update_my_record'],
-            'alexis': ['read_acls'],
+            'alexis': ['read_permissions'],
             'remy': ['read_all_records']
         }
-        self.assertDictEqual(invert_acls_matrix(model_acls), tokens_acls)
+        self.assertDictEqual(invert_permissions_matrix(model_permissions), tokens_permissions)

@@ -4,7 +4,7 @@ from cornice import Service
 from pyramid.security import Everyone
 
 from daybed.permissions import (
-    get_model_acls, invert_acls_matrix, dict_list2set, dict_set2list,
+    get_model_permissions, invert_permissions_matrix, dict_list2set, dict_set2list,
     PERMISSIONS_SET
 )
 from daybed.backends.exceptions import ModelNotFound
@@ -47,23 +47,23 @@ def get_definition(request):
         request.errors.status = "404 Not Found"
 
 
-@acls.get(permission='get_acls')
-def get_acls(request):
+@acls.get(permission='get_permissions')
+def get_permissions(request):
     """Retrieves a model acls."""
     model_id = request.matchdict['model_id']
     try:
-        return invert_acls_matrix(request.db.get_model_acls(model_id))
+        return invert_permissions_matrix(request.db.get_model_permissions(model_id))
     except ModelNotFound:
         request.errors.add('path', model_id, "model not found")
         request.errors.status = "404 Not Found"
 
 
-@acls.patch(permission='put_acls', validators=(acls_validator,))
-def patch_acls(request):
+@acls.patch(permission='put_permissions', validators=(acls_validator,))
+def patch_permissions(request):
     """Update a model acls."""
     model_id = request.matchdict['model_id']
     definition = request.db.get_model_definition(model_id)
-    acls = dict_list2set(request.db.get_model_acls(model_id))
+    acls = dict_list2set(request.db.get_model_permissions(model_id))
 
     for token, perms in iteritems(request.validated['acls']):
         # Handle remove all
@@ -84,11 +84,11 @@ def patch_acls(request):
                     acls[perm.lstrip('+')].add(token)
 
     request.db.put_model(definition, dict_set2list(acls), model_id)
-    return invert_acls_matrix(acls)
+    return invert_permissions_matrix(acls)
 
 
-@acls.put(permission='put_acls', validators=(acls_validator,))
-def put_acls(request):
+@acls.put(permission='put_permissions', validators=(acls_validator,))
+def put_permissions(request):
     """Update a model acls."""
     model_id = request.matchdict['model_id']
     definition = request.db.get_model_definition(model_id)
@@ -102,7 +102,7 @@ def put_acls(request):
                 acls[perm].add(token)
     acls = dict_set2list(acls)
     request.db.put_model(definition, acls, model_id)
-    return invert_acls_matrix(acls)
+    return invert_permissions_matrix(acls)
 
 
 @models.post(permission='post_model', validators=(model_validator,))
@@ -115,7 +115,7 @@ def post_models(request):
 
     model_id = request.db.put_model(
         definition=request.validated['definition'],
-        acls=get_model_acls(token))
+        acls=get_model_permissions(token))
 
     for record in request.validated['records']:
         request.db.put_record(model_id, record, [token])
@@ -136,7 +136,7 @@ def delete_model(request):
         request.errors.status = "404 Not Found"
         request.errors.add('path', model_id, "model not found")
         return
-    model["acls"] = invert_acls_matrix(model["acls"])
+    model["acls"] = invert_permissions_matrix(model["acls"])
     return model
 
 
@@ -158,9 +158,10 @@ def get_model(request):
     else:
         records = request.db.get_records(model_id)
 
+    permissions = request.db.get_model_permissions(model_id)
     return {'definition': definition,
             'records': records,
-            'acls': invert_acls_matrix(request.db.get_model_acls(model_id))}
+            'acls': invert_permissions_matrix(permissions)}
 
 
 @model.put(validators=(model_validator,), permission='post_model')
@@ -191,7 +192,7 @@ def handle_put_model(request):
         token = Everyone
 
     request.db.put_model(request.validated['definition'],
-                         get_model_acls(token),
+                         get_model_permissions(token),
                          model_id)
 
     for record in request.validated['records']:
