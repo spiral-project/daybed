@@ -6,20 +6,9 @@ from colander import (Sequence, SchemaNode, Length, String, drop, Invalid)
 from daybed.backends.exceptions import ModelNotFound
 
 from . import registry, TypeField, TypeFieldNode, get_db
-from .validators import RecordSchema
+from .validators import RecordValidator
 from .relations import ModelExist
 from .json import JSONType
-
-
-class ObjectMatchDefinition(object):
-    """A validator to check that a dictionnary matches the specified
-    definition.
-    """
-    def __init__(self, definition):
-        self.schema = RecordSchema(definition)
-
-    def __call__(self, node, value):
-        self.schema.deserialize(value)
 
 
 class ExclusiveKeys(object):
@@ -66,7 +55,7 @@ class ObjectField(TypeField):
     @classmethod
     def validation(cls, **kwargs):
         definition = cls._fetch_definition(kwargs)
-        kwargs['validator'] = ObjectMatchDefinition(definition)
+        kwargs['validator'] = RecordValidator(definition)
         return super(ObjectField, cls).validation(**kwargs)
 
     @classmethod

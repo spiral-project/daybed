@@ -34,6 +34,17 @@ class RecordSchema(SchemaNode):
             self.add(registry.validation(fieldtype, **field))
 
 
+class RecordValidator(object):
+    """A validator to check that a dictionnary matches the specified
+    definition.
+    """
+    def __init__(self, definition):
+        self.schema = RecordSchema(definition)
+
+    def __call__(self, node, value):
+        self.schema.deserialize(value)
+
+
 def validate_against_schema(request, schema, data, field_name=None):
     try:
         data_pure = schema.deserialize(data)
