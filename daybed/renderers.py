@@ -3,7 +3,49 @@ try:
 except ImportError:
     from ordereddict import OrderedDict
 
+from collections import defaultdict
+
 from pyramid.renderers import JSONP
+
+
+class JSONSchema(JSONP):
+    """Renderer for JSON Schema"""
+    fields = {
+        'int': 'integer',
+        'text': 'string',
+    }
+
+    def __call__(self, info):
+        def _get_field(field):
+            type = field.get('type')
+            field = {
+                'description': field.get('label', field.get('name')),
+                'type': self.fields.get(type, type)
+            }
+            return field
+
+        def _render(definition, system):
+            properties = defaultdict(dict)
+            required = []
+
+            for field in definition['fields']:
+                properties[field['name']] = _get_field(field)
+
+                if field['required']:
+                    required.append(field['name'])
+
+            jsonschema = {
+                '$schema': 'http://json-schema.org/schema#',
+                'title': definition['title'],
+                'description': definition['description'],
+                'type': 'object',
+                'properties': properties,
+                'required': required
+            }
+            jsonp = super(JSONSchema, self).__call__(info)
+            return jsonp(jsonschema, system)
+
+        return _render
 
 
 class GeoJSON(JSONP):
