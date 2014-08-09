@@ -10,19 +10,32 @@ from pyramid.renderers import JSONP
 
 class JSONSchema(JSONP):
     """Renderer for JSON Schema"""
-    fields = {
-        'int': 'integer',
-        'text': 'string',
-    }
+
+    def __init__(self, *args, **kwargs):
+        self.fields = {
+            'int': lambda x: {'type': 'integer'},
+            'text': lambda x: {'type': 'string'},
+            'decimal': lambda x: {'type': 'number'},
+            'email': lambda x: {'type': 'string', 'format': 'email'},
+            'regex': lambda x: {'type': 'string', 'pattern': x['regex']},
+            'url': lambda x: {'type': 'string', 'format': 'uri'},
+            'enum': self.serialize_enum,
+            'range': self.serialize_range,
+        }
+        super(JSONSchema, self).__init__(*args, **kwargs)
 
     def __call__(self, info):
         def _get_field(field):
-            type = field.get('type')
-            field = {
+            output_field = {
                 'description': field.get('label', field.get('name')),
-                'type': self.fields.get(type, type)
             }
-            return field
+
+            if field['type'] in self.fields:
+                output_field.update(self.fields[field['type']](field))
+            else:
+                output_field['type'] = field['type']
+
+            return output_field
 
         def _render(definition, system):
             properties = defaultdict(dict)
@@ -46,6 +59,20 @@ class JSONSchema(JSONP):
             return jsonp(jsonschema, system)
 
         return _render
+
+    def serialize_enum(self, field):
+        pattern = '^%s$' % '|'.join(field['choices'])
+        return {
+            'type': 'string',
+            'pattern': pattern
+        }
+
+    def serialize_range(self, field):
+        return {
+            'type': 'integer',
+            'minimum': field['min'],
+            'maximum': field['max']
+        }
 
 
 class GeoJSON(JSONP):

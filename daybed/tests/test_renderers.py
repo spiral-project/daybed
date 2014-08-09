@@ -67,13 +67,21 @@ class TestJSONSchemaRenderer(BaseRendererTest):
     def test_regex_type(self):
         self.assertEquals(
             self._get_rendered_field('regex', regex='^[abc]$'),
-            {'type': 'string', 'pattern': '^[abc]$'}
+            {
+                'description': 'field',
+                'type': 'string',
+                'pattern': '^[abc]$'
+            }
         )
 
     def test_email_type(self):
         self.assertEquals(
             self._get_rendered_field('email'),
-            {'type': 'string', 'format': 'email'}
+            {
+                'description': 'field',
+                'type': 'string',
+                'format': 'email'
+            }
         )
 
     def test_anyof_type(self):
@@ -85,7 +93,11 @@ class TestJSONSchemaRenderer(BaseRendererTest):
     def test_url(self):
         self.assertEquals(
             self._get_rendered_field('url'),
-            {'type': 'string', 'format': 'uri'}
+            {
+                'description': 'field',
+                'type': 'string',
+                'format': 'uri'
+            }
         )
 
     def test_decimal(self):
@@ -97,7 +109,11 @@ class TestJSONSchemaRenderer(BaseRendererTest):
     def test_enum_type(self):
         self.assertEquals(
             self._get_rendered_field('enum', choices=('foo', 'bar')),
-            {'type': 'string', 'pattern': '^foo|bar$'}
+            {
+                'description': 'field',
+                'type': 'string',
+                'pattern': '^foo|bar$'
+            }
         )
 
     def test_list(self):
@@ -109,7 +125,12 @@ class TestJSONSchemaRenderer(BaseRendererTest):
     def test_range(self):
         self.assertEquals(
             self._get_rendered_field('range', min=1, max=10),
-            {'type': 'integer', 'minimum': 1, 'maximum': 10}
+            {
+                'description': 'field',
+                'type': 'integer',
+                'minimum': 1,
+                'maximum': 10
+            }
         )
 
 
