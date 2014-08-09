@@ -24,7 +24,7 @@ from daybed.acl import (
     RootFactory, DaybedAuthorizationPolicy, check_api_token,
 )
 from daybed.views.errors import forbidden_view
-from daybed.renderers import GeoJSON
+from daybed.renderers import GeoJSON, JSONSchema
 from daybed.backends.exceptions import TokenNotFound
 
 
@@ -108,6 +108,7 @@ def main(global_config, **settings):
     config.add_subscriber(add_default_accept, NewRequest)
 
     config.add_renderer('jsonp', JSONP(param_name='callback'))
-
     config.add_renderer('geojson', GeoJSON())
+    config.add_renderer('jsonschema', JSONSchema())
+
     return config.make_wsgi_app()
