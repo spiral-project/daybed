@@ -36,6 +36,9 @@ acls = Service(name='model-acls',
                cors_origins=('*',))
 
 
+@definition.get(permission='get_definition',
+                accept='application/schema+json',
+                renderer='jsonschema')
 @definition.get(permission='get_definition')
 def get_definition(request):
     """Retrieves a model definition."""
