@@ -21,7 +21,7 @@ from colander import (
     drop
 )
 
-from . import registry, TypeField
+from . import registry, TypeField, TypeFieldNode
 from .json import JSONList
 
 
@@ -67,7 +67,7 @@ class EnumField(TypeField):
     hint = _('A choice among values')
 
     @classmethod
-    def definition(cls):
+    def definition(cls, **kwargs):
         schema = super(EnumField, cls).definition()
         schema.add(SchemaNode(Sequence(), SchemaNode(String()),
                               name='choices', validator=Length(min=1)))
@@ -85,7 +85,7 @@ class ChoicesField(TypeField):
     hint = _('Some choices among values')
 
     @classmethod
-    def definition(cls):
+    def definition(cls, **kwargs):
         schema = super(ChoicesField, cls).definition()
         schema.add(SchemaNode(Sequence(), SchemaNode(String()),
                               name='choices', validator=Length(min=1)))
@@ -103,7 +103,7 @@ class RangeField(TypeField):
     hint = _('A number with limits')
 
     @classmethod
-    def definition(cls):
+    def definition(cls, **kwargs):
         schema = super(RangeField, cls).definition()
         schema.add(SchemaNode(Int(), name='min'))
         schema.add(SchemaNode(Int(), name='max'))
@@ -123,7 +123,7 @@ class RegexField(TypeField):
     hint = _('A string matching a pattern')
 
     @classmethod
-    def definition(cls):
+    def definition(cls, **kwargs):
         schema = super(RegexField, cls).definition()
         schema.add(SchemaNode(String(), name='regex', validator=Length(min=1)))
         return schema
@@ -176,7 +176,7 @@ class AutoNowMixin(object):
     autonow = False
 
     @classmethod
-    def definition(cls):
+    def definition(cls, **kwargs):
         schema = super(AutoNowMixin, cls).definition()
         schema.add(SchemaNode(Boolean(), name='autonow',
                               missing=cls.autonow))
@@ -215,11 +215,23 @@ class DateTimeField(AutoNowMixin, TypeField):
 @registry.add('group')
 class GroupField(TypeField):
     @classmethod
-    def definition(cls):
-        schema = super(GroupField, cls).definition()
+    def definition(cls, **kwargs):
+        schema = super(GroupField, cls).definition(**kwargs)
+        # Keep ``required`` and ``type`` nodes only
         schema.children = [c for c in schema.children
                            if c.name not in ('hint', 'name', 'required')]
         schema.add(SchemaNode(String(), name='description', missing=drop))
-        schema.add(SchemaNode(Sequence(), TypeField.definition(),
+        schema.add(SchemaNode(Sequence(), SchemaNode(TypeFieldNode()),
                               name='fields', validator=Length(min=1)))
         return schema
+
+    @classmethod
+    def validation(cls, **kwargs):
+        rootnode = kwargs.pop('root')
+        # Add the group fields to the model definition node
+        for field in kwargs['fields']:
+            field['root'] = rootnode
+            fieldtype = field.pop('type')
+            rootnode.add(registry.validation(fieldtype, **field))
+        # Ignore the group validation itself
+        return SchemaNode(String(), missing=drop)

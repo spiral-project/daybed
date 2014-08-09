@@ -79,7 +79,7 @@ class TypeField(object):
     hint = u''
 
     @classmethod
-    def definition(cls):
+    def definition(cls, **kwargs):
         schema = SchemaNode(Mapping())
         schema.add(SchemaNode(String(), name='name',
                               validator=Regex(r'^[a-zA-Z][a-zA-Z0-9_\-]*$')))
@@ -104,10 +104,11 @@ class TypeField(object):
 
 class TypeFieldNode(SchemaType):
     def deserialize(self, node, cstruct=null):
+        kwargs = dict(node=node, cstruct=cstruct)
         try:
-            schema = registry.definition(cstruct.get('type'))
+            schema = registry.definition(cstruct.get('type'), **kwargs)
         except UnknownFieldTypeError:
-            schema = TypeField.definition()
+            schema = TypeField.definition(**kwargs)
         return schema.deserialize(cstruct)
 
 

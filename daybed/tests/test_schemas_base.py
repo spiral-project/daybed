@@ -183,9 +183,16 @@ class GroupFieldTests(unittest.TestCase):
             'type': u'group',
             'fields': [{'type': u'int',
                         'name': u'a',
-                        'hint': u'',
+                        'hint': u'An integer',
                         'label': u'',
                         'required': True}]}
+        modeldefinition = {
+            'fields': [{'type': u'string',
+                        'name': 'b'},
+                       self.definition]
+        }
+        from daybed.schemas.validators import RecordSchema
+        self.validator = RecordSchema(modeldefinition)
 
     def test_a_group_has_no_name_nor_hint(self):
         definition = self.definition.copy()
@@ -211,6 +218,21 @@ class GroupFieldTests(unittest.TestCase):
         definition['fields'].append({'type': u'int'})
         self.assertRaises(colander.Invalid, self.schema.deserialize,
                           definition)
+
+    def test_a_group_must_have_valid_fields_parameters(self):
+        definition = self.definition.copy()
+        definition['fields'][0]['type'] = u'regex'
+        self.assertRaises(colander.Invalid, self.schema.deserialize,
+                          definition)
+
+    def test_a_group_validation_succeeds_if_records_are_valid(self):
+        value = self.validator.deserialize({"a": 1, "b": "good"})
+        self.assertEquals(value, {'a': 1, 'b': u'good'})
+
+    def test_a_group_validation_fails_if_records_are_invalid(self):
+        self.assertRaises(colander.Invalid,
+                          self.validator.deserialize,
+                          {"a": "booh", "b": "good"})
 
 
 class DateFieldTests(unittest.TestCase):
