@@ -370,6 +370,30 @@ class ModelsViewsTest(BaseWebTest):
         definition = force_unicode(MODEL_DEFINITION['definition'])
         self.assertDictEqual(resp.json, definition)
 
+    def test_definition_retrieval_as_json_schema(self):
+        self.app.put_json('/models/test',
+                          MODEL_DEFINITION,
+                          headers=self.headers)
+
+        self.headers['Accept'] = 'application/schema+json'
+
+        resp = self.app.get('/models/test/definition',
+                            headers=self.headers)
+
+        self.assertDictEqual(resp.json, {
+            '$schema': 'http://json-schema.org/schema#',
+            'title': 'simple',
+            'description': u'One optional field',
+            'type': 'object',
+            'properties': {
+                'age': {
+                    'description': 'age',
+                    'type': 'integer',
+                }
+            },
+            'required': []
+        })
+
     def test_post_model_definition_with_records(self):
         model = MODEL_DEFINITION.copy()
         model['records'] = [MODEL_RECORD, MODEL_RECORD]
