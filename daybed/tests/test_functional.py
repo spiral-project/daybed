@@ -139,15 +139,13 @@ class FunctionalTest(object):
         self.assertIn('name', errors[0])
         self.assertNotEquals('', errors[0]['name'])
 
-    @property
-    def index_query(self):
-        return {}
-
-    def test_data_search(self):
+    def test_data_search_without_filter(self):
         self.create_definition()
         self.create_record()
+        self.app.app.registry.index.refresh()
+        query_all = {"match_all" : {}}
         resp = self.app.get('/models/%s/search/' % self.model_id,
-                            {'query': self.index_query},
+                            {'query': query_all},
                             headers=self.headers)
         results = resp.json.get('hits', {}).get('hits', [])
         self.assertTrue(len(results) > 0)
