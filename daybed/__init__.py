@@ -88,6 +88,14 @@ def main(global_config, **settings):
 
     config.add_request_method(get_token, 'token', reify=True)
 
+    # Helper for notifying events
+    def notify(request, event, *args):
+        klass = config.maybe_dotted('daybed.events.' + event)
+        event = klass(*(args + (request,)))
+        request.registry.notify(event)
+
+    config.add_request_method(notify, 'notify')
+
     # We need to scan AFTER setting the authn / authz policies
     config.scan("daybed.views")
 

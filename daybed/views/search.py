@@ -1,3 +1,4 @@
+import six
 from cornice import Service
 
 from daybed.backends.exceptions import ModelNotFound
@@ -19,7 +20,14 @@ def search_records(request):
         request.response.status = "404 Not Found"
         return {"msg": "%s: model not found" % model_id}
 
+    # So far we just support query from body
+    query = request.body
+
+    # In case request body arrives as bytes under python 3
+    if isinstance(query, six.binary_type):
+        query = query.decode('utf-8')
+
     results = request.index.search(index=model_id,
                                    doc_type=model_id,
-                                   body=request.body)
+                                   body=query)
     return results

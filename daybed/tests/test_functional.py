@@ -142,8 +142,7 @@ class FunctionalTest(object):
     def test_data_search_without_filter(self):
         self.create_definition()
         self.create_record()
-        self.app.app.registry.index.refresh()
-        query_all = {"match_all" : {}}
+        query_all = {"match_all": {}}
         resp = self.app.get('/models/%s/search/' % self.model_id,
                             {'query': query_all},
                             headers=self.headers)
