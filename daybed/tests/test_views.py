@@ -622,3 +622,20 @@ class TokensViewsTest(BaseWebTest):
         self.assertIn("key", response.json["credentials"])
         self.assertTrue(len(response.json["credentials"]["key"]) == 64)
         self.assertEqual("sha256", response.json["credentials"]["algorithm"])
+
+
+class SearchViewTest(BaseWebTest):
+    def test_search_returns_404_if_model_unknown(self):
+        self.app.get('/models/unknown/search/', {},
+                     headers=self.headers,
+                     status=404)
+
+    def test_search_view_requires_permission(self):
+        self.app.put_json('/models/test', MODEL_DEFINITION,
+                          headers=self.headers)
+        self.app.patch_json('/models/test/permissions',
+                            {"admin": ["-read_all_records"]},
+                            headers=self.headers)
+        self.app.get('/models/test/search/', {},
+                     headers=self.headers,
+                     status=403)

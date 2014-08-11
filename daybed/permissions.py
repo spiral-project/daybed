@@ -72,6 +72,7 @@ VIEWS_PERMISSIONS_REQUIRED = {
     'get_permissions': All(['read_permissions']),
     'put_permissions': All(['update_permissions']),
     'post_record':     All(['create_record']),
+    'get_all_records': All(['read_all_records']),
     'get_records':     Any(['read_all_records', 'read_own_records']),
     'delete_records':  All(['delete_all_records']),
     'get_record':      Any(['read_own_records', 'read_all_records']),

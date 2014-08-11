@@ -9,7 +9,7 @@ search = Service(name='search',
                  renderer='jsonp')
 
 
-@search.get(permission='get_records')
+@search.get(permission='get_all_records')
 def search_records(request):
     """Search model records."""
     model_id = request.matchdict['model_id']
