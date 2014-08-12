@@ -29,6 +29,20 @@ class RedisBackend(object):
     def delete_db(self):
         self._db.flushdb()
 
+    def get_models(self, principals):
+        principals = set(principals)
+        models_id = self._db.keys("model.*")
+        if models_id:
+            models = [json.loads(m.decode("utf-8"))
+                      for m in self._db.mget(*models_id) if m]
+            return [{"id": m['id'],
+                     "title": m['definition']['title'],
+                     "description": m['definition']['description']}
+                    for m in models if principals.intersection(
+                        m['permissions']['read_definition']) != set()]
+        else:
+            return []
+
     def __get_raw_model(self, model_id):
         model = self._db.get("model.%s" % model_id)
         if model is not None:
@@ -48,7 +62,7 @@ class RedisBackend(object):
         self.__get_raw_model(model_id)
 
         model_records = self._db.smembers(
-            "model.%s.records" % model_id
+            "modelrecords.%s" % model_id
         )
         if model_records:
             return [json.loads(i.decode("utf-8"))
@@ -70,7 +84,7 @@ class RedisBackend(object):
         return records
 
     def __get_raw_record(self, model_id, record_id):
-        record = self._db.get("model.%s.record.%s" % (model_id, record_id))
+        record = self._db.get("modelrecord.%s.%s" % (model_id, record_id))
         if record is not None:
             return json.loads(record.decode("utf-8"))
         raise RecordNotFound(u'(%s, %s)' % (model_id, record_id))
@@ -90,6 +104,7 @@ class RedisBackend(object):
         self._db.set(
             "model.%s" % model_id,
             json.dumps({
+                'id': model_id,
                 'definition': definition,
                 'permissions': permissions
             })
@@ -117,31 +132,31 @@ class RedisBackend(object):
 
         doc['record']['id'] = record_id
         self._db.set(
-            "model.%s.record.%s" % (model_id, record_id),
+            "modelrecord.%s.%s" % (model_id, record_id),
             json.dumps(doc)
         )
         self._db.sadd(
-            "model.%s.records" % model_id,
-            "model.%s.record.%s" % (model_id, record_id)
+            "modelrecords.%s" % model_id,
+            "modelrecord.%s.%s" % (model_id, record_id)
         )
         return record_id
 
     def delete_record(self, model_id, record_id):
         doc = self.__get_raw_record(model_id, record_id)
         if doc:
-            self._db.delete("model.%s.record.%s" % (model_id, record_id))
+            self._db.delete("modelrecord.%s.%s" % (model_id, record_id))
             self._db.srem(
-                "model.%s.records" % model_id,
-                "model.%s.record.%s" % (model_id, record_id)
+                "modelrecords.%s" % model_id,
+                "modelrecord.%s.%s" % (model_id, record_id)
             )
             return doc
 
     def delete_records(self, model_id):
         records = self.get_records(model_id)
         existing_records_keys = [
-            "model.%s.record.%s" % (model_id, r["id"]) for r in records
+            "modelrecord.%s.%s" % (model_id, r["id"]) for r in records
         ]
-        existing_records_keys.append("model.%s.records" % model_id)
+        existing_records_keys.append("modelrecords.%s" % model_id)
 
         self._db.delete(*existing_records_keys)
         return records
@@ -150,7 +165,11 @@ class RedisBackend(object):
         doc = self.__get_raw_model(model_id)
         doc["records"] = self.delete_records(model_id)
         self._db.delete("model.%s" % model_id)
-        return doc
+        return {
+            "definition": doc["definition"],
+            "records": doc["records"],
+            "permissions": doc["permissions"]
+        }
 
     def get_token(self, tokenHmacId):
         """Retrieves a token by its id"""

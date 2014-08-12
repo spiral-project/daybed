@@ -140,6 +140,20 @@ class ModelsViewsTest(BaseWebTest):
         self.maxDiff = None
         super(ModelsViewsTest, self).__init__(*args, **kwargs)
 
+    def test_models(self):
+        self.app.put_json('/models/test', MODEL_DEFINITION,
+                          headers=self.headers)
+        resp = self.app.get('/models', headers=self.headers)
+        self.assertDictEqual(resp.json, {
+            "models": [
+                {
+                    "id": "test",
+                    "title": "simple",
+                    "description": "One optional field",
+                }
+            ]
+        })
+
     def test_model_deletion(self):
         self.app.put_json('/models/test', MODEL_DEFINITION,
                           headers=self.headers)

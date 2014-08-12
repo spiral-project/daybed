@@ -52,6 +52,53 @@ class BackendTestBase(object):
         self.db.add_token("Remy", "Foo")
         self.assertRaises(TokenAlreadyExist, self.db.add_token, "Remy", "Bar")
 
+    def test_get_models(self):
+        self._create_model()
+        self.definition["title"] = "Simple Remy"
+        self.db.put_model(self.definition, {
+            'read_definition': ['Remy']
+        }, "rems")
+
+        self.definition["title"] = "Simple Alex"
+        self.db.put_model(self.definition, {
+            'read_definition': ['Alexis']
+        }, "alex")
+
+        # On Remy's we should have both models where Remy can
+        # read_definition
+        remy_models = self.db.get_models(["Remy"])
+        self.assertEqual(len(remy_models), 2)
+        self.assertEqual(sorted(remy_models, key=lambda x: x["id"]), [
+            {"id": "modelname", "title": "simple",
+             "description": "One optional field"},
+            {"id": "rems", "title": "Simple Remy",
+             "description": "One optional field"}])
+
+        # On Alex's we should have both models where Alex can
+        # read_definition
+        alex_models = self.db.get_models(["Alexis"])
+        self.assertEqual(len(alex_models), 2)
+        self.assertEqual(sorted(alex_models, key=lambda x: x["id"]), [
+            {"id": "alex", "title": "Simple Alex",
+             "description": "One optional field"},
+            {"id": "modelname", "title": "simple",
+             "description": "One optional field"}])
+
+        # On Remy's and Alex's models we should have all the models
+        # where at least one of them can read_definition de-duplicated
+        principal_models = self.db.get_models(["Remy", "Alexis"])
+        self.assertEqual(len(principal_models), 3)
+        self.assertEqual(sorted(principal_models, key=lambda x: x["id"]), [
+            {"id": "alex", "title": "Simple Alex",
+             "description": "One optional field"},
+            {"id": "modelname", "title": "simple",
+             "description": "One optional field"},
+            {"id": "rems", "title": "Simple Remy",
+             "description": "One optional field"}])
+
+    def test_get_models_unknown(self):
+        self._create_model()
+        self.assertEqual(self.db.get_models(["unknown"]), [])
 
     def test_get_model_permissions(self):
         self._create_model()

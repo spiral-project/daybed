@@ -30,6 +30,16 @@ class MemoryBackend(object):
             'tokens': {}
         }
 
+    def get_models(self, principals):
+        principals = set(principals)
+        models = self._db['models'].items()
+        return [{"id": id,
+                 "title": m["definition"].get("title", id),
+                 "description": m["definition"].get("description", "")}
+                for id, m in models if
+                principals.intersection(m['permissions']['read_definition']) !=
+                set()]
+
     def __get_raw_model(self, model_id):
         try:
             return deepcopy(self._db['models'][model_id])
@@ -80,8 +90,8 @@ class MemoryBackend(object):
             model_id = self._generate_id()
 
         self._db['models'][model_id] = {
-            'definition': definition,
-            'permissions': permissions,
+            'definition': deepcopy(definition),
+            'permissions': permissions
         }
         if model_id not in self._db['records']:
             self._db['records'][model_id] = {}
