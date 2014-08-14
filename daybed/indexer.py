@@ -18,12 +18,10 @@ class DaybedIndexer(object):
         config.add_subscriber(self._reindex_record, events.RecordUpdated)
         config.add_subscriber(self._unindex_record, events.RecordDeleted)
 
-    def search(self, *args, **kwargs):
-        try:
-            return self.client.search(*args, **kwargs)
-        except ElasticsearchException as e:
-            logger.error(e)
-            return {}
+    def search(self, model_id, query):
+        return self.client.search(index=model_id,
+                                  doc_type=model_id,
+                                  body=query)
 
     def _create_index(self, event):
         if not self.client.indices.exists(index=event.model_id):

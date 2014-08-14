@@ -1,5 +1,8 @@
 import base64
+
+import mock
 from pyramid.security import Authenticated, Everyone
+
 from daybed import __version__ as VERSION
 from daybed.permissions import PERMISSIONS_SET
 from daybed.backends.exceptions import (
@@ -625,14 +628,25 @@ class TokensViewsTest(BaseWebTest):
 
 
 class SearchViewTest(BaseWebTest):
+
+    def setUp(self):
+        super(SearchViewTest, self).setUp()
+        self.app.put_json('/models/test', MODEL_DEFINITION,
+                          headers=self.headers)
+
     def test_search_returns_404_if_model_unknown(self):
         self.app.get('/models/unknown/search/', {},
                      headers=self.headers,
                      status=404)
 
+    @mock.patch('elasticsearch.client.Elasticsearch.search')
+    def test_search_returns_502_if_elasticsearch_fails(self, search_mock):
+        search_mock.side_effect = Exception('Not available')
+        self.app.get('/models/test/search/', {},
+                     headers=self.headers,
+                     status=502)
+
     def test_search_view_requires_permission(self):
-        self.app.put_json('/models/test', MODEL_DEFINITION,
-                          headers=self.headers)
         self.app.patch_json('/models/test/permissions',
                             {"admin": ["-read_all_records"]},
                             headers=self.headers)

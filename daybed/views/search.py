@@ -1,6 +1,7 @@
 import six
 from cornice import Service
 
+from daybed import logger
 from daybed.backends.exceptions import ModelNotFound
 
 
@@ -27,7 +28,10 @@ def search_records(request):
     if isinstance(query, six.binary_type):
         query = query.decode('utf-8')
 
-    results = request.index.search(index=model_id,
-                                   doc_type=model_id,
-                                   body=query)
-    return results
+    try:
+        results = request.index.search(model_id, query)
+        return results
+    except Exception as e:
+        logger.error(e)
+        request.response.status = "502 Bad Gateway"
+        return {"msg": "Could not obtain response from indexing service"}
