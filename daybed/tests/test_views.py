@@ -634,6 +634,31 @@ class SearchViewTest(BaseWebTest):
         self.app.put_json('/models/test', MODEL_DEFINITION,
                           headers=self.headers)
 
+    def test_search_returns_200_if_query_is_correct(self):
+        self.app.get('/models/test/search/', {'match_all': {}},
+                     headers=self.headers,
+                     status=200)
+
+    @mock.patch('elasticsearch.client.Elasticsearch.search')
+    def test_search_supports_query_string_parameters(self, search_mock):
+        search_mock.return_value = {}
+        query = {'match_all': {}}
+        self.app.get('/models/test/search/?size=100', query,
+                     headers=self.headers,
+                     status=200)
+        search_mock.called_with(index='test', doc_type='test',
+                                body=query, size=100)
+
+    @mock.patch('elasticsearch.client.Elasticsearch.search')
+    def test_search_ignores_unsupported_parameters(self, search_mock):
+        search_mock.return_value = {}
+        query = {'match_all': {}}
+        self.app.get('/models/test/search/?size=1&from_=1&routing=a,b', query,
+                     headers=self.headers,
+                     status=200)
+        search_mock.called_with(index='test', doc_type='test',
+                                body=query, size=1, from_=1)
+
     def test_search_returns_404_if_model_unknown(self):
         self.app.get('/models/unknown/search/', {},
                      headers=self.headers,

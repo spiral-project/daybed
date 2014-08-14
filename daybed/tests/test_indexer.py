@@ -33,7 +33,7 @@ class ModelsIndicesTest(BaseWebTest):
     def test_mapping_is_created_on_model_put(self, put_mapping_mock):
         for i in range(3):
             self.app.put_json('/models/test-%s' % i, MODEL_DEFINITION,
-                               headers=self.headers)
+                              headers=self.headers)
         self.assertEqual(put_mapping_mock.call_count, 3)
 
     @mock.patch('elasticsearch.client.indices.IndicesClient.delete')
@@ -45,7 +45,7 @@ class ModelsIndicesTest(BaseWebTest):
         self.assertEqual(delete_mock.call_count, 0)
 
     @mock.patch('elasticsearch.client.indices.IndicesClient.delete_mapping')
-    def test_existing_mapping_is_deleted_on_model_put(self, delete_mapping_mock):
+    def test_existing_mapping_is_deleted_on_put(self, delete_mapping_mock):
         self.app.put_json('/models/test', MODEL_DEFINITION,
                           headers=self.headers)
         self.app.put_json('/models/test', MODEL_DEFINITION,

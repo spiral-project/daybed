@@ -23,13 +23,14 @@ def search_records(request):
 
     # So far we just support query from body
     query = request.body
+    params = request.GET
 
     # In case request body arrives as bytes under python 3
     if isinstance(query, six.binary_type):
         query = query.decode('utf-8')
 
     try:
-        results = request.index.search(model_id, query)
+        results = request.index.search(model_id, query, params=params)
         return results
     except Exception as e:
         logger.error(e)

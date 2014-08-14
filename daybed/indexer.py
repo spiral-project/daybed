@@ -18,10 +18,13 @@ class DaybedIndexer(object):
         config.add_subscriber(self._reindex_record, events.RecordUpdated)
         config.add_subscriber(self._unindex_record, events.RecordDeleted)
 
-    def search(self, model_id, query):
+    def search(self, model_id, query, params):
+        supported_params = ['sort', 'from', 'source', 'fields']
+        params = dict([p for p in params.items() if p[0] in supported_params])
         return self.client.search(index=model_id,
                                   doc_type=model_id,
-                                  body=query)
+                                  body=query,
+                                  **params)
 
     def _create_index(self, event):
         if not self.client.indices.exists(index=event.model_id):
