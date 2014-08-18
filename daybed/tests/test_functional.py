@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+import json
+
 from daybed.tests.support import BaseWebTest, force_unicode
 
 
@@ -142,10 +144,11 @@ class FunctionalTest(object):
     def test_data_search_without_filter(self):
         self.create_definition()
         self.create_record()
-        query_all = {"match_all": {}}
-        resp = self.app.get('/models/%s/search/' % self.model_id,
-                            {'query': query_all},
-                            headers=self.headers)
+        query = {'query': {'match_all': {}}}
+        resp = self.app.request('/models/%s/search/' % self.model_id,
+                                method='GET',
+                                body=json.dumps(query).encode(),
+                                headers=self.headers)
         results = resp.json.get('hits', {}).get('hits', [])
         self.assertTrue(len(results) > 0)
 

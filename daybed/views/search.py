@@ -23,6 +23,7 @@ def search_records(request):
 
     # So far we just support query from body
     query = request.body
+    # Parameters can come from query string
     params = request.GET
 
     # In case request body arrives as bytes under python 3

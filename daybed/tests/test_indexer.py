@@ -1,3 +1,6 @@
+import decimal
+import json
+import copy
 import mock
 
 from daybed.schemas import registry
@@ -140,7 +143,7 @@ class RecordsIndicesTest(BaseWebTest):
 ALL_FIELDS_DEFINITION = {
     'definition': {
         'title': 'all fields',
-        'description': 'One optional field',
+        'description': 'Use all types in one definition',
         'fields': [
             {'name': 'a', 'type': 'int'},
             {'name': 'b', 'type': 'boolean'},
@@ -202,8 +205,8 @@ class DefinitionMappingTest(BaseWebTest):
 
     @mock.patch('daybed.indexer.logger.error')
     def test_generated_mapping_generates_no_error(self, error_mock):
-        self.app.put_json('/models/test', self.model,
-                          headers=self.headers)
+        self.app.post_json('/models', self.model,
+                           headers=self.headers)
         self.assertFalse(error_mock.called)
 
     def test_all_field_types_are_used_in_definition(self):
@@ -281,9 +284,6 @@ class RecordMappingTest(BaseWebTest):
             'w': 'simple-rec',
         }
 
-        self.app.put_json('/models/test/records/1', self.record,
-                          headers=self.headers)
-
         self.mapping = None
         with mock.patch('elasticsearch.client.Elasticsearch.index') as mocked:
             self.app.put_json('/models/test/records/1', self.record,
@@ -293,9 +293,20 @@ class RecordMappingTest(BaseWebTest):
 
     @mock.patch('daybed.indexer.logger.error')
     def test_generated_mapping_generates_no_error(self, error_mock):
-        self.app.put_json('/models/test/records/1', self.record,
-                          headers=self.headers)
+        self.app.post_json('/models/test/records', self.record,
+                           headers=self.headers)
         self.assertFalse(error_mock.called)
+
+    def test_indexed_record_is_kept_in_source(self):
+        self.app.post_json('/models/test/records', self.record,
+                           headers=self.headers)
+        response = self.app.get('/models/test/search/',
+                                headers=self.headers)
+        result = response.json['hits']['hits'][0]['_source']
+        result['id'] = self.mapping['id']  # id may differ
+        result['c'] = decimal.Decimal(str(result['c']))  # ES float
+        for k, v in self.mapping.items():
+            self.assertEqual(result[k], v)
 
     def test_list_are_indexed_as_strings(self):
         self.assertEqual(self.mapping['p'], '[{"pp": 1}]')
@@ -307,3 +318,49 @@ class RecordMappingTest(BaseWebTest):
         self.assertEqual(self.mapping['u'],
                          {"type": "Polygon",
                           "coordinates": self.record['u']})
+
+
+class SpatialSearchTest(BaseWebTest):
+
+    def setUp(self):
+        super(SpatialSearchTest, self).setUp()
+
+        definition = copy.deepcopy(MODEL_DEFINITION)
+        definition['definition']['fields'] = [{
+            'name': 'geom',
+            'type': 'point'
+        }]
+        self.app.put_json('/models/location', definition,
+                          headers=self.headers)
+        self.app.put_json('/models/location/records/0', {'geom': [0, 0]},
+                          headers=self.headers)
+        self.app.put_json('/models/location/records/1', {'geom': [1, 1]},
+                          headers=self.headers)
+        self.app.put_json('/models/location/records/2', {'geom': [2, 2]},
+                          headers=self.headers)
+
+    def spatialSearch(self, bbox):
+        query = {'filter': {'geo_bounding_box': {'geom': bbox}}}
+        query = {'query': {'filtered': query}}
+        resp = self.app.request('/models/location/search/',
+                                method='GET',
+                                body=json.dumps(query).encode(),
+                                headers=self.headers)
+        results = resp.json.get('hits', {}).get('hits', [])
+        return results
+
+    def test_no_result_if_bbox_disjoint_with_records(self):
+        bbox_none = {
+            'top_left': {'lon': 10, 'lat': 20},
+            'bottom_right': {'lon': 20, 'lat': 10},
+        }
+        results = self.spatialSearch(bbox_none)
+        self.assertEqual(len(results), 0)
+
+    def test_filters_records_by_position(self):
+        bbox_match = {
+            'top_left': {'lon': -0.5, 'lat': 1.5},
+            'bottom_right': {'lon': 1.5, 'lat': -0.5},
+        }
+        results = self.spatialSearch(bbox_match)
+        self.assertEqual(len(results), 2)

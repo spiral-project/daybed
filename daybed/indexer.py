@@ -103,9 +103,6 @@ class DaybedIndexer(object):
             logger.error(e)
 
     def _definition_as_mapping(self, model_definition):
-        mapping = {
-            'properties': {}
-        }
         fields = model_definition['fields']
         index_types = {
             'int': 'integer',
@@ -121,33 +118,26 @@ class DaybedIndexer(object):
             'json': 'object',
             'object': 'object',
         }
-        for field in fields:
-            name = field.get('name')
-            daybed_type = field.get('type')
 
-            if daybed_type == 'group':
-                for subfield in field['fields']:
-                    subname = subfield['name']
-                    subtype = subfield['type']
-                    index_type = index_types.get(subtype, 'string')
-                    mapping['properties'][subname] = {'type': index_type}
-                continue
+        def field_list(fields):
+            mappings = {}
+            for field in fields:
+                fieldname = field.get('name')
+                fieldtype = field.get('type')
+                mapping = {'type': index_types.get(fieldtype, 'string')}
+                if fieldtype == 'json':
+                    mapping['enabled'] = False
+                if fieldtype == 'group':
+                    mappings.update(field_list(field['fields']))
+                    continue
+                if fieldtype == 'object':
+                    mapping['properties'] = field_list(field['fields'])
+                mappings[fieldname] = mapping
+            return mappings
 
-            index_type = index_types.get(daybed_type, 'string')
-            mapping['properties'][name] = {'type': index_type}
-
-            if daybed_type == 'json':
-                mapping['properties'][name]['enabled'] = False
-
-            if daybed_type == 'object':
-                properties = {}
-                for subfield in field['fields']:
-                    subname = subfield['name']
-                    subtype = subfield['type']
-                    index_type = index_types.get(subtype, 'string')
-                    properties[subname] = {'type': index_type}
-                mapping['properties'][name]['properties'] = properties
-
+        mapping = {
+            'properties': field_list(fields)
+        }
         return mapping
 
     def _record_as_mapping(self, definition, record):
@@ -169,6 +159,8 @@ class DaybedIndexer(object):
                     'type': geojson[field_type],
                     'coordinates': value
                 }
-            if field_type in ('list',):
+            if field_type == 'point':
+                mapping[key] = {'lon': value[0], 'lat': value[1]}
+            if field_type == 'list':
                 mapping[key] = json.dumps(value)
         return mapping
