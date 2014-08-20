@@ -26,6 +26,7 @@ from daybed.permissions import (
 from daybed.views.errors import forbidden_view
 from daybed.renderers import GeoJSON
 from daybed.backends.exceptions import TokenNotFound
+from daybed import indexer, events
 
 
 def get_hawk_id(request, tokenid):
@@ -87,6 +88,14 @@ def main(global_config, **settings):
 
     config.add_request_method(get_token, 'token', reify=True)
 
+    # Helper for notifying events
+    def notify(request, event, *args):
+        klass = config.maybe_dotted('daybed.events.' + event)
+        event = klass(*(args + (request,)))
+        request.registry.notify(event)
+
+    config.add_request_method(notify, 'notify')
+
     # We need to scan AFTER setting the authn / authz policies
     config.scan("daybed.views")
 
@@ -99,6 +108,22 @@ def main(global_config, **settings):
 
     config.add_subscriber(add_db_to_request, NewRequest)
 
+    # index initialization
+    index_hosts = build_list(settings.get('elasticsearch.hosts'))
+    config.registry.index = index = indexer.ElasticSearchIndexer(index_hosts)
+    config.add_subscriber(index.on_model_created, events.ModelCreated)
+    config.add_subscriber(index.on_model_updated, events.ModelUpdated)
+    config.add_subscriber(index.on_model_deleted, events.ModelDeleted)
+    config.add_subscriber(index.on_record_created, events.RecordCreated)
+    config.add_subscriber(index.on_record_updated, events.RecordUpdated)
+    config.add_subscriber(index.on_record_deleted, events.RecordDeleted)
+
+    def add_index_to_request(event):
+        event.request.index = config.registry.index
+
+    config.add_subscriber(add_index_to_request, NewRequest)
+
+    # Renderers initialization
     def add_default_accept(event):
         # If the user doesn't give us an Accept header, force the use
         # of the JSON renderer
@@ -108,6 +133,6 @@ def main(global_config, **settings):
     config.add_subscriber(add_default_accept, NewRequest)
 
     config.add_renderer('jsonp', JSONP(param_name='callback'))
-
     config.add_renderer('geojson', GeoJSON())
+
     return config.make_wsgi_app()

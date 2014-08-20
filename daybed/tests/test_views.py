@@ -1,5 +1,8 @@
 import base64
+
+import mock
 from pyramid.security import Authenticated, Everyone
+
 from daybed import __version__ as VERSION
 from daybed.permissions import PERMISSIONS_SET
 from daybed.backends.exceptions import (
@@ -636,3 +639,56 @@ class TokensViewsTest(BaseWebTest):
         self.assertIn("key", response.json["credentials"])
         self.assertTrue(len(response.json["credentials"]["key"]) == 64)
         self.assertEqual("sha256", response.json["credentials"]["algorithm"])
+
+
+class SearchViewTest(BaseWebTest):
+
+    def setUp(self):
+        super(SearchViewTest, self).setUp()
+        self.app.put_json('/models/test', MODEL_DEFINITION,
+                          headers=self.headers)
+
+    def test_search_returns_200_if_query_is_correct(self):
+        self.app.get('/models/test/search/', {'match_all': {}},
+                     headers=self.headers,
+                     status=200)
+
+    @mock.patch('elasticsearch.client.Elasticsearch.search')
+    def test_search_supports_query_string_parameters(self, search_mock):
+        search_mock.return_value = {}
+        query = {'match_all': {}}
+        self.app.get('/models/test/search/?size=100', query,
+                     headers=self.headers,
+                     status=200)
+        search_mock.called_with(index='test', doc_type='test',
+                                body=query, size=100)
+
+    @mock.patch('elasticsearch.client.Elasticsearch.search')
+    def test_search_ignores_unsupported_parameters(self, search_mock):
+        search_mock.return_value = {}
+        query = {'match_all': {}}
+        self.app.get('/models/test/search/?size=1&from_=1&routing=a,b', query,
+                     headers=self.headers,
+                     status=200)
+        search_mock.called_with(index='test', doc_type='test',
+                                body=query, size=1, from_=1)
+
+    def test_search_returns_404_if_model_unknown(self):
+        self.app.get('/models/unknown/search/', {},
+                     headers=self.headers,
+                     status=404)
+
+    @mock.patch('elasticsearch.client.Elasticsearch.search')
+    def test_search_returns_502_if_elasticsearch_fails(self, search_mock):
+        search_mock.side_effect = Exception('Not available')
+        self.app.get('/models/test/search/', {},
+                     headers=self.headers,
+                     status=502)
+
+    def test_search_view_requires_permission(self):
+        self.app.patch_json('/models/test/permissions',
+                            {"admin": ["-read_all_records"]},
+                            headers=self.headers)
+        self.app.get('/models/test/search/', {},
+                     headers=self.headers,
+                     status=403)

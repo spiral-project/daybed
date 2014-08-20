@@ -126,8 +126,11 @@ def post_models(request):
         definition=request.validated['definition'],
         permissions=get_model_permissions(token))
 
+    request.notify('ModelCreated', model_id)
+
     for record in request.validated['records']:
-        request.db.put_record(model_id, record, [token])
+        record_id = request.db.put_record(model_id, record, [token])
+        request.notify('RecordCreated', model_id, record_id)
 
     request.response.status = "201 Created"
     location = '%s/models/%s' % (request.application_url, model_id)
@@ -145,6 +148,9 @@ def delete_model(request):
         request.errors.status = "404 Not Found"
         request.errors.add('path', model_id, "model not found")
         return
+
+    request.notify('ModelDeleted', model_id)
+
     model["permissions"] = invert_permissions_matrix(model["permissions"])
     return model
 
@@ -187,12 +193,12 @@ def put_model(request):
                 pass
             return handle_put_model(request)
     except ModelNotFound:
-        return handle_put_model(request)
+        return handle_put_model(request, create=True)
 
     return forbidden_view(request)
 
 
-def handle_put_model(request):
+def handle_put_model(request, create=False):
     model_id = request.matchdict['model_id']
 
     if request.token:
@@ -204,7 +210,11 @@ def handle_put_model(request):
                          get_model_permissions(token),
                          model_id)
 
+    event = 'ModelCreated' if create else 'ModelUpdated'
+    request.notify(event, model_id)
+
     for record in request.validated['records']:
-        request.db.put_record(model_id, record, [token])
+        record_id = request.db.put_record(model_id, record, [token])
+        request.notify('RecordCreated', model_id, record_id)
 
     return {"id": model_id}

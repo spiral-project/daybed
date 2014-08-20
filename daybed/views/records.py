@@ -59,6 +59,9 @@ def post_record(request):
         token = Everyone
     record_id = request.db.put_record(model_id, request.data_clean,
                                       [token])
+
+    request.notify('RecordCreated', model_id, record_id)
+
     created = u'%s/models/%s/records/%s' % (request.application_url, model_id,
                                             record_id)
     request.response.status = "201 Created"
@@ -72,6 +75,8 @@ def delete_records(request):
     model_id = request.matchdict['model_id']
     try:
         records = request.db.delete_records(model_id)
+        for record in records:
+            request.notify('RecordDeleted', model_id, record['id'])
     except ModelNotFound:
         request.errors.add('path', model_id, "model not found")
         request.errors.status = "404 Not Found"
@@ -101,6 +106,12 @@ def put(request):
     model_id = request.matchdict['model_id']
     record_id = request.matchdict['record_id']
 
+    try:
+        request.db.get_record(model_id, record_id)
+        create = True
+    except RecordNotFound:
+        create = False
+
     if request.token:
         token = request.token
     else:
@@ -108,6 +119,8 @@ def put(request):
 
     record_id = request.db.put_record(model_id, request.data_clean,
                                       [token], record_id=record_id)
+    event = 'RecordCreated' if create else 'RecordUpdated'
+    request.notify(event, model_id, record_id)
     return {'id': record_id}
 
 
@@ -123,17 +136,18 @@ def patch(request):
         token = Everyone
 
     try:
-        records = request.db.get_record(model_id, record_id)
+        record = request.db.get_record(model_id, record_id)
     except RecordNotFound:
         request.errors.add('path', record_id, "record not found")
         request.errors.status = "404 Not Found"
         return
 
-    records.update(json.loads(request.body.decode('utf-8')))
+    record.update(json.loads(request.body.decode('utf-8')))
     definition = request.db.get_model_definition(model_id)
-    validate_against_schema(request, RecordSchema(definition), records)
+    validate_against_schema(request, RecordSchema(definition), record)
     if not request.errors:
-        request.db.put_record(model_id, records, [token], record_id)
+        request.db.put_record(model_id, record, [token], record_id)
+        request.notify('RecordUpdated', model_id, record_id)
     return {'id': record_id}
 
 
@@ -145,6 +159,7 @@ def delete(request):
 
     try:
         deleted = request.db.delete_record(model_id, record_id)
+        request.notify('RecordDeleted', model_id, record_id)
     except RecordNotFound:
         request.errors.add('path', record_id, "record not found")
         request.errors.status = "404 Not Found"

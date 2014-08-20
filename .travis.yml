@@ -3,6 +3,7 @@ python: 2.7
 services:
     - couchdb
     - redis-server
+    - elasticsearch
 env:
     - TOX_ENV=py26
     - TOX_ENV=py27
