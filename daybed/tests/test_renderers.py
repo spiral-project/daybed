@@ -84,6 +84,17 @@ class TestJSONSchemaRenderer(BaseRendererTest):
             }
         )
 
+    def test_datetime_type(self):
+        self.assertEquals(
+            self._get_rendered_field('datetime'),
+            {
+                'description': 'field',
+                'type': 'string',
+                'pattern': '(\d{4})-(\d{2})-(\d{2})T(\d{2})\:(\d{2})\:(\d{2})'
+                           '[+-](\d{2})\:(\d{2})'
+            }
+        )
+
     def test_anyof_type(self):
         pass
 

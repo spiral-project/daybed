@@ -21,6 +21,7 @@ class JSONSchema(JSONP):
             'url': lambda x: {'type': 'string', 'format': 'uri'},
             'enum': self.serialize_enum,
             'range': self.serialize_range,
+            'datetime': self.serialize_datetime,
         }
         super(JSONSchema, self).__init__(*args, **kwargs)
 
@@ -72,6 +73,13 @@ class JSONSchema(JSONP):
             'type': 'integer',
             'minimum': field['min'],
             'maximum': field['max']
+        }
+
+    def serialize_datetime(self, field):
+        return {
+            'type': 'string',
+            'pattern': '(\d{4})-(\d{2})-(\d{2})T(\d{2})\:(\d{2})\:(\d{2})'
+                       '[+-](\d{2})\:(\d{2})'
         }
 
 
