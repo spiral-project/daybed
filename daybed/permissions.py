@@ -114,24 +114,22 @@ class DaybedAuthorizationPolicy(object):
 
         return creators
 
-    def add_conf_rights(self, creators, principals, permissions, perm):
-        if creators.intersection(principals) != set():
-            permissions.add(perm)
-
     def permits(self, context, principals, permission):
         """Returns True or False depending if the token with the specified
         principals has access to the given permission.
         """
+        principals = set(principals)
         permissions_required = VIEWS_PERMISSIONS_REQUIRED[permission]
+        current_permissions = set()
 
-        token_permissions = set()
+        if principals.intersection(self.model_creators):
+            current_permissions.add("create_model")
 
-        self.add_conf_rights(self.model_creators, principals,
-                             token_permissions, "create_model")
-        self.add_conf_rights(self.token_creators, principals,
-                             token_permissions, "create_token")
-        self.add_conf_rights(self.token_managers, principals,
-                             token_permissions, "manage_token")
+        if principals.intersection(self.token_creators):
+            current_permissions.add("create_token")
+
+        if principals.intersection(self.token_managers):
+            current_permissions.add("manage_token")
 
         hasModel = True
 
@@ -147,10 +145,10 @@ class DaybedAuthorizationPolicy(object):
             for perm_name, tokens in iteritems(perms):
                 # If one of the principals is in the valid tokens for this,
                 # permission, grant the permission.
-                if set(principals).intersection(tokens):
-                    token_permissions.add(perm_name)
+                if principals.intersection(tokens):
+                    current_permissions.add(perm_name)
 
-            logger.debug("token permissions: %s", token_permissions)
+            logger.debug("token permissions: %s", current_permissions)
 
             if context.record_id is not None:
                 try:
@@ -159,15 +157,15 @@ class DaybedAuthorizationPolicy(object):
                 except RecordNotFound:
                     authors = []
                 finally:
-                    if not set(principals).intersection(authors):
-                        token_permissions -= AUTHORS_PERMISSIONS
+                    if not principals.intersection(authors):
+                        current_permissions -= AUTHORS_PERMISSIONS
 
         # Expose permissions and principals for in_view checks
-        context.request.permissions = token_permissions
+        context.request.permissions = current_permissions
         context.request.principals = principals
 
         # Check view permission matches token permissions.
-        return permissions_required.matches(token_permissions)
+        return permissions_required.matches(current_permissions)
 
     def principals_allowed_by_permission(self, context, permission):
         raise NotImplementedError()  # PRAGMA NOCOVER
