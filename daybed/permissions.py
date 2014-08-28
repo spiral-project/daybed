@@ -10,6 +10,7 @@ from daybed.backends.exceptions import (
 )
 from daybed import logger
 
+
 PERMISSIONS_SET = set([
     'read_definition', 'update_permissions',
     'read_permissions', 'update_definition',
@@ -20,19 +21,12 @@ PERMISSIONS_SET = set([
 ])
 
 
-def get_model_permissions(token, all_perms=PERMISSIONS_SET, permissions=None):
-    # - Add the token to given permissions.
-    # - By default give all permissions to the token
-    # - You can pass existing permissions if you want to add the token to some
-    # permissions
-    if permissions is None:
-        permissions = defaultdict(list)
-    else:
-        permissions = defaultdict(list, **permissions)
-
-    for perm in all_perms:
+def default_model_permissions(token):
+    """ Give all permissions to the model creator.
+    """
+    permissions = defaultdict(list)
+    for perm in PERMISSIONS_SET:
         permissions[perm].append(token)
-
     return permissions
 
 

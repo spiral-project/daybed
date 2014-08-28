@@ -4,7 +4,7 @@ from cornice import Service
 from pyramid.security import Everyone
 
 from daybed.permissions import (
-    get_model_permissions, invert_permissions_matrix,
+    default_model_permissions, invert_permissions_matrix,
     dict_list2set, dict_set2list, PERMISSIONS_SET
 )
 from daybed.backends.exceptions import ModelNotFound
@@ -124,7 +124,7 @@ def post_models(request):
 
     model_id = request.db.put_model(
         definition=request.validated['definition'],
-        permissions=get_model_permissions(token))
+        permissions=default_model_permissions(token))
 
     request.notify('ModelCreated', model_id)
 
@@ -207,7 +207,7 @@ def handle_put_model(request, create=False):
         token = Everyone
 
     request.db.put_model(request.validated['definition'],
-                         get_model_permissions(token),
+                         default_model_permissions(token),
                          model_id)
 
     event = 'ModelCreated' if create else 'ModelUpdated'

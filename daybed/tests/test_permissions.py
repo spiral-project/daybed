@@ -9,8 +9,10 @@ from pyramid.security import Authenticated
 from daybed.backends import exceptions
 from daybed.permissions import (
     All, Any, DaybedAuthorizationPolicy,
-    invert_permissions_matrix, dict_set2list, dict_list2set
+    invert_permissions_matrix, dict_set2list, dict_list2set,
+    default_model_permissions, PERMISSIONS_SET
 )
+
 
 class TestAnyAll(TestCase):
 
@@ -54,17 +56,13 @@ class TestAnyAll(TestCase):
             .matches(['un', 'deux']))
 
 
-class TestPermission(TestCase):
+class TestPermissionTools(TestCase):
 
-    def _get_request(self):
-        request = mock.MagicMock()
-        request.matchdict = {'model_id': 'modelname',
-                             'record_id': 'record_id'}
-
-        db = mock.MagicMock()
-        db.get_record_authors.return_value = ['Alexis', 'Remy']
-        request.db = db
-        return request
+    def test_default_model_permissions(self):
+        perms = default_model_permissions('abc')
+        self.assertEqual(set(perms.keys()), PERMISSIONS_SET)
+        tokens = [t[0] for t in perms.values()]
+        self.assertEqual(set(['abc']), set(tokens))
 
     def test_dict_set2list(self):
         self.assertDictEqual(dict_set2list({
@@ -97,7 +95,7 @@ class TestPermission(TestCase):
         self.assertDictEqual(invert_permissions_matrix(model_permissions), tokens_permissions)
 
 
-class PolicyPermissionTest(TestCase):
+class BasePolicyPermissionTest(TestCase):
 
     def setUp(self):
         self.policy = DaybedAuthorizationPolicy()
@@ -106,6 +104,13 @@ class PolicyPermissionTest(TestCase):
 
     def permits(self, *args):
         return self.policy.permits(self.context, *args)
+
+
+class PolicyPermissionTest(BasePolicyPermissionTest):
+
+    def test_pyramid_constants_are_resolved(self):
+        policy = DaybedAuthorizationPolicy(model_creators=['Authenticated'])
+        self.assertEqual(policy.model_creators, set([Authenticated]))
 
     def test_allowed_if_principals_in_model_permissions(self):
         self.context.db.get_model_permissions.return_value = {
@@ -127,7 +132,7 @@ class PolicyPermissionTest(TestCase):
         self.assertFalse(self.permits(['abc'], 'get_record'))
 
 
-class UnknownModelPolicyPermissionTest(PolicyPermissionTest):
+class UnknownModelPolicyPermissionTest(BasePolicyPermissionTest):
 
     def setUp(self):
         super(UnknownModelPolicyPermissionTest, self).setUp()
