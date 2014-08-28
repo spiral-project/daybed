@@ -131,34 +131,35 @@ class DaybedAuthorizationPolicy(object):
         if principals.intersection(self.token_managers):
             current_permissions.add("manage_token")
 
-        hasModel = True
-
-        if context.model_id:
+        model_id = context.model_id
+        if model_id is not None:
             try:
-                perms = context.db.get_model_permissions(context.model_id)
+                model_permissions = context.db.get_model_permissions(model_id)
             except ModelNotFound:
-                return True
-        else:
-            hasModel = False
+                model_permissions = {}
+                if permission != 'post_model':
+                    # Prevent unauthorized error to shadow 404 responses
+                    return True
+            finally:
+                for perm_name, tokens in iteritems(model_permissions):
+                    # If one of the principals is in the valid tokens for this,
+                    # permission, grant the permission.
+                    if principals.intersection(tokens):
+                        current_permissions.add(perm_name)
 
-        if hasModel:
-            for perm_name, tokens in iteritems(perms):
-                # If one of the principals is in the valid tokens for this,
-                # permission, grant the permission.
-                if principals.intersection(tokens):
-                    current_permissions.add(perm_name)
+        # Remove author's permissions if a record is involved, and if it
+        # does not belong to the token.
+        record_id = context.record_id
+        if record_id is not None:
+            try:
+                authors = context.db.get_record_authors(model_id, record_id)
+            except RecordNotFound:
+                authors = []
+            finally:
+                if not principals.intersection(authors):
+                    current_permissions -= AUTHORS_PERMISSIONS
 
-            logger.debug("token permissions: %s", current_permissions)
-
-            if context.record_id is not None:
-                try:
-                    authors = context.db.get_record_authors(
-                        context.model_id, context.record_id)
-                except RecordNotFound:
-                    authors = []
-                finally:
-                    if not principals.intersection(authors):
-                        current_permissions -= AUTHORS_PERMISSIONS
+        logger.debug("Current permissions: %s", current_permissions)
 
         # Expose permissions and principals for in_view checks
         context.request.permissions = current_permissions

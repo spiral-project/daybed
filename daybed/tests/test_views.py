@@ -198,8 +198,10 @@ class ModelsViewsTest(BaseWebTest):
         self.assertEquals(definition, MODEL_DEFINITION['definition'])
 
     def test_cors_support_on_404(self):
+        headers = self.headers.copy()
+        headers['Origin'] = 'notmyidea.org'
         response = self.app.get('/models/unknown/definition',
-                                headers={'Origin': 'notmyidea.org'},
+                                headers=headers,
                                 status=404)
         self.assertIn('Access-Control-Allow-Origin', response.headers)
 
