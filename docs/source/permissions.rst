@@ -50,6 +50,7 @@ Views permissions
 At the API level, you will often need more than one permissions to get
 access to an API resource.
 
-For example, if you want to get a model, you will need to have the
-right for `read_definition` and `read_permissions` as well as
-`read_all_records` or `read_own_records`
+For example, if you want to get a complete model (definition and records),
+you will need the following permissions:
+- **read_definition** and **read_permissions**
+- **read_all_records** or **read_own_records**

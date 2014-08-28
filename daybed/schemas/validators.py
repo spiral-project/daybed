@@ -139,8 +139,7 @@ def model_validator(request):
 def permissions_validator(request):
     """Verify that the permissions defined in the request body are valid:
          - tokens exists
-         - rights are valids
-
+         - permission names are valid
     """
     try:
         body = json.loads(request.body.decode('utf-8'))
