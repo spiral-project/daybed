@@ -25,7 +25,7 @@ technologies, such as *CouchDB* and *Pyramid*.
 
 Notable features :
 
-* Access right management
+* Permissions management
 * Geographical fields
 * Relationships between models
 * Pluggable database engine
