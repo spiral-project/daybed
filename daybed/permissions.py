@@ -10,6 +10,7 @@ from daybed.backends.exceptions import (
 )
 from daybed import logger
 
+
 PERMISSIONS_SET = set([
     'read_definition', 'update_permissions',
     'read_permissions', 'update_definition',
@@ -20,19 +21,12 @@ PERMISSIONS_SET = set([
 ])
 
 
-def get_model_permissions(token, all_perms=PERMISSIONS_SET, permissions=None):
-    # - Add the token to given permissions.
-    # - By default give all permissions to the token
-    # - You can pass existing permissions if you want to add the token to some
-    # permissions
-    if permissions is None:
-        permissions = defaultdict(list)
-    else:
-        permissions = defaultdict(list, **permissions)
-
-    for perm in all_perms:
+def default_model_permissions(token):
+    """ Give all permissions to the model creator.
+    """
+    permissions = defaultdict(list)
+    for perm in PERMISSIONS_SET:
         permissions[perm].append(token)
-
     return permissions
 
 
@@ -131,34 +125,35 @@ class DaybedAuthorizationPolicy(object):
         if principals.intersection(self.token_managers):
             current_permissions.add("manage_token")
 
-        hasModel = True
-
-        if context.model_id:
+        model_id = context.model_id
+        if model_id is not None:
             try:
-                perms = context.db.get_model_permissions(context.model_id)
+                model_permissions = context.db.get_model_permissions(model_id)
             except ModelNotFound:
-                return True
-        else:
-            hasModel = False
+                model_permissions = {}
+                if permission != 'post_model':
+                    # Prevent unauthorized error to shadow 404 responses
+                    return True
+            finally:
+                for perm_name, tokens in iteritems(model_permissions):
+                    # If one of the principals is in the valid tokens for this,
+                    # permission, grant the permission.
+                    if principals.intersection(tokens):
+                        current_permissions.add(perm_name)
 
-        if hasModel:
-            for perm_name, tokens in iteritems(perms):
-                # If one of the principals is in the valid tokens for this,
-                # permission, grant the permission.
-                if principals.intersection(tokens):
-                    current_permissions.add(perm_name)
+        # Remove author's permissions if a record is involved, and if it
+        # does not belong to the token.
+        record_id = context.record_id
+        if record_id is not None:
+            try:
+                authors = context.db.get_record_authors(model_id, record_id)
+            except RecordNotFound:
+                authors = []
+            finally:
+                if not principals.intersection(authors):
+                    current_permissions -= AUTHORS_PERMISSIONS
 
-            logger.debug("token permissions: %s", current_permissions)
-
-            if context.record_id is not None:
-                try:
-                    authors = context.db.get_record_authors(
-                        context.model_id, context.record_id)
-                except RecordNotFound:
-                    authors = []
-                finally:
-                    if not principals.intersection(authors):
-                        current_permissions -= AUTHORS_PERMISSIONS
+        logger.debug("Current permissions: %s", current_permissions)
 
         # Expose permissions and principals for in_view checks
         context.request.permissions = current_permissions
