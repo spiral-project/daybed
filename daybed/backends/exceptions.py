@@ -1,8 +1,8 @@
-class TokenAlreadyExist(Exception):
+class CredentialsAlreadyExist(Exception):
     pass
 
 
-class TokenNotFound(Exception):
+class CredentialsNotFound(Exception):
     pass
 
 

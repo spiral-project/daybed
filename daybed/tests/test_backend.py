@@ -10,9 +10,7 @@ import six
 from couchdb.client import Server
 from couchdb.design import ViewDefinition
 
-from daybed.backends.exceptions import (
-    TokenAlreadyExist, ModelNotFound, RecordNotFound,
-)
+from daybed.backends import exceptions as backend_exceptions
 from daybed.backends.couchdb import (
     CouchDBBackendConnectionError, CouchDBBackend
 )
@@ -21,6 +19,7 @@ from daybed.backends.redis import RedisBackend
 from redis.exceptions import ConnectionError
 
 from daybed.backends.couchdb.views import docs as couchdb_views
+from daybed.tokens import get_hawk_credentials
 
 
 class BackendTestBase(object):
@@ -48,9 +47,26 @@ class BackendTestBase(object):
     def test_add_permissions_merges_redundant_permissions(self):
         pass
 
-    def test_add_token_fails_if_already_exist(self):
-        self.db.add_token("Remy", "Foo")
-        self.assertRaises(TokenAlreadyExist, self.db.add_token, "Remy", "Bar")
+    def test_store_credentials_fails_if_already_exist(self):
+        token, credentials = get_hawk_credentials()
+        self.db.store_credentials(token, credentials)
+        self.assertRaises(backend_exceptions.CredentialsAlreadyExist,
+                          self.db.store_credentials, token, credentials)
+
+    def test_store_credentials_fails_if_credentials_are_incorrects(self):
+        token, credentials = get_hawk_credentials()
+        del credentials['id']
+        self.assertRaises(AssertionError, self.db.store_credentials, token, credentials)
+        token, credentials = get_hawk_credentials()
+        del credentials['key']
+        self.assertRaises(AssertionError, self.db.store_credentials, token, credentials)
+
+    def test_store_credentials_fails_if_credentials_are_incorrects(self):
+        token, credentials = get_hawk_credentials()
+        self.db.store_credentials(token, credentials)
+        self.assertEqual(self.db.get_token(credentials['id']), token)
+        self.assertEqual(self.db.get_credentials_key(credentials['id']),
+                         credentials['key'])
 
     def test_get_models(self):
         self._create_model()
@@ -157,7 +173,7 @@ class BackendTestBase(object):
         self._create_model()
         self.db.put_record('modelname', self.record, ['author'], 'record')
         self.db.delete_record('modelname', 'record')
-        self.assertRaises(RecordNotFound, self.db.get_record,
+        self.assertRaises(backend_exceptions.RecordNotFound, self.db.get_record,
                           'modelname', 'record')
 
     def test_get_model_definition(self):
@@ -175,15 +191,16 @@ class BackendTestBase(object):
             "permissions": self.permissions,
             "records": [{"age": 7, "id": "123456"}]
         })
-        self.assertRaises(ModelNotFound, self.db.get_model_definition,
-                          'modelname')
-        self.assertRaises(ModelNotFound, self.db.get_records,
-                          'modelname')
-        self.assertRaises(RecordNotFound, self.db.get_record,
-                          'modelname', '123456')
+        self.assertRaises(backend_exceptions.ModelNotFound,
+                          self.db.get_model_definition, 'modelname')
+        self.assertRaises(backend_exceptions.ModelNotFound,
+                          self.db.get_records, 'modelname')
+        self.assertRaises(backend_exceptions.RecordNotFound,
+                          self.db.get_record, 'modelname', '123456')
 
     def test_model_deletion_raises_if_unknown(self):
-        self.assertRaises(ModelNotFound, self.db.delete_model, 'unknown')
+        self.assertRaises(backend_exceptions.ModelNotFound,
+                          self.db.delete_model, 'unknown')
 
 
 class TestCouchDBBackend(BackendTestBase, TestCase):

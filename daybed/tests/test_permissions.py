@@ -86,13 +86,14 @@ class TestPermissionTools(TestCase):
             'read_all_records': ['admin', 'remy'],
             'update_my_record': ['admin'],
         }
-        tokens_permissions = {
-            'admin': ['read_all_records', 'read_permissions', 'update_definition',
-                      'update_my_record'],
+        credentials_ids_permissions = {
+            'admin': ['read_all_records', 'read_permissions', 
+                      'update_definition', 'update_my_record'],
             'alexis': ['read_permissions'],
             'remy': ['read_all_records']
         }
-        self.assertDictEqual(invert_permissions_matrix(model_permissions), tokens_permissions)
+        self.assertDictEqual(invert_permissions_matrix(model_permissions),
+                             credentials_ids_permissions)
 
 
 class BasePolicyPermissionTest(TestCase):

@@ -22,22 +22,20 @@ MODEL_DEFINITION = {
     }
 }
 
-MODEL_PERMISSIONS = {
-    'admin': [
-        'create_record',
-        'delete_all_records',
-        'delete_model',
-        'delete_own_records',
-        'read_all_records',
-        'read_definition',
-        'read_own_records',
-        'read_permissions',
-        'update_all_records',
-        'update_definition',
-        'update_own_records',
-        'update_permissions',
-    ]
-}
+MODEL_PERMISSIONS = [
+    'create_record',
+    'delete_all_records',
+    'delete_model',
+    'delete_own_records',
+    'read_all_records',
+    'read_definition',
+    'read_own_records',
+    'read_permissions',
+    'update_all_records',
+    'update_definition',
+    'update_own_records',
+    'update_permissions',
+]
 
 MODEL_RECORD = {'age': 42}
 MODEL_RECORD2 = {'age': 25}
@@ -54,7 +52,6 @@ class DaybedViewsTest(BaseWebTest):
         response = self.app.get('/', headers=self.headers)
         self.assertDictEqual({'version': VERSION,
                               'url': 'http://localhost',
-                              'token': 'admin',
                               'daybed': 'hello'}, response.json)
 
     def test_fields_are_listed(self):
@@ -121,7 +118,7 @@ class BasicAuthRegistrationTest(BaseWebTest):
                           {'definition': self.valid_definition},
                           headers=self.headers)
         self.app.patch_json('/models/%s/permissions' % self.model_id,
-                            {"admin": ["-ALL"]},
+                            {self.credentials['id']: ["-ALL"]},
                             headers=self.headers)
         resp = self.app.get('/models/%s' % self.model_id,
                             headers=self.headers,
@@ -183,7 +180,8 @@ class ModelsViewsTest(BaseWebTest):
         resp = self.app.get('/models/test', {},
                             headers=self.headers)
         self.assertEqual(resp.json['records'], [])
-        self.assertDictEqual(resp.json['permissions'], MODEL_PERMISSIONS)
+        self.assertDictEqual(resp.json['permissions'],
+                             {self.credentials['id']: MODEL_PERMISSIONS})
 
     def test_post_model_definition_without_definition(self):
         self.app.post_json('/models', {}, headers=self.headers, status=400)
@@ -223,21 +221,25 @@ class ModelsViewsTest(BaseWebTest):
 
         resp = self.app.get('/models/test/permissions',
                             headers=self.headers)
-        permissions = force_unicode(MODEL_PERMISSIONS)
+        permissions = force_unicode(
+            {self.credentials['id']: MODEL_PERMISSIONS}
+        )
         self.assertDictEqual(resp.json, permissions)
 
     def test_patch_permissions_add(self):
         self.app.put_json('/models/test',
                           MODEL_DEFINITION,
                           headers=self.headers)
-        self.db.add_token('alexis', 'bar')
-        self.db.add_token('remy', 'foobar')
+        self.db.store_credentials('foo', {'id': 'alexis', 'key': 'bar'})
+        self.db.store_credentials('foobar',  {'id': 'remy', 'key': 'bar'})
 
         resp = self.app.patch_json('/models/test/permissions',
                                    {"alexis": ["read_permissions"],
                                     "remy": ["update_permissions"]},
                                    headers=self.headers)
-        permissions = force_unicode(MODEL_PERMISSIONS)
+        permissions = force_unicode(
+            {self.credentials['id']: MODEL_PERMISSIONS}
+        )
         permissions[u"alexis"] = [u"read_permissions"]
         permissions[u"remy"] = [u"update_permissions"]
         self.assertDictEqual(resp.json, permissions)
@@ -247,25 +249,30 @@ class ModelsViewsTest(BaseWebTest):
                           MODEL_DEFINITION,
                           headers=self.headers)
 
-        resp = self.app.patch_json('/models/test/permissions',
-                                   {"admin": ["-read_permissions",
-                                              "-update_permissions"]},
-                                   headers=self.headers)
-        permissions = force_unicode(MODEL_PERMISSIONS)
-        permissions[u"admin"].remove("read_permissions")
-        permissions[u"admin"].remove("update_permissions")
+        resp = self.app.patch_json(
+            '/models/test/permissions',
+            {self.credentials['id']: ["-read_permissions",
+                                      "-update_permissions"]},
+            headers=self.headers)
+        permissions = force_unicode(
+            {self.credentials['id']: MODEL_PERMISSIONS}
+        )
+        permissions[self.credentials['id']].remove("read_permissions")
+        permissions[self.credentials['id']].remove("update_permissions")
         self.assertDictEqual(resp.json, permissions)
 
     def test_patch_permissions_add_all(self):
         self.app.put_json('/models/test',
                           MODEL_DEFINITION,
                           headers=self.headers)
-        self.db.add_token('alexis', 'bar')
+        self.db.store_credentials('foo', {'id': 'alexis', 'key': 'bar'})
 
         resp = self.app.patch_json('/models/test/permissions',
                                    {"alexis": ["ALL"]},
                                    headers=self.headers)
-        permissions = force_unicode(MODEL_PERMISSIONS)
+        permissions = force_unicode(
+            {self.credentials['id']: MODEL_PERMISSIONS}
+        )
         permissions[u"alexis"] = sorted(PERMISSIONS_SET)
         self.assertDictEqual(resp.json, permissions)
 
@@ -280,7 +287,9 @@ class ModelsViewsTest(BaseWebTest):
              Authenticated: ["read_definition", "read_permissions"]},
             headers=self.headers
         )
-        permissions = force_unicode(MODEL_PERMISSIONS)
+        permissions = force_unicode(
+            {self.credentials['id']: MODEL_PERMISSIONS}
+        )
         permissions[Authenticated] = ["read_definition", "read_permissions"]
         permissions[Everyone] = ["read_definition"]
         self.assertDictEqual(resp.json, permissions)
@@ -296,7 +305,9 @@ class ModelsViewsTest(BaseWebTest):
              "Authenticated": ["read_definition", "read_permissions"]},
             headers=self.headers
         )
-        permissions = force_unicode(MODEL_PERMISSIONS)
+        permissions = force_unicode(
+            {self.credentials['id']: MODEL_PERMISSIONS}
+        )
         permissions[Authenticated] = ["read_definition", "read_permissions"]
         permissions[Everyone] = ["read_definition"]
         self.assertDictEqual(resp.json, permissions)
@@ -307,7 +318,7 @@ class ModelsViewsTest(BaseWebTest):
                           headers=self.headers)
 
         resp = self.app.patch_json('/models/test/permissions',
-                                   {"admin": ["-all"]},
+                                   {self.credentials['id']: ["-all"]},
                                    headers=self.headers)
         self.assertDictEqual(resp.json, {})
 
@@ -332,8 +343,8 @@ class ModelsViewsTest(BaseWebTest):
         self.app.put_json('/models/test',
                           MODEL_DEFINITION,
                           headers=self.headers)
-        self.db.add_token('alexis', 'bar')
-        self.db.add_token('remy', 'foobar')
+        self.db.store_credentials('foo', {'id': 'alexis', 'key': 'bar'})
+        self.db.store_credentials('foobar', {'id': 'remy', 'key': 'bar'})
 
         resp = self.app.put_json('/models/test/permissions',
                                  {"alexis": ["read_permissions"],
@@ -467,10 +478,11 @@ class ModelsViewsTest(BaseWebTest):
         record = MODEL_RECORD.copy()
         record["id"] = resp.json["id"]
 
-        self.db.add_token('alexis', 'bar')
-        self.db.add_token('remy', 'foobar')
+        self.db.store_credentials('foo', {'id': 'alexis', 'key': 'bar'})
+        self.db.store_credentials('foobar', {'id': 'remy', 'key': 'bar'})
 
-        permissions = {"admin": ["delete_all_records", "delete_model"],
+        permissions = {self.credentials['id']: ["delete_all_records",
+                                                "delete_model"],
                        "alexis": ["read_permissions"],
                        "remy": ["update_permissions"]}
 
@@ -633,8 +645,8 @@ class TokensViewsTest(BaseWebTest):
 
     def test_post_token(self):
         response = self.app.post('/tokens', status=201)
-        self.assertIn("sessionToken", response.json)
-        self.assertTrue(len(response.json["sessionToken"]) == 64)
+        self.assertIn("token", response.json)
+        self.assertTrue(len(response.json["token"]) == 64)
         self.assertIn("credentials", response.json)
         self.assertIn("id", response.json["credentials"])
         self.assertTrue(len(response.json["credentials"]["id"]) == 64)
@@ -689,7 +701,7 @@ class SearchViewTest(BaseWebTest):
 
     def test_search_view_requires_permission(self):
         self.app.patch_json('/models/test/permissions',
-                            {"admin": ["-read_all_records"]},
+                            {self.credentials['id']: ["-read_all_records"]},
                             headers=self.headers)
         self.app.get('/models/test/search/', {},
                      headers=self.headers,

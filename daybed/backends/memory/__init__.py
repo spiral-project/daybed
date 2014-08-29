@@ -1,8 +1,6 @@
 from copy import deepcopy
 
-from daybed.backends.exceptions import (
-    TokenAlreadyExist, TokenNotFound, ModelNotFound, RecordNotFound
-)
+from daybed.backends import exceptions as backend_exceptions
 
 
 class MemoryBackend(object):
@@ -27,7 +25,8 @@ class MemoryBackend(object):
             'models': {},
             'records': {},
             'permissions': {},
-            'tokens': {}
+            'tokens': {},
+            'credentials_keys': {}
         }
 
     def get_models(self, principals):
@@ -44,7 +43,7 @@ class MemoryBackend(object):
         try:
             return deepcopy(self._db['models'][model_id])
         except KeyError:
-            raise ModelNotFound(model_id)
+            raise backend_exceptions.ModelNotFound(model_id)
 
     def get_model_definition(self, model_id):
         return self.__get_raw_model(model_id)['definition']
@@ -53,7 +52,7 @@ class MemoryBackend(object):
         try:
             return self._db['records'][model_id].values()
         except KeyError:
-            raise ModelNotFound(model_id)
+            raise backend_exceptions.ModelNotFound(model_id)
 
     def get_records(self, model_id, raw_records=None):
         return [r["record"] for r in
@@ -73,7 +72,9 @@ class MemoryBackend(object):
         try:
             return deepcopy(self._db['records'][model_id][record_id])
         except KeyError:
-            raise RecordNotFound(u'(%s, %s)' % (model_id, record_id))
+            raise backend_exceptions.RecordNotFound(
+                u'(%s, %s)' % (model_id, record_id)
+            )
 
     def get_record(self, model_id, record_id):
         doc = self.__get_raw_record(model_id, record_id)
@@ -106,7 +107,7 @@ class MemoryBackend(object):
         if record_id is not None:
             try:
                 old_doc = self.__get_raw_record(model_id, record_id)
-            except RecordNotFound:
+            except backend_exceptions.RecordNotFound:
                 doc['_id'] = record_id
             else:
                 old_doc["record"].update(doc["record"])
@@ -138,21 +139,29 @@ class MemoryBackend(object):
                 "permissions": doc["permissions"],
                 "records": records}
 
-    def get_token(self, tokenHmacId):
+    def get_token(self, credentials_id):
         try:
-            return str(self._db['tokens'][tokenHmacId])
+            return str(self._db['tokens'][credentials_id])
         except KeyError:
-            raise TokenNotFound(tokenHmacId)
+            raise backend_exceptions.CredentialsNotFound(credentials_id)
 
-    def add_token(self, tokenHmacId, secret):
-        # Check that the token doesn't already exist.
+    def get_credentials_key(self, credentials_id):
         try:
-            self.get_token(tokenHmacId)
-            raise TokenAlreadyExist(tokenHmacId)
-        except TokenNotFound:
+            return str(self._db['credentials_keys'][credentials_id])
+        except KeyError:
+            raise backend_exceptions.CredentialsNotFound(credentials_id)
+
+    def store_credentials(self, token, credentials):
+        # Check that the token doesn't already exist.
+        assert 'id' in credentials and 'key' in credentials
+        try:
+            self.get_token(credentials['id'])
+            raise backend_exceptions.CredentialsAlreadyExist(credentials['id'])
+        except backend_exceptions.CredentialsNotFound:
             pass
 
-        self._db['tokens'][tokenHmacId] = secret
+        self._db['tokens'][credentials['id']] = token
+        self._db['credentials_keys'][credentials['id']] = credentials['key']
 
     def get_model_permissions(self, model_id):
         doc = self.__get_raw_model(model_id)

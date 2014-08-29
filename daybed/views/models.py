@@ -67,23 +67,23 @@ def patch_permissions(request):
     definition = request.db.get_model_definition(model_id)
     permissions = dict_list2set(request.db.get_model_permissions(model_id))
 
-    for token, perms in iteritems(request.validated['permissions']):
+    for credentials_id, perms in iteritems(request.validated['permissions']):
         # Handle remove all
         if '-all' in [perm.lower() for perm in perms]:
             for perm in PERMISSIONS_SET:
-                permissions[perm].discard(token)
+                permissions[perm].discard(credentials_id)
         # Handle add all
         elif 'all' in [perm.lstrip('+').lower() for perm in perms]:
             for perm in PERMISSIONS_SET:
-                permissions[perm].add(token)
+                permissions[perm].add(credentials_id)
         # Handle add/remove perms list
         else:
             for perm in perms:
                 perm = perm.lower()
                 if perm.startswith('-'):
-                    permissions[perm.lstrip('-')].discard(token)
+                    permissions[perm.lstrip('-')].discard(credentials_id)
                 else:
-                    permissions[perm.lstrip('+')].add(token)
+                    permissions[perm.lstrip('+')].add(credentials_id)
 
     request.db.put_model(definition, dict_set2list(permissions), model_id)
     return invert_permissions_matrix(permissions)
@@ -96,13 +96,13 @@ def put_permissions(request):
     model_id = request.matchdict['model_id']
     definition = request.db.get_model_definition(model_id)
     permissions = defaultdict(set)
-    for token, perms in iteritems(request.validated['permissions']):
+    for credentials_id, perms in iteritems(request.validated['permissions']):
         perms = [p.lstrip('+').lower() for p in perms]
         if 'all' in perms:
             perms = PERMISSIONS_SET
         for perm in perms:
             if not perm.startswith('-'):
-                permissions[perm].add(token)
+                permissions[perm].add(credentials_id)
     permissions = dict_set2list(permissions)
     request.db.put_model(definition, permissions, model_id)
     return invert_permissions_matrix(permissions)
@@ -117,19 +117,19 @@ def get_models(request):
 @models.post(permission='post_model', validators=(model_validator,))
 def post_models(request):
     """Creates a model with the given definition and records, if any."""
-    if request.token:
-        token = request.token
+    if request.credentials_id:
+        credentials_id = request.credentials_id
     else:
-        token = Everyone
+        credentials_id = Everyone
 
     model_id = request.db.put_model(
         definition=request.validated['definition'],
-        permissions=default_model_permissions(token))
+        permissions=default_model_permissions(credentials_id))
 
     request.notify('ModelCreated', model_id)
 
     for record in request.validated['records']:
-        record_id = request.db.put_record(model_id, record, [token])
+        record_id = request.db.put_record(model_id, record, [credentials_id])
         request.notify('RecordCreated', model_id, record_id)
 
     request.response.status = "201 Created"
@@ -201,20 +201,20 @@ def put_model(request):
 def handle_put_model(request, create=False):
     model_id = request.matchdict['model_id']
 
-    if request.token:
-        token = request.token
+    if request.credentials_id:
+        credentials_id = request.credentials_id
     else:
-        token = Everyone
+        credentials_id = Everyone
 
     request.db.put_model(request.validated['definition'],
-                         default_model_permissions(token),
+                         default_model_permissions(credentials_id),
                          model_id)
 
     event = 'ModelCreated' if create else 'ModelUpdated'
     request.notify(event, model_id)
 
     for record in request.validated['records']:
-        record_id = request.db.put_record(model_id, record, [token])
+        record_id = request.db.put_record(model_id, record, [credentials_id])
         request.notify('RecordCreated', model_id, record_id)
 
     return {"id": model_id}

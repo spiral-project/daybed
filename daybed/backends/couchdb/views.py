@@ -43,7 +43,7 @@ function(doc) {
 tokens = ViewDefinition('tokens', 'by_name', """
 function(doc){
   if(doc.type == 'token'){
-      emit(doc.name, doc);
+      emit(doc.credentials.id, doc);
   }
 }
 """)

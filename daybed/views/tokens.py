@@ -4,7 +4,6 @@ from daybed.tokens import get_hawk_credentials
 
 tokens = Service(name='tokens', path='/tokens', description='Tokens')
 
-
 token = Service(name='token',
                 path='/tokens/{token_id}',
                 description='Token',
@@ -14,11 +13,11 @@ token = Service(name='token',
 @tokens.post(permission='post_token')
 def post_tokens(request):
     """Creates a new token and store it"""
-    session_token, credentials = get_hawk_credentials()
-    request.db.add_token(credentials["id"], credentials["key"])
+    token, credentials = get_hawk_credentials()
+    request.db.store_credentials(token, credentials)
 
     request.response.status = "201 Created"
     return {
-        'sessionToken': session_token,
+        'token': token,
         'credentials': credentials
     }

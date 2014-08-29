@@ -8,19 +8,19 @@ from six import text_type
 from six.moves import xrange
 
 
-def get_hawk_credentials(session_token=None):
-    if session_token is None:
-        session_token = os.urandom(32)
-    elif isinstance(session_token, text_type):
-        session_token = codecs.decode(session_token, "hex_codec")
+def get_hawk_credentials(token=None):
+    if token is None:
+        token = os.urandom(32)
+    elif isinstance(token, text_type):
+        token = codecs.decode(token, "hex_codec")
 
     # sessionToken protocol HKDF keyInfo.
     keyInfo = 'identity.mozilla.com/picl/v1/sessionToken'
-    keyMaterial = HKDF(session_token, "", keyInfo, 32*2)
+    keyMaterial = HKDF(token, "", keyInfo, 32*2)
 
-    session_token = codecs.encode(session_token, "hex_codec").decode("utf-8")
+    token = codecs.encode(token, "hex_codec").decode("utf-8")
 
-    return session_token, {
+    return token, {
         'id': codecs.encode(keyMaterial[:32], "hex_codec").decode("utf-8"),
         'key': codecs.encode(keyMaterial[32:64], "hex_codec").decode("utf-8"),
         'algorithm': 'sha256'
