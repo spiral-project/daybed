@@ -18,6 +18,6 @@ def post_tokens(request):
 
     request.response.status = "201 Created"
     return {
-        'sessionToken': token,
+        'token': token,
         'credentials': credentials
     }

@@ -21,8 +21,8 @@ class BaseWebTest(unittest.TestCase):
         self.app = webtest.TestApp("config:conf/tests.ini", relative_to='.')
         self.db = self.app.app.registry.backend
 
-        session_token, self.credentials = get_hawk_credentials()
-        self.db.store_credentials(session_token, self.credentials)
+        token, self.credentials = get_hawk_credentials()
+        self.db.store_credentials(token, self.credentials)
 
         auth_password = base64.b64encode(
             (u'%s:%s' % (self.credentials['id'],

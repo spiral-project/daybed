@@ -189,7 +189,7 @@ class CouchDBBackend(object):
         try:
             return views.tokens(self._db, key=credentials_id).rows[0].value
         except IndexError:
-            raise backend_exceptions.TokenNotFound(credentials_id)
+            raise backend_exceptions.CredentialsNotFound(credentials_id)
 
     def get_token(self, credentials_id):
         """Returns the information associated with a credentials_id"""
@@ -206,8 +206,8 @@ class CouchDBBackend(object):
         assert 'id' in credentials and 'key' in credentials
         try:
             self.__get_raw_token(credentials['id'])
-            raise backend_exceptions.TokenAlreadyExist(credentials['id'])
-        except backend_exceptions.TokenNotFound:
+            raise backend_exceptions.CredentialsAlreadyExist(credentials['id'])
+        except backend_exceptions.CredentialsNotFound:
             pass
 
         doc = dict(token=token, credentials=credentials, type='token')

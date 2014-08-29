@@ -5,9 +5,7 @@ from pyramid.interfaces import IAuthorizationPolicy
 from pyramid.security import Authenticated, Everyone
 from zope.interface import implementer
 
-from daybed.backends.exceptions import (
-    ModelNotFound, RecordNotFound, TokenNotFound
-)
+from daybed.backends import exceptions as backend_exceptions
 from daybed import logger
 
 
@@ -128,7 +126,7 @@ class DaybedAuthorizationPolicy(object):
         if model_id is not None:
             try:
                 model_permissions = context.db.get_model_permissions(model_id)
-            except ModelNotFound:
+            except backend_exceptions.ModelNotFound:
                 model_permissions = {}
                 if permission != 'post_model':
                     # Prevent unauthorized error to shadow 404 responses
@@ -146,7 +144,7 @@ class DaybedAuthorizationPolicy(object):
         if record_id is not None:
             try:
                 authors = context.db.get_record_authors(model_id, record_id)
-            except RecordNotFound:
+            except backend_exceptions.RecordNotFound:
                 authors = []
             finally:
                 if not principals.intersection(authors):
@@ -186,7 +184,7 @@ def check_api_credentials(credentials_id, credentials_key, request):
         request.credentials_id = None
         request.principals = [Everyone]
         return []
-    except TokenNotFound:
+    except backend_exceptions.CredentialsNotFound:
         request.credentials_id = None
         request.principals = [Everyone]
         return []

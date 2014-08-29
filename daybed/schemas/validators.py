@@ -12,7 +12,7 @@ from pyramid.security import Authenticated, Everyone
 
 from daybed.backends.exceptions import ModelNotFound
 from daybed.permissions import PERMISSIONS_SET
-from daybed.backends.exceptions import TokenNotFound
+from daybed.backends.exceptions import CredentialsNotFound
 from . import registry, TypeFieldNode
 
 
@@ -165,7 +165,7 @@ def permissions_validator(request):
             if credentials_id not in (Authenticated, Everyone):
                 try:
                     request.db.get_token(credentials_id)
-                except TokenNotFound:
+                except CredentialsNotFound:
                     request.errors.add("body", credentials_id,
                                        "Token couldn't be found.")
                     error = True

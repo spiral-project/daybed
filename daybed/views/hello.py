@@ -8,7 +8,6 @@ hello = Service(name="hello", path='/', description="Welcome")
 @hello.get()
 def get_hello(request):
     """Return information regarding the current instance."""
-    return dict(credentials_id=request.credentials_id,
-                daybed='hello',
+    return dict(daybed='hello',
                 version=VERSION,
                 url=request.host_url)

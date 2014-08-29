@@ -52,7 +52,6 @@ class DaybedViewsTest(BaseWebTest):
         response = self.app.get('/', headers=self.headers)
         self.assertDictEqual({'version': VERSION,
                               'url': 'http://localhost',
-                              'credentials_id': self.credentials['id'],
                               'daybed': 'hello'}, response.json)
 
     def test_fields_are_listed(self):
@@ -646,8 +645,8 @@ class TokensViewsTest(BaseWebTest):
 
     def test_post_token(self):
         response = self.app.post('/tokens', status=201)
-        self.assertIn("sessionToken", response.json)
-        self.assertTrue(len(response.json["sessionToken"]) == 64)
+        self.assertIn("token", response.json)
+        self.assertTrue(len(response.json["token"]) == 64)
         self.assertIn("credentials", response.json)
         self.assertIn("id", response.json["credentials"])
         self.assertTrue(len(response.json["credentials"]["id"]) == 64)

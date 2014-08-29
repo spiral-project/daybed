@@ -143,21 +143,21 @@ class MemoryBackend(object):
         try:
             return str(self._db['tokens'][credentials_id])
         except KeyError:
-            raise backend_exceptions.TokenNotFound(credentials_id)
+            raise backend_exceptions.CredentialsNotFound(credentials_id)
 
     def get_credentials_key(self, credentials_id):
         try:
             return str(self._db['credentials_keys'][credentials_id])
         except KeyError:
-            raise backend_exceptions.TokenNotFound(credentials_id)
+            raise backend_exceptions.CredentialsNotFound(credentials_id)
 
     def store_credentials(self, token, credentials):
         # Check that the token doesn't already exist.
         assert 'id' in credentials and 'key' in credentials
         try:
             self.get_token(credentials['id'])
-            raise backend_exceptions.TokenAlreadyExist(credentials['id'])
-        except backend_exceptions.TokenNotFound:
+            raise backend_exceptions.CredentialsAlreadyExist(credentials['id'])
+        except backend_exceptions.CredentialsNotFound:
             pass
 
         self._db['tokens'][credentials['id']] = token

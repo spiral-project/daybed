@@ -25,14 +25,14 @@ from daybed.permissions import (
 )
 from daybed.views.errors import forbidden_view
 from daybed.renderers import GeoJSON
-from daybed.backends.exceptions import TokenNotFound
+from daybed.backends.exceptions import CredentialsNotFound
 from daybed import indexer, events
 
 
 def get_credentials(request, credentials_id):
     try:
         return credentials_id, request.db.get_credentials_key(credentials_id)
-    except TokenNotFound:
+    except CredentialsNotFound:
         raise ValueError
 
 
