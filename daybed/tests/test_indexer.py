@@ -72,7 +72,9 @@ class ModelsIndicesTest(BaseWebTest):
                           headers=self.headers)
         self.app.delete('/models/test',
                         headers=self.headers)
-        delete_index_mock.assert_called_with(index='test')
+        delete_index_mock.assert_called_with(
+            index=self.app.app.registry.index.prefix('test')
+        )
 
     @mock.patch('daybed.indexer.logger.error')
     @mock.patch('elasticsearch.client.indices.IndicesClient.delete')
@@ -129,8 +131,11 @@ class RecordsIndicesTest(BaseWebTest):
                           headers=self.headers)
         self.app.delete('/models/test/records/1',
                         headers=self.headers)
-        delete_mock.assert_called_with(index='test', doc_type='test',
-                                       id='1', refresh=True)
+        delete_mock.assert_called_with(
+            index=self.app.app.registry.index.prefix('test'),
+            doc_type='test',
+            id='1', refresh=True
+        )
 
     @mock.patch('daybed.indexer.logger.error')
     @mock.patch('elasticsearch.client.Elasticsearch.delete')

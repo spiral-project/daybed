@@ -110,7 +110,10 @@ def main(global_config, **settings):
 
     # index initialization
     index_hosts = build_list(settings.get('elasticsearch.hosts'))
-    config.registry.index = index = indexer.ElasticSearchIndexer(index_hosts)
+    indices_prefix = settings.get('elasticsearch.indices_prefix', 'daybed_')
+    config.registry.index = index = indexer.ElasticSearchIndexer(
+        index_hosts, indices_prefix
+    )
     config.add_subscriber(index.on_model_created, events.ModelCreated)
     config.add_subscriber(index.on_model_updated, events.ModelUpdated)
     config.add_subscriber(index.on_model_deleted, events.ModelDeleted)

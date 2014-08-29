@@ -20,6 +20,7 @@ class BaseWebTest(unittest.TestCase):
     def setUp(self):
         self.app = webtest.TestApp("config:conf/tests.ini", relative_to='.')
         self.db = self.app.app.registry.backend
+        self.indexer = self.app.app.registry.index
 
         try:
             self.db.add_token('admin', 'foo')
@@ -36,6 +37,7 @@ class BaseWebTest(unittest.TestCase):
 
     def tearDown(self):
         self.db.delete_db()
+        self.indexer.delete_indices()
 
 
 def force_unicode(data):
