@@ -1,9 +1,7 @@
 import json
 import redis
 
-from daybed.backends.exceptions import (
-    TokenAlreadyExist, TokenNotFound, ModelNotFound, RecordNotFound
-)
+from daybed.backends import exceptions as backend_exceptions
 
 
 class RedisBackend(object):
@@ -47,7 +45,7 @@ class RedisBackend(object):
         model = self._db.get("model.%s" % model_id)
         if model is not None:
             return json.loads(model.decode("utf-8"))
-        raise ModelNotFound(model_id)
+        raise backend_exceptions.ModelNotFound(model_id)
 
     def get_model_definition(self, model_id):
         model = self.__get_raw_model(model_id)
@@ -87,7 +85,9 @@ class RedisBackend(object):
         record = self._db.get("modelrecord.%s.%s" % (model_id, record_id))
         if record is not None:
             return json.loads(record.decode("utf-8"))
-        raise RecordNotFound(u'(%s, %s)' % (model_id, record_id))
+        raise backend_exceptions.RecordNotFound(
+            u'(%s, %s)' % (model_id, record_id)
+        )
 
     def get_record(self, model_id, record_id):
         doc = self.__get_raw_record(model_id, record_id)
@@ -120,7 +120,7 @@ class RedisBackend(object):
         if record_id is not None:
             try:
                 old_doc = self.__get_raw_record(model_id, record_id)
-            except RecordNotFound:
+            except backend_exceptions.RecordNotFound:
                 pass
             else:
                 authors = list(set(authors) | set(old_doc['authors']))
@@ -175,14 +175,14 @@ class RedisBackend(object):
         """Retrieves a token by its id"""
         token = self._db.get("token.%s" % credentials_id)
         if token is None:
-            raise TokenNotFound(credentials_id)
+            raise backend_exceptions.TokenNotFound(credentials_id)
         return token.decode("utf-8")
 
     def get_credentials_key(self, credentials_id):
         """Retrieves a token by its id"""
         credentials_key = self._db.get("credentials_key.%s" % credentials_id)
         if credentials_key is None:
-            raise TokenNotFound(credentials_id)
+            raise backend_exceptions.TokenNotFound(credentials_id)
         return credentials_key.decode("utf-8")
 
     def store_credentials(self, token, credentials):
@@ -190,8 +190,8 @@ class RedisBackend(object):
         assert 'id' in credentials and 'key' in credentials
         try:
             self.get_token(credentials['id'])
-            raise TokenAlreadyExist(credentials['id'])
-        except TokenNotFound:
+            raise backend_exceptions.TokenAlreadyExist(credentials['id'])
+        except backend_exceptions.TokenNotFound:
             pass
 
         self._db.set("token.%s" % credentials['id'], token)

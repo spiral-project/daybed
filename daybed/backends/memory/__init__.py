@@ -1,8 +1,6 @@
 from copy import deepcopy
 
-from daybed.backends.exceptions import (
-    TokenAlreadyExist, TokenNotFound, ModelNotFound, RecordNotFound
-)
+from daybed.backends import exceptions as backend_exceptions
 
 
 class MemoryBackend(object):
@@ -45,7 +43,7 @@ class MemoryBackend(object):
         try:
             return deepcopy(self._db['models'][model_id])
         except KeyError:
-            raise ModelNotFound(model_id)
+            raise backend_exceptions.ModelNotFound(model_id)
 
     def get_model_definition(self, model_id):
         return self.__get_raw_model(model_id)['definition']
@@ -54,7 +52,7 @@ class MemoryBackend(object):
         try:
             return self._db['records'][model_id].values()
         except KeyError:
-            raise ModelNotFound(model_id)
+            raise backend_exceptions.ModelNotFound(model_id)
 
     def get_records(self, model_id, raw_records=None):
         return [r["record"] for r in
@@ -74,7 +72,9 @@ class MemoryBackend(object):
         try:
             return deepcopy(self._db['records'][model_id][record_id])
         except KeyError:
-            raise RecordNotFound(u'(%s, %s)' % (model_id, record_id))
+            raise backend_exceptions.RecordNotFound(
+                u'(%s, %s)' % (model_id, record_id)
+            )
 
     def get_record(self, model_id, record_id):
         doc = self.__get_raw_record(model_id, record_id)
@@ -107,7 +107,7 @@ class MemoryBackend(object):
         if record_id is not None:
             try:
                 old_doc = self.__get_raw_record(model_id, record_id)
-            except RecordNotFound:
+            except backend_exceptions.RecordNotFound:
                 doc['_id'] = record_id
             else:
                 old_doc["record"].update(doc["record"])
@@ -143,21 +143,21 @@ class MemoryBackend(object):
         try:
             return str(self._db['tokens'][credentials_id])
         except KeyError:
-            raise TokenNotFound(credentials_id)
+            raise backend_exceptions.TokenNotFound(credentials_id)
 
     def get_credentials_key(self, credentials_id):
         try:
             return str(self._db['credentials_keys'][credentials_id])
         except KeyError:
-            raise TokenNotFound(credentials_id)
+            raise backend_exceptions.TokenNotFound(credentials_id)
 
     def store_credentials(self, token, credentials):
         # Check that the token doesn't already exist.
         assert 'id' in credentials and 'key' in credentials
         try:
             self.get_token(credentials['id'])
-            raise TokenAlreadyExist(credentials['id'])
-        except TokenNotFound:
+            raise backend_exceptions.TokenAlreadyExist(credentials['id'])
+        except backend_exceptions.TokenNotFound:
             pass
 
         self._db['tokens'][credentials['id']] = token
