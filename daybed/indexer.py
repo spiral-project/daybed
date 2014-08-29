@@ -70,6 +70,10 @@ class ElasticSearchIndexer(object):
         except ElasticsearchException as e:
             logger.error(e)
 
+    def delete_indices(self):
+        logger.debug("Drop the index on database deleted event.")
+        self.client.indices.delete(index="_all")
+
     def __put_mapping(self, model_id, definition):
         """ Transforms the model definition into an Elasticsearch mapping,
         and associate to its index.
