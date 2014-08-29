@@ -4,6 +4,7 @@ import copy
 import mock
 
 from daybed.schemas import registry
+from daybed import indexer
 
 from .support import BaseWebTest
 from .test_views import MODEL_DEFINITION, MODEL_RECORD
@@ -39,6 +40,16 @@ class ModelsIndicesTest(BaseWebTest):
                               headers=self.headers)
         self.assertEqual(put_mapping_mock.call_count, 3)
 
+    @mock.patch('daybed.indexer.logger.error')
+    @mock.patch('elasticsearch.client.indices.IndicesClient.put_mapping')
+    def test_no_exception_on_model_put_when_index_fails(self,
+                                                        error_mock,
+                                                        put_mapping_mock):
+        put_mapping_mock.side_effect = indexer.ElasticsearchException
+        self.app.put_json('/models/test-1', MODEL_DEFINITION,
+                          headers=self.headers)
+        self.assertTrue(error_mock.called)
+
     @mock.patch('elasticsearch.client.indices.IndicesClient.delete')
     def test_existing_index_is_not_deleted_on_model_put(self, delete_mock):
         self.app.put_json('/models/test', MODEL_DEFINITION,
@@ -62,6 +73,18 @@ class ModelsIndicesTest(BaseWebTest):
         self.app.delete('/models/test',
                         headers=self.headers)
         delete_index_mock.assert_called_with(index='test')
+
+    @mock.patch('daybed.indexer.logger.error')
+    @mock.patch('elasticsearch.client.indices.IndicesClient.delete')
+    def test_no_exception_on_model_deletion_when_index_fails(self,
+                                                             error_mock,
+                                                             delete_mock):
+        delete_mock.side_effect = indexer.ElasticsearchException
+        self.app.put_json('/models/test', MODEL_DEFINITION,
+                          headers=self.headers)
+        self.app.delete('/models/test',
+                        headers=self.headers)
+        self.assertTrue(error_mock.called)
 
 
 class RecordsIndicesTest(BaseWebTest):
@@ -108,6 +131,18 @@ class RecordsIndicesTest(BaseWebTest):
                         headers=self.headers)
         delete_mock.assert_called_with(index='test', doc_type='test',
                                        id='1', refresh=True)
+
+    @mock.patch('daybed.indexer.logger.error')
+    @mock.patch('elasticsearch.client.Elasticsearch.delete')
+    def test_no_exception_on_record_deletion_when_index_fails(self,
+                                                              error_mock,
+                                                              delete_mock):
+        delete_mock.side_effect = indexer.ElasticsearchException
+        self.app.put_json('/models/test/records/1', MODEL_RECORD,
+                          headers=self.headers)
+        self.app.delete('/models/test/records/1',
+                        headers=self.headers)
+        self.assertTrue(error_mock.called)
 
     @mock.patch('elasticsearch.client.Elasticsearch.index')
     def test_record_indexed_on_model_post(self, index_mock):
