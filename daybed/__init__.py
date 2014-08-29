@@ -91,7 +91,7 @@ def main(global_config, **settings):
     def get_credentials_id(request):
         return request.authenticated_userid
 
-    config.add_request_method(get_credentials_id, 'credentials_id', reify=True)
+    config.add_request_method(get_credentials_id, 'credentials_id')
 
     # Events
 
