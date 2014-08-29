@@ -11,3 +11,4 @@ build/
 .noseids
 .venv/
 docs/_build
+conf/production.ini
