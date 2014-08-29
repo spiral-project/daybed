@@ -122,7 +122,7 @@ And we get back::
         "id": "todo"
     }
 
-Since the session token was used, the new model was associated to your *id*,
+Since the token was used, the new model was associated to your *id*,
 and only you get read *and* write permissions. Of course, the model
 permissions can be changed later.
 
@@ -415,7 +415,7 @@ Get back the model permissions
     }
 
 
-Manipulating permissions
+Working with permissions
 ------------------------
 
 You can add permissions either to an existing :term:`identifier` (*key id*), to
