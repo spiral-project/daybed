@@ -21,12 +21,11 @@ PERMISSIONS_SET = set([
 ])
 
 
-def default_model_permissions(token):
-    """ Give all permissions to the model creator.
-    """
+def default_model_permissions(credentials_id):
+    """ Give all permissions to the model creator."""
     permissions = defaultdict(list)
     for perm in PERMISSIONS_SET:
-        permissions[perm].append(token)
+        permissions[perm].append(credentials_id)
     return permissions
 
 
@@ -135,10 +134,10 @@ class DaybedAuthorizationPolicy(object):
                     # Prevent unauthorized error to shadow 404 responses
                     return True
             finally:
-                for perm_name, tokens in iteritems(model_permissions):
-                    # If one of the principals is in the valid tokens for this,
-                    # permission, grant the permission.
-                    if principals.intersection(tokens):
+                for perm_name, credentials_ids in iteritems(model_permissions):
+                    # If one of the principals is in the valid credentials_ids
+                    # for this permission, grant the permission.
+                    if principals.intersection(credentials_ids):
                         current_permissions.add(perm_name)
 
         # Remove author's permissions if a record is involved, and if it
@@ -175,20 +174,20 @@ class RootFactory(object):
         self.request = request
 
 
-def build_user_principals(token, request):
-    return [token]
+def build_user_principals(credentials_id, request):
+    return [credentials_id]
 
 
-def check_api_token(tokenId, tokenKey, request):
+def check_api_credentials(credentials_id, credentials_key, request):
     try:
-        secret = request.db.get_token(tokenId)
-        if secret == tokenKey:
-            return build_user_principals(tokenId, request)
-        request.token = None
+        stored_key = request.db.get_credentials_key(credentials_id)
+        if stored_key == credentials_key:
+            return build_user_principals(credentials_id, request)
+        request.credentials_id = None
         request.principals = [Everyone]
         return []
     except TokenNotFound:
-        request.token = None
+        request.credentials_id = None
         request.principals = [Everyone]
         return []
 
@@ -203,10 +202,10 @@ def dict_list2set(dict_list):
                  for key, value in iteritems(dict_list)])
 
 
-def invert_permissions_matrix(permissions_tokens):
-    """Reverse from {perm: [tokens]} to {token: [perms]}."""
-    tokens_permissions = defaultdict(set)
-    for perm, tokens in iteritems(permissions_tokens):
-        for token in tokens:
-            tokens_permissions[token].add(perm)
-    return dict_set2list(tokens_permissions)
+def invert_permissions_matrix(permissions_credentials_ids):
+    """Reverse from {perm: [credentials_ids]} to {token: [perms]}."""
+    credentials_ids_permissions = defaultdict(set)
+    for perm, credentials_ids in iteritems(permissions_credentials_ids):
+        for token in credentials_ids:
+            credentials_ids_permissions[token].add(perm)
+    return dict_set2list(credentials_ids_permissions)

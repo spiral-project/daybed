@@ -171,19 +171,29 @@ class RedisBackend(object):
             "permissions": doc["permissions"]
         }
 
-    def get_token(self, tokenHmacId):
+    def get_token(self, credentials_id):
         """Retrieves a token by its id"""
-        secret = self._db.get("token.%s" % tokenHmacId)
-        if secret is None:
-            raise TokenNotFound(tokenHmacId)
-        return secret.decode("utf-8")
+        token = self._db.get("token.%s" % credentials_id)
+        if token is None:
+            raise TokenNotFound(credentials_id)
+        return token.decode("utf-8")
 
-    def add_token(self, tokenHmacId, secret):
+    def get_credentials_key(self, credentials_id):
+        """Retrieves a token by its id"""
+        credentials_key = self._db.get("credentials_key.%s" % credentials_id)
+        if credentials_key is None:
+            raise TokenNotFound(credentials_id)
+        return credentials_key.decode("utf-8")
+
+    def store_credentials(self, token, credentials):
         # Check that the token doesn't already exist.
+        assert 'id' in credentials and 'key' in credentials
         try:
-            self.get_token(tokenHmacId)
-            raise TokenAlreadyExist(tokenHmacId)
+            self.get_token(credentials['id'])
+            raise TokenAlreadyExist(credentials['id'])
         except TokenNotFound:
             pass
 
-        self._db.set("token.%s" % tokenHmacId, secret)
+        self._db.set("token.%s" % credentials['id'], token)
+        self._db.set("credentials_key.%s" % credentials['id'],
+                     credentials['key'])

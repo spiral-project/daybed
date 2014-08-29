@@ -21,6 +21,7 @@ from daybed.backends.redis import RedisBackend
 from redis.exceptions import ConnectionError
 
 from daybed.backends.couchdb.views import docs as couchdb_views
+from daybed.tokens import get_hawk_credentials
 
 
 class BackendTestBase(object):
@@ -48,9 +49,25 @@ class BackendTestBase(object):
     def test_add_permissions_merges_redundant_permissions(self):
         pass
 
-    def test_add_token_fails_if_already_exist(self):
-        self.db.add_token("Remy", "Foo")
-        self.assertRaises(TokenAlreadyExist, self.db.add_token, "Remy", "Bar")
+    def test_store_credentials_fails_if_already_exist(self):
+        token, credentials = get_hawk_credentials()
+        self.db.store_credentials(token, credentials)
+        self.assertRaises(TokenAlreadyExist, self.db.store_credentials, token, credentials)
+
+    def test_store_credentials_fails_if_credentials_are_incorrects(self):
+        token, credentials = get_hawk_credentials()
+        del credentials['id']
+        self.assertRaises(AssertionError, self.db.store_credentials, token, credentials)
+        token, credentials = get_hawk_credentials()
+        del credentials['key']
+        self.assertRaises(AssertionError, self.db.store_credentials, token, credentials)
+
+    def test_store_credentials_fails_if_credentials_are_incorrects(self):
+        token, credentials = get_hawk_credentials()
+        self.db.store_credentials(token, credentials)
+        self.assertEqual(self.db.get_token(credentials['id']), token)
+        self.assertEqual(self.db.get_credentials_key(credentials['id']),
+                         credentials['key'])
 
     def test_get_models(self):
         self._create_model()

@@ -8,7 +8,7 @@ import base64
 import six
 import webtest
 
-from daybed.backends.exceptions import TokenAlreadyExist
+from daybed.tokens import get_hawk_credentials
 
 
 class BaseWebTest(unittest.TestCase):
@@ -21,13 +21,13 @@ class BaseWebTest(unittest.TestCase):
         self.app = webtest.TestApp("config:conf/tests.ini", relative_to='.')
         self.db = self.app.app.registry.backend
 
-        try:
-            self.db.add_token('admin', 'foo')
-        except TokenAlreadyExist:
-            pass
+        session_token, self.credentials = get_hawk_credentials()
+        self.db.store_credentials(session_token, self.credentials)
 
         auth_password = base64.b64encode(
-            u'admin:foo'.encode('ascii')).strip().decode('ascii')
+            (u'%s:%s' % (self.credentials['id'],
+                         self.credentials['key'])).encode('ascii')) \
+            .strip().decode('ascii')
         self.headers = {
             'Content-Type': 'application/json',
             'Accept': 'application/json',

@@ -27,7 +27,8 @@ class MemoryBackend(object):
             'models': {},
             'records': {},
             'permissions': {},
-            'tokens': {}
+            'tokens': {},
+            'credentials_keys': {}
         }
 
     def get_models(self, principals):
@@ -138,21 +139,29 @@ class MemoryBackend(object):
                 "permissions": doc["permissions"],
                 "records": records}
 
-    def get_token(self, tokenHmacId):
+    def get_token(self, credentials_id):
         try:
-            return str(self._db['tokens'][tokenHmacId])
+            return str(self._db['tokens'][credentials_id])
         except KeyError:
-            raise TokenNotFound(tokenHmacId)
+            raise TokenNotFound(credentials_id)
 
-    def add_token(self, tokenHmacId, secret):
-        # Check that the token doesn't already exist.
+    def get_credentials_key(self, credentials_id):
         try:
-            self.get_token(tokenHmacId)
-            raise TokenAlreadyExist(tokenHmacId)
+            return str(self._db['credentials_keys'][credentials_id])
+        except KeyError:
+            raise TokenNotFound(credentials_id)
+
+    def store_credentials(self, token, credentials):
+        # Check that the token doesn't already exist.
+        assert 'id' in credentials and 'key' in credentials
+        try:
+            self.get_token(credentials['id'])
+            raise TokenAlreadyExist(credentials['id'])
         except TokenNotFound:
             pass
 
-        self._db['tokens'][tokenHmacId] = secret
+        self._db['tokens'][credentials['id']] = token
+        self._db['credentials_keys'][credentials['id']] = credentials['key']
 
     def get_model_permissions(self, model_id):
         doc = self.__get_raw_model(model_id)

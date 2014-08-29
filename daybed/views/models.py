@@ -117,8 +117,8 @@ def get_models(request):
 @models.post(permission='post_model', validators=(model_validator,))
 def post_models(request):
     """Creates a model with the given definition and records, if any."""
-    if request.token:
-        token = request.token
+    if request.credentials_id:
+        token = request.credentials_id
     else:
         token = Everyone
 
@@ -201,8 +201,8 @@ def put_model(request):
 def handle_put_model(request, create=False):
     model_id = request.matchdict['model_id']
 
-    if request.token:
-        token = request.token
+    if request.credentials_id:
+        token = request.credentials_id
     else:
         token = Everyone
 

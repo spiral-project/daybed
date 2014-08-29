@@ -21,7 +21,7 @@ from pyramid_hawkauth import HawkAuthenticationPolicy
 from pyramid_multiauth import MultiAuthenticationPolicy
 
 from daybed.permissions import (
-    RootFactory, DaybedAuthorizationPolicy, check_api_token,
+    RootFactory, DaybedAuthorizationPolicy, check_api_credentials,
 )
 from daybed.views.errors import forbidden_view
 from daybed.renderers import GeoJSON
@@ -29,9 +29,9 @@ from daybed.backends.exceptions import TokenNotFound
 from daybed import indexer, events
 
 
-def get_hawk_id(request, tokenid):
+def get_credentials(request, credentials_id):
     try:
-        return tokenid, request.db.get_token(tokenid)
+        return credentials_id, request.db.get_credentials_key(credentials_id)
     except TokenNotFound:
         raise ValueError
 
@@ -63,8 +63,8 @@ def main(global_config, **settings):
     # Permission management
 
     policies = [
-        BasicAuthAuthenticationPolicy(check_api_token),
-        HawkAuthenticationPolicy(decode_hawk_id=get_hawk_id),
+        BasicAuthAuthenticationPolicy(check_api_credentials),
+        HawkAuthenticationPolicy(decode_hawk_id=get_credentials),
     ]
     authn_policy = MultiAuthenticationPolicy(policies)
 
@@ -83,10 +83,10 @@ def main(global_config, **settings):
     config.set_authentication_policy(authn_policy)
     config.set_authorization_policy(authz_policy)
 
-    def get_token(request):
+    def get_credentials_id(request):
         return request.authenticated_userid
 
-    config.add_request_method(get_token, 'token', reify=True)
+    config.add_request_method(get_credentials_id, 'credentials_id', reify=True)
 
     # Helper for notifying events
     def notify(request, event, *args):

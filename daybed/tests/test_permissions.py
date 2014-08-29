@@ -87,8 +87,8 @@ class TestPermissionTools(TestCase):
             'update_my_record': ['admin'],
         }
         tokens_permissions = {
-            'admin': ['read_all_records', 'read_permissions', 'update_definition',
-                      'update_my_record'],
+            'admin': ['read_all_records', 'read_permissions', 
+                                     'update_definition', 'update_my_record'],
             'alexis': ['read_permissions'],
             'remy': ['read_all_records']
         }

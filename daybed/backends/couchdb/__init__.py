@@ -9,9 +9,7 @@ from daybed import logger
 from .views import docs
 
 from . import views
-from daybed.backends.exceptions import (
-    TokenAlreadyExist, TokenNotFound, ModelNotFound, RecordNotFound
-)
+from daybed.backends import exceptions as backend_exceptions
 
 
 class CouchDBBackendConnectionError(Exception):
@@ -76,7 +74,7 @@ class CouchDBBackend(object):
             doc = views.model_definitions(self._db, key=model_id).rows[0]
             return doc.value
         except IndexError:
-            raise ModelNotFound(model_id)
+            raise backend_exceptions.ModelNotFound(model_id)
 
     def get_model_definition(self, model_id):
         return self.__get_raw_model(model_id)['definition']
@@ -105,7 +103,9 @@ class CouchDBBackend(object):
         try:
             return views.records_all(self._db, key=key).rows[0].value
         except IndexError:
-            raise RecordNotFound(u'(%s, %s)' % (model_id, record_id))
+            raise backend_exceptions.RecordNotFound(
+                u'(%s, %s)' % (model_id, record_id)
+            )
 
     def get_record(self, model_id, record_id):
         doc = self.__get_raw_record(model_id, record_id)
@@ -123,7 +123,7 @@ class CouchDBBackend(object):
 
         try:
             doc = self.__get_raw_model(model_id)
-        except ModelNotFound:
+        except backend_exceptions.ModelNotFound:
             doc = {'_id': model_id,
                    'type': 'definition'}
         doc['definition'] = definition
@@ -142,7 +142,7 @@ class CouchDBBackend(object):
         if record_id is not None:
             try:
                 old_doc = self.__get_raw_record(model_id, record_id)
-            except RecordNotFound:
+            except backend_exceptions.RecordNotFound:
                 doc['_id'] = '-'.join((model_id, record_id))
             else:
                 authors = list(set(authors) | set(old_doc['authors']))
@@ -177,7 +177,7 @@ class CouchDBBackend(object):
         try:
             doc = views.model_definitions(self._db, key=model_id).rows[0].value
         except IndexError:
-            raise ModelNotFound(model_id)
+            raise backend_exceptions.ModelNotFound(model_id)
 
         # Delete the model definition if it exists.
         self._db.delete(doc)
@@ -185,26 +185,32 @@ class CouchDBBackend(object):
                 "permissions": doc["permissions"],
                 "records": records}
 
-    def __get_raw_token(self, tokenHmacId):
+    def __get_raw_token(self, credentials_id):
         try:
-            return views.tokens(self._db, key=tokenHmacId).rows[0].value
+            return views.tokens(self._db, key=credentials_id).rows[0].value
         except IndexError:
-            raise TokenNotFound(tokenHmacId)
+            raise backend_exceptions.TokenNotFound(credentials_id)
 
-    def get_token(self, tokenHmacId):
-        """Returns the information associated with an token"""
-        token = dict(**self.__get_raw_token(tokenHmacId))
-        return token['secret']
+    def get_token(self, credentials_id):
+        """Returns the information associated with a credentials_id"""
+        credentials = dict(**self.__get_raw_token(credentials_id))
+        return credentials['token']
 
-    def add_token(self, tokenHmacId, secret):
+    def get_credentials_key(self, credentials_id):
+        """Retrieves a token by its id"""
+        credentials = dict(**self.__get_raw_token(credentials_id))
+        return credentials['credentials']['key']
+
+    def store_credentials(self, token, credentials):
         # Check that the token doesn't already exist.
+        assert 'id' in credentials and 'key' in credentials
         try:
-            self.__get_raw_token(tokenHmacId)
-            raise TokenAlreadyExist(tokenHmacId)
-        except TokenNotFound:
+            self.__get_raw_token(credentials['id'])
+            raise backend_exceptions.TokenAlreadyExist(credentials['id'])
+        except backend_exceptions.TokenNotFound:
             pass
 
-        doc = dict(secret=secret, name=tokenHmacId, type='token')
+        doc = dict(token=token, credentials=credentials, type='token')
         self._db.save(doc)
 
     def get_model_permissions(self, model_id):
