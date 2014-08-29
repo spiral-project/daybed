@@ -33,4 +33,4 @@ ENV PERSONA_AUDIENCE http://localhost:8000 http://0.0.0.0:8000 http://127.0.0.1:
 #  Run !
 #...
 EXPOSE 8000
-CMD ["/opt/apps/daybed/.venv/bin/uwsgi", "/opt/apps/daybed/conf/production.ini"]
+CMD ["/opt/apps/daybed/.venv/bin/uwsgi", "/opt/apps/daybed/conf/docker.ini"]
