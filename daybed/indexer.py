@@ -8,7 +8,7 @@ from daybed import logger
 
 class ElasticSearchIndexer(object):
 
-    def __init__(self, hosts, prefix='daybed'):
+    def __init__(self, hosts, prefix):
         self.client = elasticsearch.Elasticsearch(hosts)
         self.prefix = lambda x: u'%s_%s' % (prefix, x)
 
