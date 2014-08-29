@@ -11,7 +11,7 @@ from six.moves import xrange
 def get_hawk_credentials(token=None):
     if token is None:
         token = os.urandom(32)
-    elif isinstance(token, text_type):
+    else:
         token = codecs.decode(token, "hex_codec")
 
     # sessionToken protocol HKDF keyInfo.

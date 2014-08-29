@@ -643,7 +643,7 @@ class RecordsViewsTest(BaseWebTest):
 
 class TokensViewsTest(BaseWebTest):
 
-    def test_post_token(self):
+    def test_post_tokens(self):
         response = self.app.post('/tokens', status=201)
         self.assertIn("token", response.json)
         self.assertTrue(len(response.json["token"]) == 64)
@@ -653,6 +653,19 @@ class TokensViewsTest(BaseWebTest):
         self.assertIn("key", response.json["credentials"])
         self.assertTrue(len(response.json["credentials"]["key"]) == 64)
         self.assertEqual("sha256", response.json["credentials"]["algorithm"])
+
+    def test_get_token(self):
+        response = self.app.get('/token', status=200, headers=self.headers)
+        self.assertIn("token", response.json)
+        self.assertTrue(len(response.json["token"]) == 64)
+
+        self.assertIn("credentials", response.json)
+        self.credentials['algorithm'] = 'sha256'
+        self.assertEqual(force_unicode(self.credentials),
+                         response.json['credentials'])
+
+    def test_get_token_forbidden(self):
+        self.app.get('/token', status=401)
 
 
 class SearchViewTest(BaseWebTest):
