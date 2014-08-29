@@ -101,7 +101,7 @@ class BasicAuthRegistrationTest(BaseWebTest):
             "fields": [{"name": "age", "type": "int", "required": False}]
         }
 
-    def test_unauthorized(self):
+    def test_unauthorized_if_no_credentials(self):
         self.app.put_json('/models/%s' % self.model_id,
                           {'definition': self.valid_definition},
                           headers=self.headers)
@@ -110,7 +110,7 @@ class BasicAuthRegistrationTest(BaseWebTest):
                             status=401)
         self.assertIn('401', resp)
 
-    def test_unauthorized_token(self):
+    def test_unauthorized_on_invalid_credentials(self):
         self.app.put_json('/models/%s' % self.model_id,
                           {'definition': self.valid_definition},
                           headers=self.headers)
@@ -126,7 +126,7 @@ class BasicAuthRegistrationTest(BaseWebTest):
                             status=401)
         self.assertIn('401', resp)
 
-    def test_forbidden(self):
+    def test_forbidden_if_required_permission_missing(self):
         self.app.put_json('/models/%s' % self.model_id,
                           {'definition': self.valid_definition},
                           headers=self.headers)
@@ -348,7 +348,7 @@ class ModelsViewsTest(BaseWebTest):
             "status": "error",
             "errors": [
                 {"location": "body", "name": "alexis",
-                 "description": "Token couldn't be found."}
+                 "description": "Credentials id couldn't be found."}
             ]
         }))
 
@@ -368,7 +368,7 @@ class ModelsViewsTest(BaseWebTest):
         permissions["remy"] = ["update_permissions"]
         self.assertDictEqual(resp.json, force_unicode(permissions))
 
-    def test_put_permissions_wrong_token(self):
+    def test_put_permissions_wrong_identifier(self):
         self.app.put_json('/models/test',
                           MODEL_DEFINITION,
                           headers=self.headers)
@@ -382,7 +382,7 @@ class ModelsViewsTest(BaseWebTest):
             "status": "error",
             "errors": [
                 {"location": "body", "name": "alexis",
-                 "description": "Token couldn't be found."}
+                 "description": "Credentials id couldn't be found."}
             ]
         }))
 
