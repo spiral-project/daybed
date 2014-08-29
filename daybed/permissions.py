@@ -176,7 +176,7 @@ def build_user_principals(credentials_id, request):
     return [credentials_id]
 
 
-def check_api_credentials(credentials_id, credentials_key, request):
+def check_credentials(credentials_id, credentials_key, request):
     try:
         stored_key = request.db.get_credentials_key(credentials_id)
         if stored_key == credentials_key:

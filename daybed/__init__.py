@@ -21,7 +21,7 @@ from pyramid_hawkauth import HawkAuthenticationPolicy
 from pyramid_multiauth import MultiAuthenticationPolicy
 
 from daybed.permissions import (
-    RootFactory, DaybedAuthorizationPolicy, check_api_credentials,
+    RootFactory, DaybedAuthorizationPolicy, check_credentials,
 )
 from daybed.views.errors import forbidden_view
 from daybed.renderers import GeoJSON
@@ -63,7 +63,7 @@ def main(global_config, **settings):
     # Permission management
 
     policies = [
-        BasicAuthAuthenticationPolicy(check_api_credentials),
+        BasicAuthAuthenticationPolicy(check_credentials),
         HawkAuthenticationPolicy(decode_hawk_id=get_credentials),
     ]
     authn_policy = MultiAuthenticationPolicy(policies)
