@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-import binascii
 import codecs
 import hashlib
 import hmac as python_hmac
@@ -7,17 +6,6 @@ import math
 import os
 from six import text_type
 from six.moves import xrange
-
-
-def hmac(data, secret, hashmod=hashlib.sha256):
-    if isinstance(secret, text_type):
-        secret = secret.encode("utf-8")
-    if isinstance(data, text_type):
-        data = data.encode("utf-8")
-
-    return binascii.hexlify(python_hmac.new(
-        secret, data, hashmod
-    ).digest())
 
 
 def get_hawk_credentials(session_token=None):
