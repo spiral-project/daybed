@@ -9,8 +9,8 @@ software.
     :sorted:
 
     Model
-        A model is made of a :term:`definition`, a set of :term:`records`.
-        A list of custom :term:`roles` and a :term:`policy` (optional).
+        A model is made of a :term:`definition`, a set of :term:`records`, and
+        a list of :term:`permissions`.
 
     Definition
         A schema defined as a list of fields, each one with a name, a type
@@ -31,21 +31,34 @@ software.
         An item to be stored in a :term:`model`. It should provide a value for each required
         :term:`field` of the :term:`definition`.
 
-    Policy
-        A reusable set of :term:`permissions` given to records authors, users in general
-        or groups.
-
     Permissions
     Permission
-        A boolean flag approving the ability to change the model :term:`definition`,
-        as well as create, read, update or delete the model :term:`records`.
+        An operation name, that allows access rules, to approve or deny requests on
+        :term:`models`, :term:`records` or :term:`tokens`.
+        Permissions are given to :term:`identifiers` as an associative array on
+        models.
 
-    Roles
-        *Daybed* comes with the following built-in roles : *anonymous*, *authenticated*,
-        *authors* and *admins*, that are assigned automatically.
-        Additionnal roles can be defined with a name and a list of users and groups,
-        at the :term:`model` level.
+        For example, when trying to delete a record, if the request's *identifier* has not
+        ``delete_records`` among its permission on this model, it will be
+        denied.
 
-    User and groups
-        Each user can be associated to a number of groups. When a user accesses a model,
-        he receives a number of its :term:`roles`, depending of the groups he belongs to.
+        See :ref:`permissions section <permissions-section>`.
+
+    Credentials
+        Credentials are a way to authenticate yourself, and have two parts:
+
+        1. an **id** -- :term:`identifier` that you can publicly share;
+        2. a **key** -- similar to a password.
+
+    Identifier
+    Identifiers
+        A unique *id*, part of the :term:`credentials`, that will be associated
+        to the models and records you created.
+
+        It is mentionned in :term:`permissions`.
+
+    Token
+    Tokens
+        A *session token* (a.k.a ``Hawk-Session-Token``) is a string, which is unique for
+        each pair of *id* and *key*, and helps you keep, handle or share your credentials
+        as a simple string.

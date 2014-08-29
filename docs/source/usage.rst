@@ -7,29 +7,34 @@ and publish data that complies to these models.
 Let's say we want to have a Daybed-managed *todo list*. Follow the steps and you
 will have a grasp of how Daybed works.
 
-To simplify testing, you can use `httpie <https://github.com/jkbr/httpie>`_ in
-order to make requests.
+To simplify API calls, you can use `httpie <https://github.com/jkbr/httpie>`_
+which performs HTTP requests easily.
 
 All examples in this section are using *httpie* against a local Daybed server
 running on port 8000.
 
-In order to authenticate with `Hawk <https://github.com/hueniverse/hawk>`_,
-you'll need to install the `requests-hawk module
-<https://github.com/mozilla-services/requests-hawk>`_
+Daybed uses `Hawk <https://github.com/hueniverse/hawk>`_, so to run the following
+example, you'll need to install the `requests-hawk module
+<https://github.com/mozilla-services/requests-hawk>`_.
+
+
+Listing supported fields
+------------------------
+
+Daybed supports several field types to build your model definition.
+
+You can consult a list of these fields and their parameters on the `/fields` endpoint::
+
+  http GET http://localhost:8000/fields --verbose --json
+
 
 Authentication
 --------------
 
 You need to be authenticated to be able to run most of the commands. In order
-to get authenticated, the first thing to do is to get a "token" from Daybed.
+to get authenticated, the first thing to do is to get some :term:`credentials` from Daybed.
 
-This token is a way to identify yourself. A token contains two parts:
-
-1. **a token id** -- Identifier you can publicly share
-2. **a secret** -- similar to a password.
-
-
-In order to get your credentials, you need to send a POST request::
+In order to get yours, you need to send a ``POST`` request::
 
     http POST http://0.0.0.0:8000/tokens
 
@@ -45,11 +50,15 @@ In order to get your credentials, you need to send a POST request::
             "id": "e0394574578356252e2033b829b90291e2ff1f33ccbcbcec777485f3a5a10bca",
             "key": "416aa1287121218feeb9b751a9614959a1c95fd09aba5959bab7c484dcd1b198"
         },
-        "sessionToken": "ad37fc395b7ba83eb496849f6db022fbb316fa11081491b5f00dfae5b0b1cd22"
+        "token": "ad37fc395b7ba83eb496849f6db022fbb316fa11081491b5f00dfae5b0b1cd22"
     }
 
 
-You can use the returned credentials in your next requests.
+In your next requests, you can either :
+
+* use the ``token``, and rely on a Hawk library to wrap everything (*recommended*);
+* use the ``credentials`` pair of *id* and *key*, and build the Hawk ``Authorization``
+  header yourself (*or probably via ``hawk.js``*).
 
 
 Model management
@@ -57,11 +66,20 @@ Model management
 
 **PUT and POST /models**
 
+You can create models without being authenticated, since model creation is
+allowed to everyone by default.
+
+When you are authenticated, all the objects you create will be associated to
+your credentials *id*.
+
 
 First, we put a definition under the name "todo" using a PUT request
 on **/models**::
 
   http PUT http://localhost:8000/models/todo
+
+We use the ``token`` as the ``auth`` value, as expected by the ``requests-hawk``
+library.
 
 .. code-block:: bash
 
@@ -104,24 +122,24 @@ And we get back::
         "id": "todo"
     }
 
-Note that you could have done this call without being authenticated.
+Since the session token was used, the new model was associated to your *id*,
+and only you get read *and* write permissions. Of course, the model
+permissions can be changed later.
 
-If you use your authentication token, your user will get read *and*
-write permissions on the newly created model. The permissions can
-be changed later.
+:notes:
 
-In case you don't want to define a name yourself for your model, you can do the
-exact same call, replacing the http method from **PUT** to **POST**.
-In that case, Daybe will pick a name for your model.
+    In case you don't want to define a name yourself for your model,
+    you can do the exact same request, replacing the **PUT** http method
+    by a **POST**. A random name will be generated.
 
 
 **GET /models**
 
-Returns the list of models the user can read the definition::
+Returns the list of models where you have the permission to read the definition::
 
     http GET http://localhost:8000/models --verbose \
-	  --auth-type=hawk \
-		--auth='ad37fc395b7ba83eb496849f6db022fbb316fa11081491b5f00dfae5b0b1cd22:'
+        --auth-type=hawk \
+        --auth='ad37fc395b7ba83eb496849f6db022fbb316fa11081491b5f00dfae5b0b1cd22:'
 
     GET /models HTTP/1.1
     Accept: */*
@@ -217,18 +235,19 @@ We can now get our models back::
     }
 
 
-Depending of the permissions settings, you may get a 401 response
-from the server in case you're trying to get the model definition without
-the proper authorization.
+:notes:
+
+    You will get a ``401 - Unauthorized`` response if you don't have the
+    permission to read the model definition.
 
 
-Pushing data
-------------
+Pushing records
+---------------
 
 **POST /models/{modelname}/records**
 **PUT /models/{modelname}/records/{id}**
 
-Now that we've defined the schema, we want to push some real data there!::
+Now that we've defined the schema, we want to push some real record there!::
 
     http POST http://localhost:8000/models/todo/records item="work on daybed" status="done" \
         --verbose \
@@ -261,17 +280,16 @@ Now that we've defined the schema, we want to push some real data there!::
         "id": "ebc9f07c8faa4969a76f46b8c514fac6"
     }
 
-The server sends us back the **id** of the created document.
+The server sends us back the **id** of the newly created record.
 
 .. note::
-    When you push some data, you can also send a special header, named
-    **Validate-Only**, which will allow you to only validate the
-    resource you are sending, without actually recording it to the database.
+    You can also only validate the data your are sending, by setting the
+    ``Validate-Only`` header, which will prevent storing it as a record.
 
 
 **GET /models/{modelname}/records**
 
-Using the GET method, you can get back the data you have posted::
+Using the GET method, you can get back all the records you have created::
 
     http GET http://localhost:8000/models/todo/records \
         --json \
@@ -353,11 +371,6 @@ Get back a definition
     }
 
 
-Manipulating permissions
-------------------------
-
-XXX
-
 Get back the model permissions
 ------------------------------
 
@@ -402,50 +415,45 @@ Get back the model permissions
     }
 
 
-Add some permissions
---------------------
+Manipulating permissions
+------------------------
 
-You can add permissions to an existing *token*, *Authenticated* people or *Everyone*.
+You can add permissions either to an existing :term:`identifier` (*key id*), to
+authenticated users or to everyone.
 
-As well as tokens, you can define permissions to **system.Authenticated**
-and **system.Everyone**, or use their shortcut notation: **Authenticated** and
-**Everyone**.
+:notes:
 
-To add `read_definition` and `read_permissions` to Authenticated and remove
-`update_permissions` to alexis we would write::
+    With Hawk, the *key ids* look like tokens, but remember, the *id* is the part of
+    your credentials, and is different from the session ``token``.
+
+We refer to the whole world with the special *id* ``Everyone`` (or ``system.Everyone``)
+and to authenticated users with ``Authenticated`` (or ``system.Authenticated``).
+
+To give `read_definition` and `read_permissions` to authenticated users and remove
+`update_permissions` from *id* ``220a1c..871`` we would write::
 
     {
         "Authenticated": ["read_definition", "read_permissions"],
-        "alexis": ["-update_permissions"]
+        "220a1c..871": ["-update_permissions"]
     }
 
-For this to be valid, `alexis` must be an existing token.
+For this to be valid, ``220a1c..871`` must be an existing *id*.
 
-If you want to add or remove all the permission to/from somebody, you can use the ALL shortcut::
+In order to add/remove all permissions to/from somebody, use the ``ALL`` shortcut::
 
     {
         "Authenticated": ["-ALL"],
-        "alexis": ["+ALL"]
+        "220a1c..871": ["+ALL"]
     }
 
-If you don't provide the `-` or the `+` in front of the permission we assume you want to add the permission.
+:notes:
 
-This::
+    `+` is implicit, we add the permission if not specified (``ALL`` is equivalent to ``+ALL``).
 
-    {
-        "Authenticated": ["ALL"]
-    }
 
-Is equivalent to::
+If you add an unknown permission or modify the permissions of a non existing *id*,
+you will get an error.
 
-    {
-        "Authenticated": ["+ALL"]
-    }
-
-In case you try to add a non existing permission or to modify permission of a
-non existing token, you will get an error.
-
-If you need to remove permissions from a removed token, you will have to use the PUT endpoint.
 
 **PATCH /models/{modelname}/permissions**
 
@@ -498,12 +506,16 @@ If you need to remove permissions from a removed token, you will have to use the
         ]
     }
 
+
+Clear missing ids
+-----------------
+
+If you need to remove permissions from an unknown *id*, you will have to use the PUT endpoint.
+
 **PUT /models/{modelname}/permissions**
 
-This endpoint let you replace a set of permissions for a model. It can be useful if
-the PATCH call doesn't work (remove permissions for a removed token.) or to
-replace all permissions with one call.
-
+This endpoint let you replace a set of permissions for a model, and
+replace all permissions in one call.
 
 ::
 
@@ -556,15 +568,3 @@ replace all permissions with one call.
             "read_definition"
         ]
     }
-
-
-Listing supported fields
-------------------------
-
-Daybed supports a bunch of fields. It's easy to add some to your instances.
-
-Sometimes, it can be useful to have a list of these fields. You can get that
-list by querying the `/fields` endpoint::
-
-  http GET http://localhost:8000/fields --verbose --json
-
