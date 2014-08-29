@@ -71,22 +71,29 @@ def main(global_config, **settings):
     # Unauthorized view
     config.add_forbidden_view(forbidden_view)
 
-    # Authorization policy
+    # Global permissions
+    model_creators = settings.get("daybed.can_create_model", "Everyone")
+    token_creators = settings.get("daybed.can_create_token", "Everyone")
+    token_managers = settings.get("daybed.can_manage_token", None)
+
     authz_policy = DaybedAuthorizationPolicy(
-        model_creators=build_list(
-            settings.get("daybed.can_create_model", "Everyone")),
-        token_creators=build_list(
-            settings.get("daybed.can_create_token", "Everyone")),
-        token_managers=build_list(
-            settings.get("daybed.can_manage_token", None)),
+        model_creators=build_list(model_creators),
+        token_creators=build_list(token_creators),
+        token_managers=build_list(token_managers),
     )
     config.set_authentication_policy(authn_policy)
     config.set_authorization_policy(authz_policy)
 
+    # We need to scan AFTER setting the authn / authz policies
+    config.scan("daybed.views")
+
+    # Attach the token to the request, coming from Pyramid as userid
     def get_credentials_id(request):
         return request.authenticated_userid
 
     config.add_request_method(get_credentials_id, 'credentials_id', reify=True)
+
+    # Events
 
     # Helper for notifying events
     def notify(request, event, *args):
@@ -96,12 +103,45 @@ def main(global_config, **settings):
 
     config.add_request_method(notify, 'notify')
 
-    # We need to scan AFTER setting the authn / authz policies
-    config.scan("daybed.views")
+    # Backend
 
     # backend initialisation
     backend_class = config.maybe_dotted(settings['daybed.backend'])
     config.registry.backend = backend_class.load_from_config(config)
+
+    # Indexing
+
+    # Connect client to hosts in conf
+    index_hosts = build_list(settings.get('elasticsearch.hosts'))
+    indices_prefix = settings.get('elasticsearch.indices_prefix', 'daybed_')
+    config.registry.index = index = indexer.ElasticSearchIndexer(
+        index_hosts, indices_prefix
+    )
+
+    # Suscribe index methods to API events
+    config.add_subscriber(index.on_model_created, events.ModelCreated)
+    config.add_subscriber(index.on_model_updated, events.ModelUpdated)
+    config.add_subscriber(index.on_model_deleted, events.ModelDeleted)
+    config.add_subscriber(index.on_record_created, events.RecordCreated)
+    config.add_subscriber(index.on_record_updated, events.RecordUpdated)
+    config.add_subscriber(index.on_record_deleted, events.RecordDeleted)
+
+    # Renderers
+
+    # Force default accept header to JSON
+    def add_default_accept(event):
+        if "Accept" not in event.request.headers:
+            event.request.headers["Accept"] = "application/json"
+
+    config.add_subscriber(add_default_accept, NewRequest)
+
+    # JSONP
+    config.add_renderer('jsonp', JSONP(param_name='callback'))
+
+    # Geographic data renderer
+    config.add_renderer('geojson', GeoJSON())
+
+    # Requests attachments
 
     def attach_objects_to_request(event):
         event.request.db = config.registry.backend
@@ -112,30 +152,7 @@ def main(global_config, **settings):
 
     config.add_subscriber(attach_objects_to_request, NewRequest)
 
-    # index initialization
-    index_hosts = build_list(settings.get('elasticsearch.hosts'))
-    indices_prefix = settings.get('elasticsearch.indices_prefix', 'daybed_')
-    config.registry.index = index = indexer.ElasticSearchIndexer(
-        index_hosts, indices_prefix
-    )
-    config.add_subscriber(index.on_model_created, events.ModelCreated)
-    config.add_subscriber(index.on_model_updated, events.ModelUpdated)
-    config.add_subscriber(index.on_model_deleted, events.ModelDeleted)
-    config.add_subscriber(index.on_record_created, events.RecordCreated)
-    config.add_subscriber(index.on_record_updated, events.RecordUpdated)
-    config.add_subscriber(index.on_record_deleted, events.RecordDeleted)
-
-    # Renderers initialization
-    def add_default_accept(event):
-        # If the user doesn't give us an Accept header, force the use
-        # of the JSON renderer
-        if "Accept" not in event.request.headers:
-            event.request.headers["Accept"] = "application/json"
-
-    config.add_subscriber(add_default_accept, NewRequest)
-
-    config.add_renderer('jsonp', JSONP(param_name='callback'))
-    config.add_renderer('geojson', GeoJSON())
+    # Plugins
 
     try:
         config.include("daybed_browserid")
