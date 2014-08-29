@@ -138,4 +138,9 @@ def main(global_config, **settings):
     config.add_renderer('jsonp', JSONP(param_name='callback'))
     config.add_renderer('geojson', GeoJSON())
 
+    try:
+        config.include("daybed_browserid")
+    except ImportError:
+        pass
+
     return config.make_wsgi_app()
