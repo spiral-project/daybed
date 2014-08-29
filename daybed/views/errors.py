@@ -10,6 +10,6 @@ def forbidden_view(request):
             status='401 Unauthorized', content_type='application/json')
     return Response(
         '{"error": "403 Forbidden",'
-        ' "token": "%s", "msg": "Access to this resource is Forbidden."}' %
-        request.credentials_id, status='403 Forbidden',
+        ' "credentials_id": "%s", "msg": "Access to this resource is '
+        'Forbidden."}' % request.credentials_id, status='403 Forbidden',
         content_type='application/json')

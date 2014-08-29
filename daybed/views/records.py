@@ -54,11 +54,11 @@ def post_record(request):
 
     model_id = request.matchdict['model_id']
     if request.credentials_id:
-        token = request.credentials_id
+        credentials_id = request.credentials_id
     else:
-        token = Everyone
+        credentials_id = Everyone
     record_id = request.db.put_record(model_id, request.data_clean,
-                                      [token])
+                                      [credentials_id])
 
     request.notify('RecordCreated', model_id, record_id)
 
@@ -113,12 +113,12 @@ def put(request):
         create = False
 
     if request.credentials_id:
-        token = request.credentials_id
+        credentials_id = request.credentials_id
     else:
-        token = Everyone
+        credentials_id = Everyone
 
     record_id = request.db.put_record(model_id, request.data_clean,
-                                      [token], record_id=record_id)
+                                      [credentials_id], record_id=record_id)
     event = 'RecordCreated' if create else 'RecordUpdated'
     request.notify(event, model_id, record_id)
     return {'id': record_id}
@@ -131,9 +131,9 @@ def patch(request):
     record_id = request.matchdict['record_id']
 
     if request.credentials_id:
-        token = request.credentials_id
+        credentials_id = request.credentials_id
     else:
-        token = Everyone
+        credentials_id = Everyone
 
     try:
         record = request.db.get_record(model_id, record_id)
@@ -146,7 +146,7 @@ def patch(request):
     definition = request.db.get_model_definition(model_id)
     validate_against_schema(request, RecordSchema(definition), record)
     if not request.errors:
-        request.db.put_record(model_id, record, [token], record_id)
+        request.db.put_record(model_id, record, [credentials_id], record_id)
         request.notify('RecordUpdated', model_id, record_id)
     return {'id': record_id}
 

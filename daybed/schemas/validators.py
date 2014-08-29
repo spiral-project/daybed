@@ -150,26 +150,28 @@ def permissions_validator(request):
     request.validated['permissions'] = {}
 
     # Check the definition is valid.
-    for token, permissions in six.iteritems(body):
+    for credentials_id, permissions in six.iteritems(body):
         error = False
         strip_dash = lambda perm: perm.lstrip('-').lstrip('+').lower()
         perms = set([strip_dash(perm) for perm in permissions])
         if "all" in perms:
             perms = set(PERMISSIONS_SET)
         if not perms.issubset(PERMISSIONS_SET):
-            request.errors.add('body', token, 'Invalid permissions: %s' %
+            request.errors.add('body', credentials_id,
+                               'Invalid permissions: %s' %
                                ', '.join((perms - PERMISSIONS_SET)))
             error = True
-        if token not in ("Authenticated", "Everyone"):
-            if token not in (Authenticated, Everyone):
+        if credentials_id not in ("Authenticated", "Everyone"):
+            if credentials_id not in (Authenticated, Everyone):
                 try:
-                    request.db.get_token(token)
+                    request.db.get_token(credentials_id)
                 except TokenNotFound:
-                    request.errors.add("body", token,
+                    request.errors.add("body", credentials_id,
                                        "Token couldn't be found.")
                     error = True
         else:
-            token = token.replace("Authenticated", Authenticated) \
-                         .replace("Everyone", Everyone)
+            credentials_id = credentials_id \
+                .replace("Authenticated", Authenticated) \
+                .replace("Everyone", Everyone)
         if not error:
-            request.validated["permissions"][token] = permissions
+            request.validated["permissions"][credentials_id] = permissions

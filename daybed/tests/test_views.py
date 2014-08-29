@@ -702,7 +702,7 @@ class SearchViewTest(BaseWebTest):
 
     def test_search_view_requires_permission(self):
         self.app.patch_json('/models/test/permissions',
-                            {"admin": ["-read_all_records"]},
+                            {self.credentials['id']: ["-read_all_records"]},
                             headers=self.headers)
         self.app.get('/models/test/search/', {},
                      headers=self.headers,

@@ -203,9 +203,9 @@ def dict_list2set(dict_list):
 
 
 def invert_permissions_matrix(permissions_credentials_ids):
-    """Reverse from {perm: [credentials_ids]} to {token: [perms]}."""
+    """Reverse from {perm: [credentials_ids]} to {credentials_id: [perms]}."""
     credentials_ids_permissions = defaultdict(set)
     for perm, credentials_ids in iteritems(permissions_credentials_ids):
-        for token in credentials_ids:
-            credentials_ids_permissions[token].add(perm)
+        for credentials_id in credentials_ids:
+            credentials_ids_permissions[credentials_id].add(perm)
     return dict_set2list(credentials_ids_permissions)
