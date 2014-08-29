@@ -8,21 +8,22 @@ from daybed import logger
 
 class ElasticSearchIndexer(object):
 
-    def __init__(self, hosts):
+    def __init__(self, hosts, prefix='daybed'):
         self.client = elasticsearch.Elasticsearch(hosts)
+        self.prefix = lambda x: u'%s_%s' % (prefix, x)
 
     def search(self, model_id, query, params):
         supported_params = ['sort', 'from', 'source', 'fields']
         params = dict([p for p in params.items() if p[0] in supported_params])
-        return self.client.search(index=model_id,
+        return self.client.search(index=self.prefix(model_id),
                                   doc_type=model_id,
                                   body=query,
                                   **params)
 
     def on_model_created(self, event):
-        if not self.client.indices.exists(index=event.model_id):
+        if not self.client.indices.exists(index=self.prefix(event.model_id)):
             logger.debug("Create index for model '%s'" % event.model_id)
-            self.client.indices.create(index=event.model_id)
+            self.client.indices.create(index=self.prefix(event.model_id))
 
         logger.debug("Create mapping for model '%s'" % event.model_id)
         definition = event.request.db.get_model_definition(event.model_id)
@@ -31,8 +32,10 @@ class ElasticSearchIndexer(object):
     def on_model_updated(self, event):
         logger.debug("Update mapping of model '%s'" % event.model_id)
         try:
-            self.client.indices.delete_mapping(index=event.model_id,
-                                               doc_type=event.model_id)
+            self.client.indices.delete_mapping(
+                index=self.prefix(event.model_id),
+                doc_type=event.model_id
+            )
         except ElasticsearchException as e:
             logger.error(e)
         definition = event.request.db.get_model_definition(event.model_id)
@@ -41,7 +44,7 @@ class ElasticSearchIndexer(object):
     def on_model_deleted(self, event):
         logger.debug("Delete index of model '%s'" % event.model_id)
         try:
-            self.client.indices.delete(index=event.model_id)
+            self.client.indices.delete(index=self.prefix(event.model_id))
         except ElasticsearchException as e:
             logger.error(e)
 
@@ -63,7 +66,7 @@ class ElasticSearchIndexer(object):
         logger.debug("Unindex record %s of model '%s'" % (event.record_id,
                                                           event.model_id))
         try:
-            self.client.delete(index=event.model_id,
+            self.client.delete(index=self.prefix(event.model_id),
                                doc_type=event.model_id,
                                id=event.record_id,
                                refresh=True)
@@ -72,7 +75,12 @@ class ElasticSearchIndexer(object):
 
     def delete_indices(self):
         logger.debug("Drop the index on database deleted event.")
-        self.client.indices.delete(index="_all")
+        indices = [x.split()[1]
+                   for x in self.client.cat.indices().split('\n')[:-1]]
+        prefixed_indices = [indice for indice in indices
+                            if indice.startswith(self.prefix(''))]
+        if len(prefixed_indices) > 0:
+            self.client.indices.delete(index=','.join(prefixed_indices))
 
     def __put_mapping(self, model_id, definition):
         """ Transforms the model definition into an Elasticsearch mapping,
@@ -80,9 +88,11 @@ class ElasticSearchIndexer(object):
         """
         mapping_definition = self._definition_as_mapping(definition)
         try:
-            mapping = self.client.indices.put_mapping(index=model_id,
-                                                      doc_type=model_id,
-                                                      body=mapping_definition)
+            mapping = self.client.indices.put_mapping(
+                index=self.prefix(model_id),
+                doc_type=model_id,
+                body=mapping_definition
+            )
             return mapping
         except ElasticsearchException as e:
             logger.error(e)
@@ -93,7 +103,7 @@ class ElasticSearchIndexer(object):
         """
         mapping_record = self._record_as_mapping(definition, record)
         try:
-            index = self.client.index(index=model_id,
+            index = self.client.index(index=self.prefix(model_id),
                                       doc_type=model_id,
                                       id=record_id,
                                       body=mapping_record,
