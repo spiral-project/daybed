@@ -103,10 +103,14 @@ def main(global_config, **settings):
     backend_class = config.maybe_dotted(settings['daybed.backend'])
     config.registry.backend = backend_class.load_from_config(config)
 
-    def add_db_to_request(event):
+    def attach_objects_to_request(event):
         event.request.db = config.registry.backend
+        event.request.index = config.registry.index
+        http_scheme = event.request.registry.settings['http_scheme']
+        if http_scheme:
+            event.request.scheme = http_scheme
 
-    config.add_subscriber(add_db_to_request, NewRequest)
+    config.add_subscriber(attach_objects_to_request, NewRequest)
 
     # index initialization
     index_hosts = build_list(settings.get('elasticsearch.hosts'))
@@ -117,11 +121,6 @@ def main(global_config, **settings):
     config.add_subscriber(index.on_record_created, events.RecordCreated)
     config.add_subscriber(index.on_record_updated, events.RecordUpdated)
     config.add_subscriber(index.on_record_deleted, events.RecordDeleted)
-
-    def add_index_to_request(event):
-        event.request.index = config.registry.index
-
-    config.add_subscriber(add_index_to_request, NewRequest)
 
     # Renderers initialization
     def add_default_accept(event):
