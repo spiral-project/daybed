@@ -54,6 +54,17 @@ class DaybedViewsTest(BaseWebTest):
                               'url': 'http://localhost',
                               'daybed': 'hello'}, response.json)
 
+    def test_hello_uses_the_defined_http_scheme_if_defined(self):
+        original_scheme = self.app.app.registry.settings.get('http_scheme')
+        try:
+            self.app.app.registry.settings['http_scheme'] = 'https'
+            response = self.app.get('/', headers=self.headers)
+            self.assertTrue(
+                response.json['url'].startswith('https'),
+                '%s should start with https' % response.json['url'])
+        finally:
+            self.app.app.registry.settings['http_scheme'] = original_scheme
+
     def test_fields_are_listed(self):
         response = self.app.get('/fields')
         fields = response.json
