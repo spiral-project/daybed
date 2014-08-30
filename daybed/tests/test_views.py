@@ -681,15 +681,15 @@ class TokenViewTest(BaseWebTest):
     def test_unauthorized_if_not_authenticated(self):
         self.app.get('/token', status=401)
 
-    def test_denied_if_invalid_credentials(self):
-        auth = base64.b64encode(
-                    u'foolish:bar'.encode('ascii')).strip().decode('ascii')
+    def test_unauthorized_if_invalid_credentials(self):
+        userpass = u'foolish:bar'.encode('ascii')
+        auth = base64.b64encode(userpass).strip().decode('ascii')
         self.app.get('/token',
                      headers={
                          'Content-Type': 'application/json',
                          'Authorization': 'Basic {0}'.format(auth)
                      },
-                     status=403)
+                     status=401)
 
     def test_return_credentials_if_authenticated(self):
         response = self.app.get('/token', headers=self.headers)

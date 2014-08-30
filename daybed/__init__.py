@@ -21,19 +21,11 @@ from pyramid_hawkauth import HawkAuthenticationPolicy
 from pyramid_multiauth import MultiAuthenticationPolicy
 
 from daybed.permissions import (
-    RootFactory, DaybedAuthorizationPolicy, check_credentials,
+    RootFactory, DaybedAuthorizationPolicy, get_credentials, check_credentials
 )
 from daybed.views.errors import forbidden_view
 from daybed.renderers import GeoJSON
-from daybed.backends.exceptions import CredentialsNotFound
 from daybed import indexer, events
-
-
-def get_credentials(request, credentials_id):
-    try:
-        return credentials_id, request.db.get_credentials_key(credentials_id)
-    except CredentialsNotFound:
-        raise ValueError
 
 
 def settings_expandvars(settings):
@@ -89,9 +81,14 @@ def main(global_config, **settings):
 
     # Attach the token to the request, coming from Pyramid as userid
     def get_credentials_id(request):
-        return request.authenticated_userid
+        try:
+            credentials_id, _ = get_credentials(request,
+                                                request.authenticated_userid)
+            return credentials_id
+        except ValueError:
+            return None
 
-    config.add_request_method(get_credentials_id, 'credentials_id')
+    config.add_request_method(get_credentials_id, 'credentials_id', reify=True)
 
     # Events
 

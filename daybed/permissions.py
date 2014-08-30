@@ -172,14 +172,28 @@ class RootFactory(object):
         self.request = request
 
 
-def check_credentials(credentials_id, credentials_key, request):
+def get_credentials(request, credentials_id):
+    """ Retrieve credentials from backend.
+    """
+    if credentials_id is Everyone:
+        return Everyone, None
     try:
         stored_key = request.db.get_credentials_key(credentials_id)
+    except backend_exceptions.CredentialsNotFound:
+        raise ValueError
+    return credentials_id, stored_key
+
+
+def check_credentials(credentials_id, credentials_key, request):
+    """ Retrieve credentials and check value of secret key.
+    (Used by BasicAuth policy).
+    """
+    try:
+        _, stored_key = get_credentials(request, credentials_id)
         if stored_key == credentials_key:
             return [credentials_id]
-    except backend_exceptions.CredentialsNotFound:
+    except ValueError:
         pass
-    request.credentials_id = None
     request.principals = [Everyone]
     return []
 
