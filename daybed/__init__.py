@@ -106,7 +106,7 @@ def main(global_config, **settings):
     def attach_objects_to_request(event):
         event.request.db = config.registry.backend
         event.request.index = config.registry.index
-        http_scheme = event.request.registry.settings.get('http_scheme')
+        http_scheme = event.request.registry.settings.get('daybed.http_scheme')
         if http_scheme:
             event.request.scheme = http_scheme
 
