@@ -60,6 +60,8 @@ def main(global_config, **settings):
     config = Configurator(settings=settings, root_factory=RootFactory)
     config.include("cornice")
 
+    config.route_prefix = '/v%s' % __version__.split('.')[0]
+
     # Permission management
 
     policies = [
