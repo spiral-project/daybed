@@ -1,29 +1,14 @@
 from pyramid.i18n import TranslationString as _
-from colander import (SchemaNode, String, Sequence, drop, OneOf,
-                      Invalid, Mapping)
+from colander import SchemaNode, Sequence, drop
 
+from . import TypeFieldNode
 from .base import registry, TypeField, JSONList
 
 
-class ParametersMatchItemType(object):
-    def __call__(self, node, value):
-        if 'parameters' in value and 'itemtype' not in value:
-            msg = u'Missing itemtype since parameters is provided'
-            raise Invalid(node, msg)
-        if 'itemtype' in value and 'parameters' in value:
-            itemtype = value['itemtype']
-            parameters = value['parameters']
-            schema = registry.definition(itemtype)
-
-            # Instanciate a fake type to check parameters match what's accepted
-            # by this field type.
-            parameters.update(name='fake', type=itemtype)
-            schema.deserialize(parameters)
-
-
 class ItemsValid(object):
-    def __init__(self, fieldtype, **options):
-        nodetype = registry.validation(fieldtype, **options)
+    def __init__(self, field):
+        fieldtype = field['type']
+        nodetype = registry.validation(fieldtype, **field)
         self.schema = SchemaNode(Sequence(), nodetype)
 
     def __call__(self, node, value):
@@ -38,20 +23,13 @@ class ListField(TypeField):
     @classmethod
     def definition(cls, **kwargs):
         schema = super(ListField, cls).definition(**kwargs)
-        schema.add(SchemaNode(String(),
-                              name='itemtype',
-                              validator=OneOf(registry.names),
-                              missing=drop))
-        schema.add(SchemaNode(Mapping(unknown='preserve'),
-                              name='parameters',
-                              missing=drop))
-        schema.validator = ParametersMatchItemType()
+        schema.add(SchemaNode(TypeFieldNode(named=False),
+                   name='item',
+                   missing=drop))
         return schema
 
     @classmethod
     def validation(cls, **kwargs):
-        if 'itemtype' in kwargs:
-            itemparameters = kwargs.get('parameters', {})
-            kwargs['validator'] = ItemsValid(kwargs['itemtype'],
-                                             **itemparameters)
+        if 'item' in kwargs:
+            kwargs['validator'] = ItemsValid(kwargs['item'])
         return super(ListField, cls).validation(**kwargs)

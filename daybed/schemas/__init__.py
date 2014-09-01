@@ -81,8 +81,11 @@ class TypeField(object):
     @classmethod
     def definition(cls, **kwargs):
         schema = SchemaNode(Mapping())
-        schema.add(SchemaNode(String(), name='name',
-                              validator=Regex(r'^[a-zA-Z][a-zA-Z0-9_\-]*$')))
+
+        if kwargs.get('named', True):
+            schema.add(SchemaNode(String(), name='name',
+                       validator=Regex(r'^[a-zA-Z][a-zA-Z0-9_\-]*$')))
+
         schema.add(SchemaNode(String(), name='label', missing=u''))
         schema.add(SchemaNode(String(), name='hint', missing=cls.hint))
         schema.add(SchemaNode(Boolean(), name='required',
@@ -103,12 +106,16 @@ class TypeField(object):
 
 
 class TypeFieldNode(SchemaType):
+    def __init__(self, *args, **kwargs):
+        super(TypeFieldNode, self).__init__()
+        self.kwargs = kwargs
+
     def deserialize(self, node, cstruct=null):
-        kwargs = dict(node=node, cstruct=cstruct)
+        self.kwargs.update(node=node, cstruct=cstruct)
         try:
-            schema = registry.definition(cstruct.get('type'), **kwargs)
+            schema = registry.definition(cstruct.get('type'), **self.kwargs)
         except UnknownFieldTypeError:
-            schema = TypeField.definition(**kwargs)
+            schema = TypeField.definition(**self.kwargs)
         return schema.deserialize(cstruct)
 
 
