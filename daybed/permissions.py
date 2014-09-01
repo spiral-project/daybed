@@ -172,22 +172,30 @@ class RootFactory(object):
         self.request = request
 
 
-def build_user_principals(credentials_id, request):
-    return [credentials_id]
+def get_credentials(request, credentials_id):
+    """ Retrieve credentials from backend.
+    """
+    if credentials_id is Everyone:
+        return Everyone, None
+    try:
+        stored_key = request.db.get_credentials_key(credentials_id)
+    except backend_exceptions.CredentialsNotFound:
+        raise ValueError
+    return credentials_id, stored_key
 
 
 def check_credentials(credentials_id, credentials_key, request):
+    """ Retrieve credentials and check value of secret key.
+    (Used by BasicAuth policy).
+    """
     try:
-        stored_key = request.db.get_credentials_key(credentials_id)
+        _, stored_key = get_credentials(request, credentials_id)
         if stored_key == credentials_key:
-            return build_user_principals(credentials_id, request)
-        request.credentials_id = None
-        request.principals = [Everyone]
-        return []
-    except backend_exceptions.CredentialsNotFound:
-        request.credentials_id = None
-        request.principals = [Everyone]
-        return []
+            return [credentials_id]
+    except ValueError:
+        pass
+    request.principals = [Everyone]
+    return []
 
 
 def dict_set2list(dict_set):

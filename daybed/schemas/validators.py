@@ -167,7 +167,7 @@ def permissions_validator(request):
                     request.db.get_token(credentials_id)
                 except CredentialsNotFound:
                     request.errors.add("body", credentials_id,
-                                       "Token couldn't be found.")
+                                       "Credentials id couldn't be found.")
                     error = True
         else:
             credentials_id = credentials_id \

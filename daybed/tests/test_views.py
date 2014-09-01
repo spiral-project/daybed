@@ -41,31 +41,12 @@ MODEL_RECORD = {'age': 42}
 MODEL_RECORD2 = {'age': 25}
 
 
-class DaybedViewsTest(BaseWebTest):
+class FieldsViewTest(BaseWebTest):
 
     def __init__(self, *args, **kwargs):
-        super(DaybedViewsTest, self).__init__(*args, **kwargs)
+        super(FieldsViewTest, self).__init__(*args, **kwargs)
         if not hasattr(self, 'assertCountEqual'):
             self.assertCountEqual = self.assertItemsEqual
-
-    def test_hello(self):
-        response = self.app.get('/', headers=self.headers)
-        self.assertDictEqual({'version': VERSION,
-                              'url': 'http://localhost',
-                              'daybed': 'hello'}, response.json)
-
-    def test_hello_uses_the_defined_http_scheme_if_defined(self):
-        original_scheme = (self.app.app.registry.settings
-                           .get('daybed.http_scheme'))
-        try:
-            self.app.app.registry.settings['daybed.http_scheme'] = 'https'
-            response = self.app.get('/', headers=self.headers)
-            self.assertTrue(
-                response.json['url'].startswith('https'),
-                '%s should start with https' % response.json['url'])
-        finally:
-            self.app.app.registry.settings['daybed.http_scheme'] =\
-                original_scheme
 
     def test_fields_are_listed(self):
         response = self.app.get('/fields')
@@ -90,6 +71,33 @@ class DaybedViewsTest(BaseWebTest):
                                     label="Gps")])
 
 
+class HelloViewTest(BaseWebTest):
+
+    def test_returns_info_about_url_and_version(self):
+        response = self.app.get('/')
+        self.assertEqual(response.json['version'], VERSION)
+        self.assertEqual(response.json['url'], 'http://localhost')
+        self.assertEqual(response.json['daybed'], 'hello')
+
+    def test_hello_uses_the_defined_http_scheme_if_defined(self):
+        original_scheme = (self.app.app.registry.settings
+                           .get('daybed.http_scheme'))
+        try:
+            self.app.app.registry.settings['daybed.http_scheme'] = 'https'
+            response = self.app.get('/', headers=self.headers)
+            self.assertTrue(
+                response.json['url'].startswith('https'),
+                '%s should start with https' % response.json['url'])
+        finally:
+            self.app.app.registry.settings['daybed.http_scheme'] =\
+                original_scheme
+
+    def test_authentication_headers_should_be_ignored(self):
+        headers = self.headers.copy()
+        headers['Authorization'] = 'Basic boom'
+        self.app.get('/', headers=self.headers)
+
+
 class BasicAuthRegistrationTest(BaseWebTest):
     model_id = 'simple'
 
@@ -101,7 +109,7 @@ class BasicAuthRegistrationTest(BaseWebTest):
             "fields": [{"name": "age", "type": "int", "required": False}]
         }
 
-    def test_unauthorized(self):
+    def test_unauthorized_if_no_credentials(self):
         self.app.put_json('/models/%s' % self.model_id,
                           {'definition': self.valid_definition},
                           headers=self.headers)
@@ -110,7 +118,7 @@ class BasicAuthRegistrationTest(BaseWebTest):
                             status=401)
         self.assertIn('401', resp)
 
-    def test_unauthorized_token(self):
+    def test_unauthorized_on_invalid_credentials(self):
         self.app.put_json('/models/%s' % self.model_id,
                           {'definition': self.valid_definition},
                           headers=self.headers)
@@ -126,7 +134,7 @@ class BasicAuthRegistrationTest(BaseWebTest):
                             status=401)
         self.assertIn('401', resp)
 
-    def test_forbidden(self):
+    def test_forbidden_if_required_permission_missing(self):
         self.app.put_json('/models/%s' % self.model_id,
                           {'definition': self.valid_definition},
                           headers=self.headers)
@@ -348,7 +356,7 @@ class ModelsViewsTest(BaseWebTest):
             "status": "error",
             "errors": [
                 {"location": "body", "name": "alexis",
-                 "description": "Token couldn't be found."}
+                 "description": "Credentials id couldn't be found."}
             ]
         }))
 
@@ -368,7 +376,7 @@ class ModelsViewsTest(BaseWebTest):
         permissions["remy"] = ["update_permissions"]
         self.assertDictEqual(resp.json, force_unicode(permissions))
 
-    def test_put_permissions_wrong_token(self):
+    def test_put_permissions_wrong_identifier(self):
         self.app.put_json('/models/test',
                           MODEL_DEFINITION,
                           headers=self.headers)
@@ -382,7 +390,7 @@ class ModelsViewsTest(BaseWebTest):
             "status": "error",
             "errors": [
                 {"location": "body", "name": "alexis",
-                 "description": "Token couldn't be found."}
+                 "description": "Credentials id couldn't be found."}
             ]
         }))
 
@@ -654,9 +662,9 @@ class RecordsViewsTest(BaseWebTest):
             self.fail("'%s' doesn't startswith '%s'" % (a, b))
 
 
-class TokensViewsTest(BaseWebTest):
+class CreateTokenViewTest(BaseWebTest):
 
-    def test_post_tokens(self):
+    def test_post_token(self):
         response = self.app.post('/tokens', status=201)
         self.assertIn("token", response.json)
         self.assertTrue(len(response.json["token"]) == 64)
@@ -667,18 +675,27 @@ class TokensViewsTest(BaseWebTest):
         self.assertTrue(len(response.json["credentials"]["key"]) == 64)
         self.assertEqual("sha256", response.json["credentials"]["algorithm"])
 
-    def test_get_token(self):
-        response = self.app.get('/token', status=200, headers=self.headers)
-        self.assertIn("token", response.json)
-        self.assertTrue(len(response.json["token"]) == 64)
 
-        self.assertIn("credentials", response.json)
-        self.credentials['algorithm'] = 'sha256'
-        self.assertEqual(force_unicode(self.credentials),
-                         response.json['credentials'])
+class TokenViewTest(BaseWebTest):
 
-    def test_get_token_forbidden(self):
+    def test_unauthorized_if_not_authenticated(self):
         self.app.get('/token', status=401)
+
+    def test_unauthorized_if_invalid_credentials(self):
+        userpass = u'foolish:bar'.encode('ascii')
+        auth = base64.b64encode(userpass).strip().decode('ascii')
+        self.app.get('/token',
+                     headers={
+                         'Content-Type': 'application/json',
+                         'Authorization': 'Basic {0}'.format(auth)
+                     },
+                     status=401)
+
+    def test_return_credentials_if_authenticated(self):
+        response = self.app.get('/token', headers=self.headers)
+        self.assertEqual(len(response.json['token']), 64)
+        self.assertDictEqual(response.json['credentials'],
+                             self.credentials)
 
 
 class SearchViewTest(BaseWebTest):
