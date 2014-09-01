@@ -75,12 +75,15 @@ class ElasticSearchIndexer(object):
 
     def delete_indices(self):
         logger.debug("Drop the index on database deleted event.")
-        indices = [x.split()[1]
-                   for x in self.client.cat.indices().split('\n')[:-1]]
-        prefixed_indices = [indice for indice in indices
-                            if indice.startswith(self.prefix(''))]
-        if len(prefixed_indices) > 0:
-            self.client.indices.delete(index=','.join(prefixed_indices))
+        try:
+            fullnames = self.client.cat.indices().split('\n')[:-1]
+            indices = [x.split()[1] for x in fullnames]
+            prefixed_indices = [indice for indice in indices
+                                if indice.startswith(self.prefix(''))]
+            if len(prefixed_indices) > 0:
+                self.client.indices.delete(index=','.join(prefixed_indices))
+        except ElasticsearchException as e:
+            logger.error(e)
 
     def __put_mapping(self, model_id, definition):
         """ Transforms the model definition into an Elasticsearch mapping,
