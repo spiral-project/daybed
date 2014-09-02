@@ -8,7 +8,16 @@ import base64
 import six
 import webtest
 
+from daybed import __version__
 from daybed.tokens import get_hawk_credentials
+
+
+class PrefixedRequestClass(webtest.app.TestRequest):
+
+    @classmethod
+    def blank(cls, path, *args, **kwargs):
+        path = '/v%s%s' % (__version__.split('.')[0], path)
+        return webtest.app.TestRequest.blank(path, *args, **kwargs)
 
 
 class BaseWebTest(unittest.TestCase):
@@ -19,6 +28,8 @@ class BaseWebTest(unittest.TestCase):
 
     def setUp(self):
         self.app = webtest.TestApp("config:conf/tests.ini", relative_to='.')
+        self.app.RequestClass = PrefixedRequestClass
+
         self.db = self.app.app.registry.backend
         self.indexer = self.app.app.registry.index
 
