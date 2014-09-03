@@ -21,9 +21,11 @@ example, you'll need to install the `requests-hawk module
 Listing supported fields
 ------------------------
 
-Daybed supports several field types to build your model definition.
+Daybed supports several field types to build your model definition. All details
+are given in the :ref:`dedicated documentation <fieldtypes-section>` section.
 
-You can consult a list of these fields and their parameters on the `/fields` endpoint::
+You can also get a list of these fields and their parameters programmatically,
+on the `/fields` endpoint::
 
   http GET http://localhost:8000/fields --verbose --json
 
