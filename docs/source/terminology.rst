@@ -8,6 +8,7 @@ software.
     :sorted:
 
     Model
+    Models
         A model is made of a :term:`definition`, a set of :term:`records`, and
         a list of :term:`permissions`.
 
