@@ -114,7 +114,6 @@ class BasicAuthRegistrationTest(BaseWebTest):
                           {'definition': self.valid_definition},
                           headers=self.headers)
         resp = self.app.get('/models/%s' % self.model_id,
-                            headers={'Content-Type': 'application/json'},
                             status=401)
         self.assertIn('401', resp)
 
@@ -128,7 +127,6 @@ class BasicAuthRegistrationTest(BaseWebTest):
 
         resp = self.app.get('/models/%s' % self.model_id,
                             headers={
-                                'Content-Type': 'application/json',
                                 'Authorization': 'Basic {0}'.format(auth)
                             },
                             status=401)
@@ -561,7 +559,6 @@ class RecordsViewsTest(BaseWebTest):
 
     def test_unknown_model_records_creation(self):
         resp = self.app.post_json('/models/unknown/records', {},
-                                  headers={'Content-Type': 'application/json'},
                                   status=404)
         self.assertDictEqual(
             resp.json, force_unicode({
@@ -599,10 +596,7 @@ class RecordsViewsTest(BaseWebTest):
                             headers=self.headers)
         self.assertEqual(len(resp.json["records"]), 2)
 
-        resp = self.app.get('/models/test/records', headers={
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-        })
+        resp = self.app.get('/models/test/records')
         self.assertEqual(len(resp.json["records"]), 1)
 
     def test_get_model_records_auto_json(self):
@@ -617,8 +611,6 @@ class RecordsViewsTest(BaseWebTest):
                            headers=self.headers)
 
         resp = self.app.get('/models/test/records')
-        self.assertEqual(resp.headers['Content-Type'],
-                         "application/json; charset=UTF-8")
         self.assertEqual(len(resp.json["records"]), 1)
 
     def test_unknown_record_returns_404(self):
@@ -686,7 +678,6 @@ class TokenViewTest(BaseWebTest):
         auth = base64.b64encode(userpass).strip().decode('ascii')
         self.app.get('/token',
                      headers={
-                         'Content-Type': 'application/json',
                          'Authorization': 'Basic {0}'.format(auth)
                      },
                      status=401)
