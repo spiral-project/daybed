@@ -129,8 +129,11 @@ def main(global_config, **settings):
 
     # Force default accept header to JSON
     def add_default_accept(event):
-        if "Accept" not in event.request.headers:
-            event.request.headers["Accept"] = "application/json"
+        json_mime = 'application/json'
+        accept = event.request.headers.get('Accept', json_mime)
+        if json_mime in accept:
+            accept = json_mime
+        event.request.headers["Accept"] = accept
 
     config.add_subscriber(add_default_accept, NewRequest)
 

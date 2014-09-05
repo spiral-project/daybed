@@ -24,7 +24,7 @@ class RecordsRendererTest(BaseWebTest):
         response = self.app.get('/models/test/records',
                                 headers=headers)
         self.assertEqual(response.headers['Content-Type'],
-                         "application/json; charset=UTF-8")
+                         'application/json; charset=UTF-8')
         self.assertNotIn('features', response.json)
 
     def test_records_renderer_can_be_geojson(self):
