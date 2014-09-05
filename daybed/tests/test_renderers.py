@@ -5,12 +5,51 @@ from pyramid import testing
 
 from daybed.renderers import GeoJSON
 from .support import BaseWebTest, force_unicode
+from .test_views import MODEL_DEFINITION, MODEL_RECORD, MODEL_RECORD2
 
 
-class TestGeoJSONRenderer(BaseWebTest):
+class RecordsRendererTest(BaseWebTest):
 
     def setUp(self):
-        super(TestGeoJSONRenderer, self).setUp()
+        super(RecordsRendererTest, self).setUp()
+        model = MODEL_DEFINITION.copy()
+        model['records'] = [MODEL_RECORD, MODEL_RECORD2]
+        self.app.put_json('/models/test',
+                          model,
+                          headers=self.headers)
+
+    def test_default_records_renderer_is_json(self):
+        headers = self.headers.copy()
+        headers.pop('Accept', None)
+        response = self.app.get('/models/test/records',
+                                headers=headers)
+        self.assertEqual(response.headers['Content-Type'],
+                         "application/json; charset=UTF-8")
+        self.assertNotIn('features', response.json)
+
+    def test_records_renderer_can_be_geojson(self):
+        headers = self.headers.copy()
+        headers['Accept'] = 'application/vnd.geo+json'
+        response = self.app.get('/models/test/records',
+                                headers=headers)
+        self.assertEqual(response.headers['Content-Type'],
+                         'application/vnd.geo+json; charset=UTF-8')
+        self.assertIn('features', response.json)
+
+    def test_default_records_renderer_if_accept_not_only_json(self):
+        headers = self.headers.copy()
+        headers['Accept'] = 'application/json, text/javascript, */*;'
+        response = self.app.get('/models/test/records',
+                                headers=headers)
+        self.assertEqual(response.headers['Content-Type'],
+                         "application/json; charset=UTF-8")
+        self.assertNotIn('features', response.json)
+
+
+class GeoJSONRendererTest(BaseWebTest):
+
+    def setUp(self):
+        super(GeoJSONRendererTest, self).setUp()
 
         permissions = {
             'read_definition': ['Alexis', 'Remy']
