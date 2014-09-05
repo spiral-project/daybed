@@ -1,3 +1,4 @@
+import copy
 import base64
 
 import mock
@@ -215,14 +216,6 @@ class ModelsViewsTest(BaseWebTest):
 
         definition = self.db.get_model_definition(model_id)
         self.assertEquals(definition, MODEL_DEFINITION['definition'])
-
-    def test_cors_support_on_404(self):
-        headers = self.headers.copy()
-        headers['Origin'] = 'notmyidea.org'
-        response = self.app.get('/models/unknown/definition',
-                                headers=headers,
-                                status=404)
-        self.assertIn('Access-Control-Allow-Origin', response.headers)
 
     def test_permissions_unknown_retrieval(self):
         resp = self.app.get('/models/test/permissions',
@@ -749,3 +742,60 @@ class SearchViewTest(BaseWebTest):
         self.app.get('/models/test/search/', {},
                      headers=self.headers,
                      status=403)
+
+
+class CORSHeadersTest(BaseWebTest):
+
+    def setUp(self):
+        super(CORSHeadersTest, self).setUp()
+        self.headers['Origin'] = 'notmyidea.org'
+
+    def test_support_on_options_404(self):
+        headers = self.headers.copy()
+        headers['Access-Control-Request-Method'] = 'GET'
+        response = self.app.options('/models/unknown/definition',
+                                    headers=headers,
+                                    status=200)
+        self.assertIn('Access-Control-Allow-Origin', response.headers)
+
+    def test_support_on_get_unknown_model(self):
+        response = self.app.get('/models/unknown/definition',
+                                headers=self.headers,
+                                status=404)
+        self.assertIn('Access-Control-Allow-Origin', response.headers)
+
+    def test_support_on_valid_definition(self):
+        response = self.app.put_json('/models/test',
+                                     MODEL_DEFINITION,
+                                     headers=self.headers,
+                                     status=200)
+        self.assertIn('Access-Control-Allow-Origin', response.headers)
+
+    def test_support_on_invalid_definition(self):
+        definition = copy.deepcopy(MODEL_DEFINITION)
+        definition['definition'].pop('fields')
+        response = self.app.put_json('/models/test',
+                                     definition,
+                                     headers=self.headers,
+                                     status=400)
+        self.assertIn('Access-Control-Allow-Origin', response.headers)
+
+    def test_support_on_unauthorized(self):
+        response = self.app.get('/token',
+                                MODEL_DEFINITION,
+                                status=401)
+        self.assertIn('Access-Control-Allow-Origin', response.headers)
+
+    def test_support_on_forbidden(self):
+        self.app.put_json('/models/test',
+                          MODEL_DEFINITION,
+                          headers=self.headers,
+                          status=200)
+        self.app.patch_json('/models/test/permissions',
+                            {self.credentials['id']: ["-ALL"]},
+                            headers=self.headers,
+                            status=200)
+        response = self.app.get('/models/test',
+                                headers=self.headers,
+                                status=403)
+        self.assertIn('Access-Control-Allow-Origin', response.headers)
