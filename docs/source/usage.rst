@@ -123,8 +123,8 @@ And we get back::
     }
 
 Since the token was used, the new model was associated to your *id*,
-and only you get read *and* write permissions. Of course, the model
-permissions can be changed later.
+and you are the only one to get read *and* write permissions.
+Of course, the model permissions can be changed later.
 
 :notes:
 
@@ -414,52 +414,23 @@ Get back the model permissions
         ]
     }
 
-
-Working with permissions
+Change model permissions
 ------------------------
 
-You can add permissions either to an existing :term:`identifier` (*key id*), to
-authenticated users or to everyone.
+As described in :ref:`the dedicated section about permissions <permissions-section>`,
+you can add or remove permissions from models.
 
-:notes:
+Here, for example, we add the permission to anonymous users (i.e. *Everyone*)
+to read everyone's records.
 
-    With Hawk, the *key ids* look like tokens, but remember, the *id* is the part of
-    your credentials, and is different from the session ``token``.
-
-We refer to the whole world with the special *id* ``Everyone`` (or ``system.Everyone``)
-and to authenticated users with ``Authenticated`` (or ``system.Authenticated``).
-
-To give `read_definition` and `read_permissions` to authenticated users and remove
-`update_permissions` from *id* ``220a1c..871`` we would write::
-
-    {
-        "Authenticated": ["read_definition", "read_permissions"],
-        "220a1c..871": ["-update_permissions"]
-    }
-
-For this to be valid, ``220a1c..871`` must be an existing *id*.
-
-In order to add/remove all permissions to/from somebody, use the ``ALL`` shortcut::
-
-    {
-        "Authenticated": ["-ALL"],
-        "220a1c..871": ["+ALL"]
-    }
-
-:notes:
-
-    `+` is implicit, we add the permission if not specified (``ALL`` is equivalent to ``+ALL``).
-
-
-If you add an unknown permission or modify the permissions of a non existing *id*,
-you will get an error.
-
+Using a ``PATCH`` request, existing permissions configuration is not overwritten
+completely :
 
 **PATCH /models/{modelname}/permissions**
 
 ::
 
-   echo '{"Everyone": ["read_definition"]}' | http PATCH http://localhost:8000/models/todo/permissions  \
+   echo '{"Everyone": ["+read_all_records"]}' | http PATCH http://localhost:8000/models/todo/permissions  \
        --json \
        --verbose \
        --auth-type=hawk \
@@ -476,7 +447,7 @@ you will get an error.
 
     {
         "Everyone": [
-            "read_definition"
+            "+read_all_records"
         ]
     }
 
@@ -502,20 +473,23 @@ you will get an error.
             "update_permissions",
         ],
         "system.Everyone": [
-            "read_definition"
+            "read_all_records"
         ]
     }
 
+If you add an unknown permission or modify the permissions of an unknown *id*,
+you will get an error.
 
-Clear missing ids
+
+Reset permissions
 -----------------
 
-If you need to remove permissions from an unknown *id*, you will have to use the PUT endpoint.
+Using a ``PUT`` request, existing permissions will be completely erased and
+replaced by the new ones.
+
+Using the ``ALL`` shortcut, you can grant all available permissions.
 
 **PUT /models/{modelname}/permissions**
-
-This endpoint let you replace a set of permissions for a model, and
-replace all permissions in one call.
 
 ::
 
@@ -568,3 +542,9 @@ replace all permissions in one call.
             "read_definition"
         ]
     }
+
+
+:notes:
+
+    It can be useful if you need to remove permissions associated to an unknown
+    *id* for example.
