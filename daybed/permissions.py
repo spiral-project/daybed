@@ -20,10 +20,17 @@ PERMISSIONS_SET = set([
 
 
 def default_model_permissions(credentials_id):
-    """ Give all permissions to the model creator."""
+    """ Give all permissions to the model creator.
+    Permissions of models created by anonymous (i.e. ``Everyone``)
+    cannot be changed.
+    """
     permissions = defaultdict(list)
     for perm in PERMISSIONS_SET:
         permissions[perm].append(credentials_id)
+
+    if credentials_id == Everyone:
+        permissions.pop('update_permissions')
+
     return permissions
 
 
