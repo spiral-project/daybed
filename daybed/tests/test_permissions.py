@@ -64,6 +64,11 @@ class TestPermissionTools(TestCase):
         tokens = [t[0] for t in perms.values()]
         self.assertEqual(set(['abc']), set(tokens))
 
+    def test_nobody_can_change_permissions_of_anonymous_models(self):
+        perms = default_model_permissions('system.Everyone')
+        self.assertEqual(set(perms.keys()),
+                         PERMISSIONS_SET - set(['update_permissions']))
+
     def test_dict_set2list(self):
         self.assertDictEqual(dict_set2list({
             'toto': set(['titi', 'tutu']),
@@ -87,7 +92,7 @@ class TestPermissionTools(TestCase):
             'update_my_record': ['admin'],
         }
         credentials_ids_permissions = {
-            'admin': ['read_all_records', 'read_permissions', 
+            'admin': ['read_all_records', 'read_permissions',
                       'update_definition', 'update_my_record'],
             'alexis': ['read_permissions'],
             'remy': ['read_all_records']
