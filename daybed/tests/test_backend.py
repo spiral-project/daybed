@@ -61,7 +61,7 @@ class BackendTestBase(object):
         del credentials['key']
         self.assertRaises(AssertionError, self.db.store_credentials, token, credentials)
 
-    def test_store_credentials_fails_if_credentials_are_incorrects(self):
+    def test_store_credentials_success(self):
         token, credentials = get_hawk_credentials()
         self.db.store_credentials(token, credentials)
         self.assertEqual(self.db.get_token(credentials['id']), token)
@@ -223,6 +223,13 @@ class TestCouchDBBackend(BackendTestBase, TestCase):
                 id_generator=lambda: True
             )
 
+    @mock.patch('daybed.backends.couchdb.CouchDBBackend.__init__')
+    def test_load_from_config(self, constructor_mock):
+        constructor_mock.return_value = None
+        config = mock.MagicMock()
+        CouchDBBackend.load_from_config(config)
+        self.assertTrue(constructor_mock.called)
+
 
 class TestRedisBackend(BackendTestBase, TestCase):
 
@@ -242,10 +249,18 @@ class TestRedisBackend(BackendTestBase, TestCase):
 
     def test_server_unreachable(self):
         with self.assertRaises(ConnectionError):
-            db = RedisBackend(
+            RedisBackend(
                 host='unreachable', port=6379, db=5,
                 id_generator=lambda: True
             )
+
+    @mock.patch('daybed.backends.redis.RedisBackend.__init__')
+    def test_load_from_config(self, constructor_mock):
+        constructor_mock.return_value = None
+        config = mock.MagicMock()
+        RedisBackend.load_from_config(config)
+        self.assertTrue(constructor_mock.called)
+
 
 class TestMemoryBackend(BackendTestBase, TestCase):
 

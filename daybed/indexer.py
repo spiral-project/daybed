@@ -21,9 +21,13 @@ class ElasticSearchIndexer(object):
                                   **params)
 
     def on_model_created(self, event):
-        if not self.client.indices.exists(index=self.prefix(event.model_id)):
-            logger.debug("Create index for model '%s'" % event.model_id)
-            self.client.indices.create(index=self.prefix(event.model_id))
+        indexname = self.prefix(event.model_id)
+        try:
+            if not self.client.indices.exists(index=indexname):
+                logger.debug("Create index for model '%s'" % event.model_id)
+                self.client.indices.create(index=self.prefix(event.model_id))
+        except ElasticsearchException as e:
+            logger.error(e)
 
         logger.debug("Create mapping for model '%s'" % event.model_id)
         definition = event.request.db.get_model_definition(event.model_id)
@@ -75,12 +79,15 @@ class ElasticSearchIndexer(object):
 
     def delete_indices(self):
         logger.debug("Drop the index on database deleted event.")
-        indices = [x.split()[1]
-                   for x in self.client.cat.indices().split('\n')[:-1]]
-        prefixed_indices = [indice for indice in indices
-                            if indice.startswith(self.prefix(''))]
-        if len(prefixed_indices) > 0:
-            self.client.indices.delete(index=','.join(prefixed_indices))
+        try:
+            fullnames = self.client.cat.indices().split('\n')[:-1]
+            indices = [x.split()[1] for x in fullnames]
+            prefixed_indices = [indice for indice in indices
+                                if indice.startswith(self.prefix(''))]
+            if len(prefixed_indices) > 0:
+                self.client.indices.delete(index=','.join(prefixed_indices))
+        except ElasticsearchException as e:
+            logger.error(e)
 
     def __put_mapping(self, model_id, definition):
         """ Transforms the model definition into an Elasticsearch mapping,

@@ -50,6 +50,16 @@ class ModelsIndicesTest(BaseWebTest):
                           headers=self.headers)
         self.assertTrue(error_mock.called)
 
+    @mock.patch('daybed.indexer.logger.error')
+    @mock.patch('elasticsearch.client.indices.IndicesClient.exists')
+    def test_no_exception_on_model_put_when_lookup_fails(self,
+                                                         exists_mock,
+                                                         error_mock):
+        exists_mock.side_effect = indexer.ElasticsearchException
+        self.app.post_json('/models', MODEL_DEFINITION,
+                           headers=self.headers)
+        self.assertTrue(error_mock.called)
+
     @mock.patch('elasticsearch.client.indices.IndicesClient.delete')
     def test_existing_index_is_not_deleted_on_model_put(self, delete_mock):
         self.app.put_json('/models/test', MODEL_DEFINITION,
@@ -79,13 +89,22 @@ class ModelsIndicesTest(BaseWebTest):
     @mock.patch('daybed.indexer.logger.error')
     @mock.patch('elasticsearch.client.indices.IndicesClient.delete')
     def test_no_exception_on_model_deletion_when_index_fails(self,
-                                                             error_mock,
-                                                             delete_mock):
+                                                             delete_mock,
+                                                             error_mock):
         delete_mock.side_effect = indexer.ElasticsearchException
         self.app.put_json('/models/test', MODEL_DEFINITION,
                           headers=self.headers)
         self.app.delete('/models/test',
                         headers=self.headers)
+        self.assertTrue(error_mock.called)
+
+    @mock.patch('daybed.indexer.logger.error')
+    @mock.patch('elasticsearch.client.cat.CatClient.indices')
+    def test_no_exception_when_indices_deletion_fails(self,
+                                                      indices_mock,
+                                                      error_mock):
+        indices_mock.side_effect = indexer.ElasticsearchException
+        self.indexer.delete_indices()
         self.assertTrue(error_mock.called)
 
 
