@@ -42,7 +42,6 @@ class BaseWebTest(unittest.TestCase):
             .strip().decode('ascii')
         self.headers = {
             'Content-Type': 'application/json',
-            'Accept': 'application/json',
             'Authorization': 'Basic {0}'.format(auth_password),
         }
 
