@@ -221,11 +221,11 @@ ALL_FIELDS_DEFINITION = {
             {'name': 'm', 'type': 'choices', 'choices': ['a']},
             {'name': 'n', 'type': 'enum', 'choices': ['a']},
             {'name': 'o', 'type': 'regex', 'regex': '.+'},
-            {'name': 'p', 'type': 'list', 'itemtype': 'object',
-                'parameters': {
-                    'fields': [
-                        {'name': 'pp', 'type': 'int'}
-                    ]
+            {'name': 'p', 'type': 'list', 'item': {
+                'type': 'object',
+                'fields': [
+                    {'name': 'pp', 'type': 'int'}
+                ]
                 }},
             {'name': 'q', 'type': 'object', 'fields': [
                 {'name': 'qq', 'type': 'int'}

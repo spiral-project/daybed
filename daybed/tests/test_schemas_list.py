@@ -1,3 +1,5 @@
+import copy
+
 import colander
 
 from daybed import schemas
@@ -8,9 +10,8 @@ OBJECT_FIELD_DEFINITION = {
     'name': u'tasks',
     'type': u'list',
     'hint': u'An object',
-    'label': u'',
-    'required': True,
-    'itemtype': u'int'
+    'item': {'type': u'int',
+             'hint': u'An integer'}
 }
 
 
@@ -18,15 +19,18 @@ class ListFieldTest(unittest.TestCase):
 
     def setUp(self):
         self.schema = schemas.ListField.definition()
-        self.definition = OBJECT_FIELD_DEFINITION.copy()
+        self.definition = copy.deepcopy(OBJECT_FIELD_DEFINITION)
         self.validator = schemas.ListField.validation(**self.definition)
 
     def test_can_be_defined_with_a_field_type(self):
         field = self.schema.deserialize(self.definition)
+        for defaultattr in ['required', 'label']:
+            field.pop(defaultattr)
+            field['item'].pop(defaultattr)
         self.assertDictEqual(self.definition, field)
 
     def test_is_not_valid_if_field_type_unknown(self):
-        self.definition['itemtype'] = 'asteroid'
+        self.definition['item']['type'] = 'asteroid'
         self.assertRaises(colander.Invalid,
                           self.schema.deserialize,
                           self.definition)
@@ -55,10 +59,10 @@ class NoItemTypeListTest(unittest.TestCase):
     def setUp(self):
         self.schema = schemas.ListField.definition()
         self.definition = OBJECT_FIELD_DEFINITION.copy()
-        self.definition.pop('itemtype')
+        self.definition.pop('item')
         self.validator = schemas.ListField.validation(**self.definition)
 
-    def test_validation_succeeds_if_items_are_valid(self):
+    def test_no_item_type_validation_is_performed(self):
         value = self.validator.deserialize('[1,"a",{"status": false}]')
         self.assertEquals(value, [1, u'a', {u'status': False}])
 
@@ -67,8 +71,8 @@ class ItemTypeListTest(unittest.TestCase):
 
     def setUp(self):
         self.schema = schemas.ListField.definition()
-        self.definition = OBJECT_FIELD_DEFINITION.copy()
-        self.definition['itemtype'] = 'date'
+        self.definition = copy.deepcopy(OBJECT_FIELD_DEFINITION)
+        self.definition['item']['type'] = 'date'
         self.validator = schemas.ListField.validation(**self.definition)
 
     def test_validation_succeeds_if_items_are_valid(self):
@@ -90,9 +94,9 @@ class ObjectListTest(BaseWebTest):
     def setUp(self):
         super(ObjectListTest, self).setUp()
         self.schema = schemas.ListField.definition()
-        self.definition = OBJECT_FIELD_DEFINITION.copy()
-        self.definition['itemtype'] = 'object'
-        self.definition['parameters'] = {
+        self.definition = copy.deepcopy(OBJECT_FIELD_DEFINITION)
+        self.definition['item'] = {
+            'type': 'object',
             'fields': [
                 {'type': u'enum',
                  'name': u'status',
@@ -102,7 +106,7 @@ class ObjectListTest(BaseWebTest):
         self.validator = schemas.ListField.validation(**self.definition)
 
     def test_is_not_valid_if_parameters_are_invalid(self):
-        self.definition['parameters']['fields'] = []
+        self.definition['item']['fields'] = []
         self.assertRaises(colander.Invalid,
                           self.schema.deserialize,
                           self.definition)
