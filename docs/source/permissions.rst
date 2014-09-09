@@ -128,8 +128,8 @@ Permissions become :
 Modification
 ------------
 
-We use ``-`` and ``+`` to modify the an existing set of permissions for an
-idenfier.
+We use ``-`` and ``+`` to modify the existing set of permissions for an
+identifier.
 
 To grant `create_record` to anonymous users, ``read_permissions`` to
 authenticated users and remove `update_permissions` from *id* ``220a1c..871``
@@ -179,7 +179,7 @@ adjust permissions.
     }
 
 
-If the *administration* wants to share her privileges with other, she can either :
+If the *administrator* wants to share her privileges with other, she can either:
 
 * share her :term:`token` ;
 * create a new token, assign permissions to its *key id*, and share the new token.
@@ -211,7 +211,7 @@ Online poll
 Everybody can answer the poll, but are not allowed to correct their answers,
 nor to see the poll results.
 
-We keep ``read_definition`` as it might used to build the form on the client-side :
+We keep ``read_definition`` as it might be used to build the form on the client-side:
 
 ::
 
