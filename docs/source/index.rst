@@ -111,5 +111,6 @@ More documentation
 
    install
    usage
+   fieldtypes
    permissions
    terminology
