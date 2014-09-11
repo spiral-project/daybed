@@ -86,7 +86,7 @@ Two steps setup
 
 .. note::
 
-    We use Docker links, available in version 0.11+.
+    You shall use `Docker links`_, available in version 0.11+.
 
 Run a CouchDB_ instance::
 
@@ -145,3 +145,4 @@ From the repository folder::
 .. _Mono: http://www.mono-project.com/
 .. _virtualenv: http://virtualenv.readthedocs.org/
 .. _Docker: http://docker.io
+.. _Docker links: https://docs.docker.com/userguide/dockerlinks/

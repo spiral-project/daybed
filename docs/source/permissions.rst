@@ -64,18 +64,20 @@ Usage
 Permissions are set on models, as a *dictionnary* between :term:`identifiers` (*key id*)
 and lists of :term:`permissions`.
 
-We refer to the whole world with the special *id* ``Everyone`` (or ``system.Everyone``)
-and to authenticated users with ``Authenticated`` (or ``system.Authenticated``).
+In order to refer to anyone in the world, use the special *id* ``Everyone``
+and to authenticated users with ``Authenticated``.
 
 :notes:
 
-    With Hawk, the *key ids* look like :term:`tokens`, but the *id* is the part of
-    your :term:`credentials`, and is different from the session token.
+    As explained in the :ref:`API usage section <usage-section>`, the
+    *key ids* look like :term:`tokens`, but they are different : the *id*
+    is the public part of your :term:`credentials`.
+    The session token is private, since it contains the secret key.
 
 
 When you create a model, you gain the full set of available permissions.
 
-This means that the credentials id you used in the request will be associated to all permissions ::
+This means that the identifier you used in the request will be associated to all permissions ::
 
     {
         "220a1c..871": [
@@ -95,7 +97,7 @@ This means that the credentials id you used in the request will be associated to
     }
 
 
-Let's say, you want to allow authenticated users to create records and manage
+Let's say you want to allow authenticated users to create records and manage
 their own records on this model.
 
 Permissions become :
@@ -128,12 +130,12 @@ Permissions become :
 Modification
 ------------
 
-We use ``-`` and ``+`` to modify the existing set of permissions for an
+You can use ``-`` and ``+`` to modify the existing set of permissions for an
 identifier.
 
 To grant `create_record` to anonymous users, ``read_permissions`` to
 authenticated users and remove `update_permissions` from *id* ``220a1c..871``
-we would send the following request ::
+you would have to send the following request ::
 
     {
         "Everyone": ["+create_record"],
@@ -150,7 +152,8 @@ In order to add/remove all permissions to/from somebody, use the ``ALL`` shortcu
 
 :notes:
 
-    `+` is implicit, we add the permission if not specified (``ALL`` is equivalent to ``+ALL``).
+    `+` is implicit, the permission is added if not specified
+    (i.e. ``ALL`` is equivalent to ``+ALL``).
 
 
 Concrete examples
@@ -211,7 +214,8 @@ Online poll
 Everybody can answer the poll, but are not allowed to correct their answers,
 nor to see the poll results.
 
-We keep ``read_definition`` as it might be used to build the form on the client-side:
+``read_definition`` is given to everyone, as it might be used to build the
+form on the client-side:
 
 ::
 

@@ -1,10 +1,12 @@
+.. _usage-section:
+
 How to use the Daybed API
 =========================
 
 Daybed is a REST interface you can use to create model definitions, edit them
 and publish data that complies to these models.
 
-Let's say we want to have a Daybed-managed *todo list*. Follow the steps and you
+Let's say you want to have a Daybed-managed *todo list*. Follow the steps and you
 will have a grasp of how Daybed works.
 
 To simplify API calls, you can use `httpie <https://github.com/jkbr/httpie>`_
@@ -73,12 +75,12 @@ When you are authenticated, all the objects you create will be associated to
 your credentials *id*.
 
 
-First, we put a definition under the name "todo" using a PUT request
+First, you put a definition under the name "todo" using a PUT request
 on **/models**::
 
   http PUT http://localhost:8000/models/todo
 
-We use the ``token`` as the ``auth`` value, as expected by the ``requests-hawk``
+Use the ``token`` as the ``auth`` value, as expected by the ``requests-hawk``
 library.
 
 .. code-block:: bash
@@ -110,7 +112,7 @@ library.
          --auth-type=hawk \
          --auth='ad37fc395b7ba83eb496849f6db022fbb316fa11081491b5f00dfae5b0b1cd22:'
 
-And we get back::
+And you receive the model id back ::
 
     HTTP/1.1 200 OK
     Content-Length: 14
@@ -169,7 +171,7 @@ Returns the list of models where you have the permission to read the definition:
 
 **GET /models/{modelname}**
 
-We can now get our models back::
+You can now get your models back::
 
     http GET http://localhost:8000/models/todo \
       --verbose \
@@ -247,7 +249,7 @@ Pushing records
 **POST /models/{modelname}/records**
 **PUT /models/{modelname}/records/{id}**
 
-Now that we've defined the schema, we want to push some real record there!::
+Now that you've defined the schema, you may want to push some real record there!::
 
     http POST http://localhost:8000/models/todo/records item="work on daybed" status="done" \
         --verbose \
@@ -420,8 +422,8 @@ Change model permissions
 As described in :ref:`the dedicated section about permissions <permissions-section>`,
 you can add or remove permissions from models.
 
-Here, for example, we add the permission to anonymous users (i.e. *Everyone*)
-to read everyone's records.
+For example, you may want to give the permission to read everyone's records
+to anonymous users (i.e. *Everyone*).
 
 Using a ``PATCH`` request, existing permissions configuration is not overwritten
 completely :
