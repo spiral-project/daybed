@@ -69,7 +69,9 @@ Technologies
 * `Pyramid <http://www.pylonsproject.org>`_, a robust and powerful python Web framework
 * `Cornice <https://cornice.readthedocs.org>`_, a REST framework for Pyramid
 * `Colander <http://colander.readthedocs.org>`_ for the schema validation part
-* `CouchDB <http://couchdb.apache.org>`_ as the default persistence backend
+* `Redis <http://redis.io>`_ as the default persistence backend
+* `ElasticSearch <http://www.elasticsearch.org>`_ as indexing and faceted search engine
+* `CouchDB <http://couchdb.apache.org>`_ as an alternative persistence backend
 
 
 Comparison
@@ -97,7 +99,7 @@ Raw data access              ✔       ✔                   ✔           ✔  
 Agnostic (REST)              ✔       ✔                   ✔           ✔
 Requires SDK                                                                   ✔
 Open Source                  ✔       ✔                   ✔           ✔         ✔
-Faceted search               (soon)
+Faceted search               ✔
 ===========================  ======  ==================  ==========  ==============================
 
 Sources: http://python-eve.org ; http://hood.ie ; http://loopback.io ;

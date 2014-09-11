@@ -36,16 +36,6 @@ Here's a list of permissions you can define on a model:
 - **delete_own_records**: delete records on which you are an author
 
 
-Global permissions
-==================
-
-There are three extra permissions that are configured at the server level:
-
-- **create_model**: List of tokens allowed to create a model
-- **create_token**: List of tokens allowed to create tokens
-- **manage_tokens**: List of tokens allowed to delete tokens
-
-
 Views permissions
 =================
 
@@ -56,3 +46,222 @@ For example, if you want to get a complete model (definition and records),
 you will need the following permissions:
 - **read_definition** and **read_permissions**
 - **read_all_records** or **read_own_records**
+
+
+Global permissions
+==================
+
+There are three extra permissions that are configured at the server level:
+
+- **create_model**: List of identifiers allowed to create a model
+- **create_token**: List of identifiers allowed to create tokens
+- **manage_tokens**: List of identifiers allowed to delete tokens
+
+
+Usage
+=====
+
+Permissions are set on models, as a *dictionnary* between :term:`identifiers` (*key id*)
+and lists of :term:`permissions`.
+
+In order to refer to anyone in the world, use the special *id* ``Everyone``
+and to authenticated users with ``Authenticated``.
+
+:notes:
+
+    As explained in the :ref:`API usage section <usage-section>`, the
+    *key ids* look like :term:`tokens`, but they are different : the *id*
+    is the public part of your :term:`credentials`.
+    The session token is private, since it contains the secret key.
+
+
+When you create a model, you gain the full set of available permissions.
+
+This means that the identifier you used in the request will be associated to all permissions ::
+
+    {
+        "220a1c..871": [
+            "create_record",
+            "delete_all_records",
+            "delete_model",
+            "delete_own_records",
+            "read_all_records",
+            "read_definition",
+            "read_own_records",
+            "read_permissions",
+            "update_all_records",
+            "update_definition",
+            "update_own_records"
+            "update_permissions",
+        ]
+    }
+
+
+Let's say you want to allow authenticated users to create records and manage
+their own records on this model.
+
+Permissions become :
+
+::
+
+    {
+        "Authenticated": [
+            "create_record",
+            "read_own_records",
+            "update_own_records",
+            "delete_own_records"
+        ],
+        "220a1c..871": [
+            "create_record",
+            "delete_all_records",
+            "delete_model",
+            "delete_own_records",
+            "read_all_records",
+            "read_definition",
+            "read_own_records",
+            "read_permissions",
+            "update_all_records",
+            "update_definition",
+            "update_own_records"
+            "update_permissions",
+        ]
+    }
+
+Modification
+------------
+
+You can use ``-`` and ``+`` to modify the existing set of permissions for an
+identifier.
+
+To grant `create_record` to anonymous users, ``read_permissions`` to
+authenticated users and remove `update_permissions` from *id* ``220a1c..871``
+you would have to send the following request ::
+
+    {
+        "Everyone": ["+create_record"],
+        "Authenticated": ["+read_permissions"],
+        "220a1c..871": ["-update_permissions"]
+    }
+
+In order to add/remove all permissions to/from somebody, use the ``ALL`` shortcut::
+
+    {
+        "Authenticated": ["-ALL"],
+        "220a1c..871": ["+ALL"]
+    }
+
+:notes:
+
+    `+` is implicit, the permission is added if not specified
+    (i.e. ``ALL`` is equivalent to ``+ALL``).
+
+
+Concrete examples
+=================
+
+Collaborative editor (*pad*)
+----------------------------
+
+Everybody can read, create, modify and delete everyone's records.
+However only the owner (*id* ``220a1c..871``) can modify the model definition and
+adjust permissions.
+
+::
+
+    {
+        "Everyone": [
+            "read_definition",
+            "create_record",
+            "read_all_records",
+            "update_all_records",
+            "delete_all_records"
+        ],
+        "220a1c..871": [
+            "ALL",
+        ]
+    }
+
+
+If the *administrator* wants to share her privileges with other, she can either:
+
+* share her :term:`token` ;
+* create a new token, assign permissions to its *key id*, and share the new token.
+
+::
+
+    {
+        "Everyone": [
+            "read_definition",
+            "create_record",
+            "read_all_records",
+            "update_all_records",
+            "delete_all_records"
+        ],
+        "6780dd..df1": [
+            "update_definition",
+            "read_permissions",
+            "update_permissions",
+        ],
+        "220a1c..871": [
+            "ALL",
+        ]
+    }
+
+
+Online poll
+-----------
+
+Everybody can answer the poll, but are not allowed to correct their answers,
+nor to see the poll results.
+
+``read_definition`` is given to everyone, as it might be used to build the
+form on the client-side:
+
+::
+
+    {
+        "Everyone": [
+            "read_definition",
+            "create_record",
+        ],
+        "220a1c..871": [
+            "ALL",
+        ]
+    }
+
+
+TODO-list application
+---------------------
+
+The development team, who created the model, has the full set of permissions.
+
+Everybody can manage their own records, but they are private.
+
+::
+
+    {
+        "Everyone": [
+            "read_definition",
+            "create_record",
+            "read_own_records",
+            "update_own_records",
+            "delete_own_records"
+        ],
+        "220a1c..871": [
+            "ALL",
+        ]
+    }
+
+:note:
+
+    Using *Everyone* instead of *Authenticated* will allow anonymous
+    to manage a set of records that are shared among all anonymous users.
+
+:note:
+
+    Users can share their todo list if they share their :term:`token`.
+    But they cannot share it as read-only.
+
+    In order to accomplish this, instead of having a unique model with
+    everyone records, each user will have to create her own model, on which
+    she will gain the control of permissions.

@@ -1,10 +1,12 @@
+.. _usage-section:
+
 How to use the Daybed API
 =========================
 
 Daybed is a REST interface you can use to create model definitions, edit them
 and publish data that complies to these models.
 
-Let's say we want to have a Daybed-managed *todo list*. Follow the steps and you
+Let's say you want to have a Daybed-managed *todo list*. Follow the steps and you
 will have a grasp of how Daybed works.
 
 To simplify API calls, you can use `httpie <https://github.com/jkbr/httpie>`_
@@ -75,12 +77,12 @@ When you are authenticated, all the objects you create will be associated to
 your credentials *id*.
 
 
-First, we put a definition under the name "todo" using a PUT request
+First, you put a definition under the name "todo" using a PUT request
 on **/models**::
 
   http PUT http://localhost:8000/models/todo
 
-We use the ``token`` as the ``auth`` value, as expected by the ``requests-hawk``
+Use the ``token`` as the ``auth`` value, as expected by the ``requests-hawk``
 library.
 
 .. code-block:: bash
@@ -112,7 +114,7 @@ library.
          --auth-type=hawk \
          --auth='ad37fc395b7ba83eb496849f6db022fbb316fa11081491b5f00dfae5b0b1cd22:'
 
-And we get back::
+And you receive the model id back ::
 
     HTTP/1.1 200 OK
     Content-Length: 14
@@ -125,8 +127,8 @@ And we get back::
     }
 
 Since the token was used, the new model was associated to your *id*,
-and only you get read *and* write permissions. Of course, the model
-permissions can be changed later.
+and you are the only one to get read *and* write permissions.
+Of course, the model permissions can be changed later.
 
 :notes:
 
@@ -171,7 +173,7 @@ Returns the list of models where you have the permission to read the definition:
 
 **GET /models/{modelname}**
 
-We can now get our models back::
+You can now get your models back::
 
     http GET http://localhost:8000/models/todo \
       --verbose \
@@ -249,7 +251,7 @@ Pushing records
 **POST /models/{modelname}/records**
 **PUT /models/{modelname}/records/{id}**
 
-Now that we've defined the schema, we want to push some real record there!::
+Now that you've defined the schema, you may want to push some real record there!::
 
     http POST http://localhost:8000/models/todo/records item="work on daybed" status="done" \
         --verbose \
@@ -416,52 +418,23 @@ Get back the model permissions
         ]
     }
 
-
-Working with permissions
+Change model permissions
 ------------------------
 
-You can add permissions either to an existing :term:`identifier` (*key id*), to
-authenticated users or to everyone.
+As described in :ref:`the dedicated section about permissions <permissions-section>`,
+you can add or remove permissions from models.
 
-:notes:
+For example, you may want to give the permission to read everyone's records
+to anonymous users (i.e. *Everyone*).
 
-    With Hawk, the *key ids* look like tokens, but remember, the *id* is the part of
-    your credentials, and is different from the session ``token``.
-
-We refer to the whole world with the special *id* ``Everyone`` (or ``system.Everyone``)
-and to authenticated users with ``Authenticated`` (or ``system.Authenticated``).
-
-To give `read_definition` and `read_permissions` to authenticated users and remove
-`update_permissions` from *id* ``220a1c..871`` we would write::
-
-    {
-        "Authenticated": ["read_definition", "read_permissions"],
-        "220a1c..871": ["-update_permissions"]
-    }
-
-For this to be valid, ``220a1c..871`` must be an existing *id*.
-
-In order to add/remove all permissions to/from somebody, use the ``ALL`` shortcut::
-
-    {
-        "Authenticated": ["-ALL"],
-        "220a1c..871": ["+ALL"]
-    }
-
-:notes:
-
-    `+` is implicit, we add the permission if not specified (``ALL`` is equivalent to ``+ALL``).
-
-
-If you add an unknown permission or modify the permissions of a non existing *id*,
-you will get an error.
-
+Using a ``PATCH`` request, existing permissions configuration is not overwritten
+completely :
 
 **PATCH /models/{modelname}/permissions**
 
 ::
 
-   echo '{"Everyone": ["read_definition"]}' | http PATCH http://localhost:8000/models/todo/permissions  \
+   echo '{"Everyone": ["+read_all_records"]}' | http PATCH http://localhost:8000/models/todo/permissions  \
        --json \
        --verbose \
        --auth-type=hawk \
@@ -478,7 +451,7 @@ you will get an error.
 
     {
         "Everyone": [
-            "read_definition"
+            "+read_all_records"
         ]
     }
 
@@ -504,20 +477,23 @@ you will get an error.
             "update_permissions",
         ],
         "system.Everyone": [
-            "read_definition"
+            "read_all_records"
         ]
     }
 
+If you add an unknown permission or modify the permissions of an unknown *id*,
+you will get an error.
 
-Clear missing ids
+
+Reset permissions
 -----------------
 
-If you need to remove permissions from an unknown *id*, you will have to use the PUT endpoint.
+Using a ``PUT`` request, existing permissions will be completely erased and
+replaced by the new ones.
+
+Using the ``ALL`` shortcut, you can grant all available permissions.
 
 **PUT /models/{modelname}/permissions**
-
-This endpoint let you replace a set of permissions for a model, and
-replace all permissions in one call.
 
 ::
 
@@ -570,3 +546,9 @@ replace all permissions in one call.
             "read_definition"
         ]
     }
+
+
+:notes:
+
+    It can be useful if you need to remove permissions associated to an unknown
+    *id* for example.
