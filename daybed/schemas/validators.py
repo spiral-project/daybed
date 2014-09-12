@@ -6,7 +6,7 @@ import datetime
 
 import six
 from colander import (
-    SchemaNode, Mapping, Sequence, Length, String, null, Invalid
+    SchemaNode, Mapping, Sequence, Length, String, null, Invalid, drop
 )
 from pyramid.security import Authenticated, Everyone
 
@@ -33,6 +33,75 @@ class RecordSchema(SchemaNode):
             field['root'] = self
             fieldtype = field.pop('type')
             self.add(registry.validation(fieldtype, **field))
+
+
+class ModelSchema(SchemaNode):
+    def __init__(self):
+        super(ModelSchema, self).__init__(Mapping())
+        self.add(SchemaNode(DefinitionSchema(), name='definition'))
+
+    def deserialize(self, cstruct=null):
+        value = super(ModelSchema, self).deserialize(cstruct)
+
+        definition = value['definition']
+        self.add(SchemaNode(Sequence(), RecordSchema(definition),
+                            name='records', missing=drop))
+
+        return super(ModelSchema, self).deserialize(cstruct)
+
+
+class IdentifierValidator(object):
+    def __call__(self, node, value):
+        if value not in (Authenticated, Everyone):
+            try:
+                self.db.get_token(value)
+            except CredentialsNotFound:
+                msg = u"Credential id '%s' not found." % value
+                node.raise_invalid(msg)
+
+
+class PermissionListSchema(SchemaNode):
+
+    def __init__(self):
+        super(PermissionListSchema, self).__init__(Sequence())
+
+    def deserialize(self, cstruct=null):
+        values = super(PermissionListSchema, self).deserialize(cstruct)
+
+        lower_strip_dash = lambda perm: perm.lstrip('-').lstrip('+').lower()
+        perms = set([lower_strip_dash(perm) for perm in values])
+
+        if "all" in perms:
+            perms = set(PERMISSIONS_SET)
+
+        if not perms.issubset(PERMISSIONS_SET):
+            unknown = perms - PERMISSIONS_SET
+            msg = 'Invalid permissions: %s' % ', '.join(unknown)
+            self.raise_invalid(msg)
+
+        return perms
+
+
+class PermissionsSchema(SchemaNode):
+    def __init__(self):
+        super(PermissionsSchema, self).__init__(Mapping())
+
+    def deserialize(self, cstruct=null):
+        value = super(PermissionsSchema, self).deserialize(cstruct)
+        credentials_ids = value.keys()
+
+        self.children = []
+        for identifier in credentials_ids:
+            if identifier in ("Authenticated", "Everyone"):
+                identifier = identifier.replace("Authenticated",
+                                                Authenticated) \
+                                       .replace("Everyone",
+                                                Everyone)
+            IdentifierValidator()(self, identifier)
+
+            self.add(PermissionListSchema(), name=identifier)
+
+        return super(PermissionsSchema, self).deserialize(cstruct)
 
 
 class RecordValidator(object):
@@ -88,8 +157,9 @@ def validator(request, schema):
         request.errors.add('body', 'body', six.text_type(e))
 
 
-#  Validates a request body according model definition schema.
 definition_validator = partial(validator, schema=DefinitionSchema())
+model_validator = partial(validator, schema=ModelSchema())
+permissions_validator = partial(validator, schema=PermissionsSchema())
 
 
 def record_validator(request):
@@ -105,73 +175,3 @@ def record_validator(request):
         request.errors.add('path', 'modelname',
                            'Unknown model %s' % model_id)
         request.errors.status = 404
-
-
-def model_validator(request):
-    """Verify that the model is okay (that we have the right fields) and
-    eventually populates it if there is a need to.
-    """
-    try:
-        body = json.loads(request.body.decode('utf-8'))
-    except ValueError:
-        request.errors.add('body', 'json value error', "malformed body")
-        return
-
-    # Check the definition is valid.
-    definition = body.get('definition')
-    if not definition:
-        request.errors.add('body', 'definition', 'definition is required')
-    else:
-        validate_against_schema(request, DefinitionSchema(), definition,
-                                'definition')
-    request.validated['definition'] = definition
-
-    # Check that the records are valid according to the definition.
-    records = body.get('records')
-    request.validated['records'] = []
-    if records:
-        definition_schema = RecordSchema(definition)
-        for record in records:
-            validate_against_schema(request, definition_schema, record)
-            request.validated['records'].append(record)
-
-
-def permissions_validator(request):
-    """Verify that the permissions defined in the request body are valid:
-         - tokens exists
-         - permission names are valid
-    """
-    try:
-        body = json.loads(request.body.decode('utf-8'))
-    except ValueError:
-        request.errors.add('body', 'json value error', "malformed body")
-        return
-
-    request.validated['permissions'] = {}
-
-    # Check the definition is valid.
-    for credentials_id, permissions in six.iteritems(body):
-        error = False
-        strip_dash = lambda perm: perm.lstrip('-').lstrip('+').lower()
-        perms = set([strip_dash(perm) for perm in permissions])
-        if "all" in perms:
-            perms = set(PERMISSIONS_SET)
-        if not perms.issubset(PERMISSIONS_SET):
-            request.errors.add('body', credentials_id,
-                               'Invalid permissions: %s' %
-                               ', '.join((perms - PERMISSIONS_SET)))
-            error = True
-        if credentials_id not in ("Authenticated", "Everyone"):
-            if credentials_id not in (Authenticated, Everyone):
-                try:
-                    request.db.get_token(credentials_id)
-                except CredentialsNotFound:
-                    request.errors.add("body", credentials_id,
-                                       "Credentials id couldn't be found.")
-                    error = True
-        else:
-            credentials_id = credentials_id \
-                .replace("Authenticated", Authenticated) \
-                .replace("Everyone", Everyone)
-        if not error:
-            request.validated["permissions"][credentials_id] = permissions
