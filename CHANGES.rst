@@ -1,10 +1,10 @@
 Changelog
 =========
 
-1.1 (unreleased)
+1.0.1 (2014-09-12)
 ----------------
 
-- No changes yet.
+- Allow CouchDB to run without being able to create the database.
 
 
 1.0 (2014-09-12)
