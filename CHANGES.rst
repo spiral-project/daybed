@@ -1,7 +1,7 @@
 Changelog
 =========
 
-1.0 (unreleased)
+1.0 (2014-09-12)
 ----------------
 
 - Add permissions management
@@ -15,10 +15,11 @@ Changelog
 - Add multi backends tests
 - Add BasicAuth and Person authentication
 
-
 - Add Python 3 support
 - Use tox to test on PyPy, Python 2.6, Python 2.7, Python 3.3 and flake8
 - Add BSD Licence
+
+- Deployed https://daybed.io/v1/
 
 
 0.1 (2014-01-05)
