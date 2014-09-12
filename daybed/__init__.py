@@ -111,7 +111,8 @@ def main(global_config, **settings):
     # Indexing
 
     # Connect client to hosts in conf
-    index_hosts = build_list(settings.get('elasticsearch.hosts'))
+    index_hosts = build_list(settings.get('elasticsearch.hosts',
+                                          "localhost:9200"))
     indices_prefix = settings.get('elasticsearch.indices_prefix', 'daybed_')
     config.registry.index = index = indexer.ElasticSearchIndexer(
         index_hosts, indices_prefix
