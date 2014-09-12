@@ -2,7 +2,7 @@ import os
 import socket
 
 from couchdb.client import Server
-from couchdb.http import PreconditionFailed
+from couchdb.http import PreconditionFailed, Unauthorized
 from couchdb.design import ViewDefinition
 
 from daybed import logger
@@ -50,7 +50,7 @@ class CouchDBBackend(object):
         try:
             self.server.create(self.db_name)
             logger.info('Creating and using db "%s"' % self.db_name)
-        except PreconditionFailed:
+        except (PreconditionFailed, Unauthorized):
             logger.info('Using db "%s".' % self.db_name)
 
     def sync_views(self):
