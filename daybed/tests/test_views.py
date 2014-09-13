@@ -783,6 +783,7 @@ class CORSHeadersTest(BaseWebTest):
     def test_support_on_unauthorized(self):
         response = self.app.get('/token',
                                 MODEL_DEFINITION,
+                                headers=self.headers,
                                 status=401)
         self.assertIn('Access-Control-Allow-Origin', response.headers)
 
