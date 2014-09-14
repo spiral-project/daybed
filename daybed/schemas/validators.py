@@ -6,19 +6,19 @@ import datetime
 
 import six
 from colander import (
-    SchemaNode, Mapping, Sequence, Length, String, null, Invalid, drop
+    SchemaNode, Mapping, Sequence, Length, String, null, Invalid, OneOf
 )
 from pyramid.security import Authenticated, Everyone
 
 from daybed.backends.exceptions import ModelNotFound
 from daybed.permissions import PERMISSIONS_SET
 from daybed.backends.exceptions import CredentialsNotFound
-from . import registry, TypeFieldNode
+from . import registry, TypeFieldNode, get_db
 
 
 class DefinitionSchema(SchemaNode):
-    def __init__(self):
-        super(DefinitionSchema, self).__init__(Mapping())
+    def __init__(self, *args, **kwargs):
+        super(DefinitionSchema, self).__init__(Mapping(), *args, **kwargs)
         self.add(SchemaNode(String(), name='title'))
         self.add(SchemaNode(String(), name='description'))
         self.add(SchemaNode(Sequence(), SchemaNode(TypeFieldNode()),
@@ -38,70 +38,73 @@ class RecordSchema(SchemaNode):
 class ModelSchema(SchemaNode):
     def __init__(self):
         super(ModelSchema, self).__init__(Mapping())
-        self.add(SchemaNode(DefinitionSchema(), name='definition'))
+        self.add(DefinitionSchema(name='definition'))
 
     def deserialize(self, cstruct=null):
+        self.children = self.children[:1]
         value = super(ModelSchema, self).deserialize(cstruct)
 
         definition = value['definition']
         self.add(SchemaNode(Sequence(), RecordSchema(definition),
-                            name='records', missing=drop))
+                            name='records', missing=[]))
 
         return super(ModelSchema, self).deserialize(cstruct)
 
 
 class IdentifierValidator(object):
+    def __init__(self, db):
+        self.db = db
+
     def __call__(self, node, value):
         if value not in (Authenticated, Everyone):
             try:
                 self.db.get_token(value)
             except CredentialsNotFound:
-                msg = u"Credential id '%s' not found." % value
-                node.raise_invalid(msg)
+                msg = u"Credentials id '%s' could not be found." % value
+                raise Invalid(node, msg, value)
 
 
-class PermissionListSchema(SchemaNode):
-
+class PermissionValidator(OneOf):
     def __init__(self):
-        super(PermissionListSchema, self).__init__(Sequence())
+        valid = list(PERMISSIONS_SET) + ['all']
+        super(PermissionValidator, self).__init__(valid)
 
-    def deserialize(self, cstruct=null):
-        values = super(PermissionListSchema, self).deserialize(cstruct)
-
-        lower_strip_dash = lambda perm: perm.lstrip('-').lstrip('+').lower()
-        perms = set([lower_strip_dash(perm) for perm in values])
-
-        if "all" in perms:
-            perms = set(PERMISSIONS_SET)
-
-        if not perms.issubset(PERMISSIONS_SET):
-            unknown = perms - PERMISSIONS_SET
-            msg = 'Invalid permissions: %s' % ', '.join(unknown)
-            self.raise_invalid(msg)
-
-        return perms
+    def __call__(self, node, value):
+        strip_perm = value.lstrip('-').lstrip('+').lower().lower().lower()
+        return super(PermissionValidator, self).__call__(node, strip_perm)
 
 
 class PermissionsSchema(SchemaNode):
-    def __init__(self):
-        super(PermissionsSchema, self).__init__(Mapping())
+    def __init__(self, *args, **kwargs):
+        super(PermissionsSchema, self).__init__(Mapping(unknown='preserve'),
+                                                *args, **kwargs)
 
     def deserialize(self, cstruct=null):
-        value = super(PermissionsSchema, self).deserialize(cstruct)
-        credentials_ids = value.keys()
-
         self.children = []
-        for identifier in credentials_ids:
+        permissions = super(PermissionsSchema, self).deserialize(cstruct)
+
+        permissions = self._substitute_by_system(permissions)
+
+        identifier_validator = IdentifierValidator(get_db())
+        permission_node = SchemaNode(String(), validator=PermissionValidator())
+
+        for identifier in permissions.keys():
+            identifier_validator(self, identifier)
+            self.add(SchemaNode(Sequence(),
+                                permission_node,
+                                name=identifier))
+        return super(PermissionsSchema, self).deserialize(permissions)
+
+    def _substitute_by_system(self, cstruct):
+        for identifier in cstruct:
             if identifier in ("Authenticated", "Everyone"):
+                saved = cstruct.pop(identifier)
                 identifier = identifier.replace("Authenticated",
                                                 Authenticated) \
                                        .replace("Everyone",
                                                 Everyone)
-            IdentifierValidator()(self, identifier)
-
-            self.add(PermissionListSchema(), name=identifier)
-
-        return super(PermissionsSchema, self).deserialize(cstruct)
+                cstruct[identifier] = saved
+        return cstruct
 
 
 class RecordValidator(object):

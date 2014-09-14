@@ -4,8 +4,8 @@ from cornice.errors import Errors
 from pyramid.testing import DummyRequest
 
 from daybed import schemas
-from daybed.schemas.validators import validator
-from daybed.tests.support import unittest
+from daybed.schemas import validators
+from daybed.tests.support import unittest, BaseWebTest
 
 
 class ValidatorTests(unittest.TestCase):
@@ -13,9 +13,8 @@ class ValidatorTests(unittest.TestCase):
         request = DummyRequest()
         request.body = b'{wrong,"format"}'
         request.errors = Errors()
-        validator(request, mock.Mock())
+        validators.validator(request, mock.Mock())
         self.assertEqual('body', request.errors[0]['location'])
-
 
 
 class DefinitionSchemaTest(unittest.TestCase):
@@ -96,3 +95,113 @@ class DefinitionSchemaTest(unittest.TestCase):
         schemas.TypeField.default_value = before
 
 
+class ModelSchemaTest(unittest.TestCase):
+
+    def setUp(self):
+        self.schema = validators.ModelSchema()
+        self.definition = {
+            'title': u'Flavors',
+            'description': u'Flavors',
+            'fields': [{'type': 'string', 'name': 'flavor'}]
+        }
+
+    def test_fails_if_no_definition(self):
+        incomplete = {'records': []}
+        self.assertRaises(colander.Invalid,
+                          self.schema.deserialize, incomplete)
+
+    def test_fails_if_definition_is_invalid(self):
+        definition = self.definition.copy()
+        definition.pop('title')
+        invalid = {'definition': definition}
+        self.assertRaises(colander.Invalid,
+                          self.schema.deserialize, invalid)
+
+    def test_succeeds_if_only_definition(self):
+        minimal = {'definition': self.definition}
+        validated = self.schema.deserialize(minimal)
+        self.assertEqual(self.definition['title'],
+                         validated['definition']['title'])
+
+    def test_succeeds_if_record_matches_definition(self):
+        with_records = {'definition': self.definition,
+                        'records': [{'flavor': 'vanilla'}]}
+        validated = self.schema.deserialize(with_records)
+        self.assertEqual(self.definition['title'],
+                         validated['definition']['title'])
+
+    def test_fails_if_record_is_invalid_for_definition(self):
+        with_records = {'definition': self.definition,
+                        'records': [{'flavor': 3.14}]}
+        self.assertRaises(colander.Invalid,
+                          self.schema.deserialize, with_records)
+
+
+class PermissionsSchemaTest(BaseWebTest):
+
+    def setUp(self):
+        super(PermissionsSchemaTest, self).setUp()
+        self.db.store_credentials('abc', {'id': 'doctor', 'key': 'who'})
+        self.schema = validators.PermissionsSchema(name='permissions')
+        self.permissions = {
+            'doctor': ['ALL'],
+            'Everyone': ['read_own_records'],
+        }
+
+    def test_fails_if_not_a_mapping(self):
+        self.assertRaises(colander.Invalid,
+                          self.schema.deserialize, ['doctor'])
+
+    def test_fails_if_identifier_is_unknown(self):
+        unknown = self.permissions.copy()
+        unknown['unknown'] = ['delete_model']
+        self.assertRaises(colander.Invalid,
+                          self.schema.deserialize, unknown)
+
+    def test_unknown_identifier_is_given_in_error(self):
+        unknown = self.permissions.copy()
+        unknown['unknown'] = ['delete_model']
+        try:
+            self.schema.deserialize(unknown)
+        except colander.Invalid as e:
+            self.assertIn(u"Credentials id 'unknown' could not be found.",
+                          repr(e))
+
+    def test_shortcut_identifiers_are_replaced_by_system_principals(self):
+        shortcuts = self.permissions.copy()
+        shortcuts['Authenticated'] = ['delete_model']
+        value = self.schema.deserialize(shortcuts)
+        self.assertIsNone(value.get('Everyone'))
+        self.assertEqual(value['system.Everyone'], ['read_own_records'])
+        self.assertIsNone(value.get('Authenticated'))
+        self.assertEqual(value['system.Authenticated'], ['delete_model'])
+
+    def test_fails_if_permission_name_is_unknown(self):
+        unknown = self.permissions.copy()
+        unknown['Everyone'] = ['drink_coffee']
+        self.assertRaises(colander.Invalid,
+                          self.schema.deserialize, unknown)
+
+    def test_unknown_permissions_are_given_in_errors(self):
+        unknown = self.permissions.copy()
+        unknown['Everyone'].append('drink_coffee')
+        try:
+            self.schema.deserialize(unknown)
+        except colander.Invalid as e:
+            self.assertIn('"drink_coffee" is not one of ', str(e))
+
+    def test_all_becomes_lowercase(self):
+        value = self.schema.deserialize(self.permissions)
+        self.assertEqual(value['doctor'], ['ALL'])
+
+    def test_permissions_can_be_specified_with_plus(self):
+        with_plus = self.permissions.copy()
+        with_plus['doctor'] = ['+read_own_records']
+        value = self.schema.deserialize(with_plus)
+        self.assertEqual(value['doctor'], ['+read_own_records'])
+
+    def test_permissions_can_be_specified_with_minus(self):
+        with_minus = self.permissions.copy()
+        with_minus['doctor'].append('-read_all_records')
+        value = self.schema.deserialize(with_minus)
+        self.assertEqual(value['doctor'], ['ALL', '-read_all_records'])

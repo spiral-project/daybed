@@ -67,7 +67,7 @@ def patch_permissions(request):
     definition = request.db.get_model_definition(model_id)
     permissions = dict_list2set(request.db.get_model_permissions(model_id))
 
-    for credentials_id, perms in iteritems(request.validated['permissions']):
+    for credentials_id, perms in iteritems(request.data_clean):
         # Handle remove all
         if '-all' in [perm.lower() for perm in perms]:
             for perm in PERMISSIONS_SET:
@@ -96,7 +96,7 @@ def put_permissions(request):
     model_id = request.matchdict['model_id']
     definition = request.db.get_model_definition(model_id)
     permissions = defaultdict(set)
-    for credentials_id, perms in iteritems(request.validated['permissions']):
+    for credentials_id, perms in iteritems(request.data_clean):
         perms = [p.lstrip('+').lower() for p in perms]
         if 'all' in perms:
             perms = PERMISSIONS_SET
@@ -123,12 +123,12 @@ def post_models(request):
         credentials_id = Everyone
 
     model_id = request.db.put_model(
-        definition=request.validated['definition'],
+        definition=request.data_clean['definition'],
         permissions=default_model_permissions(credentials_id))
 
     request.notify('ModelCreated', model_id)
 
-    for record in request.validated['records']:
+    for record in request.data_clean['records']:
         record_id = request.db.put_record(model_id, record, [credentials_id])
         request.notify('RecordCreated', model_id, record_id)
 
@@ -206,14 +206,14 @@ def handle_put_model(request, create=False):
     else:
         credentials_id = Everyone
 
-    request.db.put_model(request.validated['definition'],
+    request.db.put_model(request.data_clean['definition'],
                          default_model_permissions(credentials_id),
                          model_id)
 
     event = 'ModelCreated' if create else 'ModelUpdated'
     request.notify(event, model_id)
 
-    for record in request.validated['records']:
+    for record in request.data_clean['records']:
         record_id = request.db.put_record(model_id, record, [credentials_id])
         request.notify('RecordCreated', model_id, record_id)
 
