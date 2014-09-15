@@ -118,21 +118,17 @@ class RecordValidator(object):
         self.schema.deserialize(value)
 
 
-def validate_against_schema(request, schema, data, field_name=None):
+def validate_against_schema(request, schema, data):
     try:
         data_pure = schema.deserialize(data)
         data_clean = post_serialize(data_pure)
         # Attach data_clean to request: see usage in views.
         request.data_clean = data_clean
     except Invalid as e:
-        def output_error(error, recurse=False):
-            # here we transform the errors we got from colander into cornice
-            # errors
-            for field, error in error.asdict().items():
-                request.errors.add('body', field or field_name or '', error)
-                if recurse:
-                    map(output_error, e.children)
-        output_error(e, True)
+        # here we transform the errors we got from colander into cornice
+        # errors
+        for field, error in e.asdict().items():
+            request.errors.add('body', field, error)
 
 
 def post_serialize(data):

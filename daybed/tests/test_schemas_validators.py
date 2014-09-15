@@ -9,12 +9,33 @@ from daybed.tests.support import unittest, BaseWebTest
 
 
 class ValidatorTests(unittest.TestCase):
+    def setUp(self):
+        self.request = DummyRequest()
+        self.request.db = mock.MagicMock()
+        self.request.matchdict = mock.MagicMock()
+        self.request.errors = Errors()
+
     def test_adds_body_error_if_json_invalid(self):
-        request = DummyRequest()
-        request.body = b'{wrong,"format"}'
-        request.errors = Errors()
-        validators.validator(request, mock.Mock())
-        self.assertEqual('body', request.errors[0]['location'])
+        self.request.body = b'{wrong,"format"}'
+        validators.validator(self.request, mock.Mock())
+        self.assertEqual('body', self.request.errors[0]['location'])
+
+    def test_records_validation_adds_errors_to_response(self):
+        self.request.db.get_model_definition.return_value = {
+            'fields': [{
+                'name': 'wishlist',
+                'type': 'list',
+                'item': {
+                    'type': 'object',
+                    'fields': [{'name': 'wish', 'type': 'string'}]
+                }
+            }]
+        }
+        self.request.body = b'{"wishlist": [{"wish": "A"}, {"wish": 3.14}]}'
+        validators.record_validator(self.request)
+        self.assertEqual(len(self.request.errors), 1)
+        self.assertIn('1.wish', self.request.errors[0]['name'])
+        self.assertIn('3.14', self.request.errors[0]['description'])
 
 
 class DefinitionSchemaTest(unittest.TestCase):
@@ -135,6 +156,14 @@ class ModelSchemaTest(unittest.TestCase):
                         'records': [{'flavor': 3.14}]}
         self.assertRaises(colander.Invalid,
                           self.schema.deserialize, with_records)
+
+    def test_record_raises_one_error_by_field(self):
+        with_records = {'definition': self.definition,
+                        'records': [{'flavor': 3.14}]}
+        try:
+            self.schema.deserialize(with_records)
+        except colander.Invalid as e:
+            self.assertEqual(len(e.children), 1)
 
 
 class PermissionsSchemaTest(BaseWebTest):
