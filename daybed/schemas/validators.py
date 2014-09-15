@@ -70,7 +70,7 @@ class PermissionValidator(OneOf):
         super(PermissionValidator, self).__init__(valid)
 
     def __call__(self, node, value):
-        strip_perm = value.lstrip('-').lstrip('+').lower().lower().lower()
+        strip_perm = value.lstrip('-').lstrip('+').lower()
         return super(PermissionValidator, self).__call__(node, strip_perm)
 
 
