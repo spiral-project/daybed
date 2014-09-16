@@ -34,6 +34,39 @@ def default_model_permissions(credentials_id):
     return permissions
 
 
+def merge_permissions(original, specified):
+    """ Merge permissions together, and handle the ``ALL`` shortcut.
+    """
+    permissions = dict_list2set(original)
+
+    def _add(perm, identifier):
+        permissions.setdefault(perm, set()).add(identifier)
+
+    def _discard(perm, identifier):
+        permissions.setdefault(perm, set()).discard(identifier)
+
+    for credentials_id, perms in iteritems(specified):
+        # Handle remove all
+        if '-all' in [perm.lower() for perm in perms]:
+            for perm in PERMISSIONS_SET:
+                _discard(perm, credentials_id)
+
+        # Handle add all
+        elif 'all' in [perm.lstrip('+').lower() for perm in perms]:
+            for perm in PERMISSIONS_SET:
+                _add(perm, credentials_id)
+
+        # Handle add/remove perms list
+        else:
+            for perm in [perm.lower() for perm in perms]:
+                if perm.startswith('-'):
+                    _discard(perm.lstrip('-'), credentials_id)
+                else:
+                    _add(perm.lstrip('+'), credentials_id)
+
+    return dict_set2list(permissions)
+
+
 class Any(list):
     def matches(self, permissions):
         check = False

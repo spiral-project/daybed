@@ -10,7 +10,7 @@ from daybed.backends import exceptions
 from daybed.permissions import (
     All, Any, DaybedAuthorizationPolicy,
     invert_permissions_matrix, dict_set2list, dict_list2set,
-    default_model_permissions, PERMISSIONS_SET
+    default_model_permissions, PERMISSIONS_SET, merge_permissions
 )
 
 
@@ -99,6 +99,64 @@ class TestPermissionTools(TestCase):
         }
         self.assertDictEqual(invert_permissions_matrix(model_permissions),
                              credentials_ids_permissions)
+
+
+class MergePermissionsTest(TestCase):
+    def test_from_empty_set(self):
+        specified = {"alexis": ["read_permissions"],
+                     "remy": ["update_permissions"]}
+        result = merge_permissions({}, specified)
+        self.assertEqual(result['read_permissions'], ['alexis'])
+        self.assertEqual(result['update_permissions'], ['remy'])
+
+    def test_remove(self):
+        original = invert_permissions_matrix({
+            "alexis": ["create_record", "read_permissions"]
+        })
+        specified = {
+            "alexis": ["-read_permissions"]
+        }
+        result = merge_permissions(original, specified)
+        self.assertNotIn('alexis', result['read_permissions'])
+        self.assertIn('alexis', result['create_record'])
+
+    def test_remove_not_present(self):
+        original = invert_permissions_matrix({
+            "alexis": ["create_record", "read_permissions"]
+        })
+        specified = {
+            "alexis": ["-update_permissions"]
+        }
+        result = merge_permissions(original, specified)
+        self.assertEqual(result['create_record'], ['alexis'])
+        self.assertEqual(result['read_permissions'], ['alexis'])
+
+    def test_add_all(self):
+        original = invert_permissions_matrix({
+            "alexis": ["create_record", "read_permissions"]
+        })
+        specified = {
+            "remy": ["ALL"]
+        }
+        result = merge_permissions(original, specified)
+        result = invert_permissions_matrix(result)
+
+        self.assertDictEqual(result, {
+            "alexis": ["create_record", "read_permissions"],
+            "remy": sorted(PERMISSIONS_SET)
+        })
+
+    def test_remove_all(self):
+        original = invert_permissions_matrix({
+            "alexis": PERMISSIONS_SET
+        })
+        specified = {
+            "alexis": ["-ALL"]
+        }
+        result = merge_permissions(original, specified)
+        result = invert_permissions_matrix(result)
+
+        self.assertDictEqual(result, {})
 
 
 class BasePolicyPermissionTest(TestCase):

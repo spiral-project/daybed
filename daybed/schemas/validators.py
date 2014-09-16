@@ -36,14 +36,21 @@ class RecordSchema(SchemaNode):
 
 
 class ModelSchema(SchemaNode):
+    """A model is a mapping with a mandatory ``definition``, and optionnal
+    ``permissions`` or ``records`` (empty if not provided).
+    """
     def __init__(self):
         super(ModelSchema, self).__init__(Mapping())
+        # Child node for ``records`` will be added during deserialization
         self.add(DefinitionSchema(name='definition'))
+        self.add(PermissionsSchema(name='permissions', missing={}))
 
     def deserialize(self, cstruct=null):
-        self.children = self.children[:1]
+        # Remove potential extra child from previous deserialization
+        self.children = self.children[:2]
         value = super(ModelSchema, self).deserialize(cstruct)
 
+        # Add extra child ``records`` with validation based on definition
         definition = value['definition']
         self.add(SchemaNode(Sequence(), RecordSchema(definition),
                             name='records', missing=[]))
@@ -52,6 +59,8 @@ class ModelSchema(SchemaNode):
 
 
 class IdentifierValidator(object):
+    """A validator to check that the identifier exists in the database.
+    """
     def __init__(self, db):
         self.db = db
 
@@ -65,6 +74,8 @@ class IdentifierValidator(object):
 
 
 class PermissionValidator(OneOf):
+    """A validator to check that the permission name is among those available.
+    """
     def __init__(self):
         valid = list(PERMISSIONS_SET) + ['all']
         super(PermissionValidator, self).__init__(valid)
@@ -75,24 +86,31 @@ class PermissionValidator(OneOf):
 
 
 class PermissionsSchema(SchemaNode):
+    """Permissions are a mapping between :term:`identifiers` and lists of
+    :term:`permissions`.
+    We shall make sure that provided identifiers and permission names exist.
+    """
     def __init__(self, *args, **kwargs):
         super(PermissionsSchema, self).__init__(Mapping(unknown='preserve'),
                                                 *args, **kwargs)
 
     def deserialize(self, cstruct=null):
+        # Remove potential extra children from previous deserialization
         self.children = []
         permissions = super(PermissionsSchema, self).deserialize(cstruct)
 
-        permissions = self._substitute_by_system(permissions)
-
         identifier_validator = IdentifierValidator(get_db())
-        permission_node = SchemaNode(String(), validator=PermissionValidator())
 
-        for identifier in permissions.keys():
+        def get_node_perms(identifier):
             identifier_validator(self, identifier)
-            self.add(SchemaNode(Sequence(),
-                                permission_node,
-                                name=identifier))
+            perm_node = SchemaNode(String(), validator=PermissionValidator())
+            return SchemaNode(Sequence(), perm_node, name=identifier)
+
+        # Add extra children nodes in mapping, based on provided identifiers
+        permissions = self._substitute_by_system(permissions)
+        for identifier in permissions.keys():
+            self.add(get_node_perms(identifier))
+
         return super(PermissionsSchema, self).deserialize(permissions)
 
     def _substitute_by_system(self, cstruct):
@@ -119,6 +137,8 @@ class RecordValidator(object):
 
 
 def validate_against_schema(request, schema, data):
+    """Validates and deliver colander exceptions as Cornice errors.
+    """
     try:
         data_pure = schema.deserialize(data)
         data_clean = post_serialize(data_pure)

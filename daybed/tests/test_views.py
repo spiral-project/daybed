@@ -2,10 +2,9 @@ import copy
 import base64
 
 import mock
-from pyramid.security import Authenticated, Everyone
 
 from daybed import __version__ as VERSION
-from daybed.permissions import PERMISSIONS_SET
+from daybed.permissions import invert_permissions_matrix
 from daybed.backends.exceptions import (
     RecordNotFound, ModelNotFound
 )
@@ -226,7 +225,7 @@ class ModelsViewsTest(BaseWebTest):
         )
         self.assertDictEqual(resp.json, permissions)
 
-    def test_patch_permissions_add(self):
+    def test_patch_permissions(self):
         self.app.put_json('/models/test',
                           MODEL_DEFINITION,
                           headers=self.headers)
@@ -243,66 +242,6 @@ class ModelsViewsTest(BaseWebTest):
         permissions[u"alexis"] = [u"read_permissions"]
         permissions[u"remy"] = [u"update_permissions"]
         self.assertDictEqual(resp.json, permissions)
-
-    def test_patch_permissions_remove(self):
-        self.app.put_json('/models/test',
-                          MODEL_DEFINITION,
-                          headers=self.headers)
-
-        resp = self.app.patch_json(
-            '/models/test/permissions',
-            {self.credentials['id']: ["-read_permissions",
-                                      "-update_permissions"]},
-            headers=self.headers)
-        permissions = force_unicode(
-            {self.credentials['id']: MODEL_PERMISSIONS}
-        )
-        permissions[self.credentials['id']].remove("read_permissions")
-        permissions[self.credentials['id']].remove("update_permissions")
-        self.assertDictEqual(resp.json, permissions)
-
-    def test_patch_permissions_add_all(self):
-        self.app.put_json('/models/test',
-                          MODEL_DEFINITION,
-                          headers=self.headers)
-        self.db.store_credentials('foo', {'id': 'alexis', 'key': 'bar'})
-
-        resp = self.app.patch_json('/models/test/permissions',
-                                   {"alexis": ["ALL"]},
-                                   headers=self.headers)
-        permissions = force_unicode(
-            {self.credentials['id']: MODEL_PERMISSIONS}
-        )
-        permissions[u"alexis"] = sorted(PERMISSIONS_SET)
-        self.assertDictEqual(resp.json, permissions)
-
-    def test_patch_permissions_add_system_principals(self):
-        self.app.put_json('/models/test',
-                          MODEL_DEFINITION,
-                          headers=self.headers)
-
-        resp = self.app.patch_json(
-            '/models/test/permissions',
-            {Everyone: ["read_definition"],
-             Authenticated: ["read_definition", "read_permissions"]},
-            headers=self.headers
-        )
-        permissions = force_unicode(
-            {self.credentials['id']: MODEL_PERMISSIONS}
-        )
-        permissions[Authenticated] = ["read_definition", "read_permissions"]
-        permissions[Everyone] = ["read_definition"]
-        self.assertDictEqual(resp.json, permissions)
-
-    def test_patch_permissions_remove_all(self):
-        self.app.put_json('/models/test',
-                          MODEL_DEFINITION,
-                          headers=self.headers)
-
-        resp = self.app.patch_json('/models/test/permissions',
-                                   {self.credentials['id']: ["-all"]},
-                                   headers=self.headers)
-        self.assertDictEqual(resp.json, {})
 
     def test_put_permissions(self):
         self.app.put_json('/models/test',
@@ -353,6 +292,31 @@ class ModelsViewsTest(BaseWebTest):
                                  headers=self.headers)
 
         self.assertEquals(len(self.db.get_records(model_id)), 1)
+
+    def test_post_model_definition_with_permissions(self):
+        model = MODEL_DEFINITION.copy()
+        model['permissions'] = {"Everyone": ["ALL"]}
+        resp = self.app.post_json('/models', model,
+                                  headers=self.headers)
+        model_id = resp.json['id']
+
+        definition = self.db.get_model_definition(model_id)
+        self.assertEquals(definition, MODEL_DEFINITION['definition'])
+        permissions = self.db.get_model_permissions(model_id)
+        self.assertEquals(invert_permissions_matrix(permissions),
+                          {self.credentials['id']: MODEL_PERMISSIONS,
+                           u'system.Everyone': MODEL_PERMISSIONS})
+
+    def test_put_model_definition_with_permissions(self):
+        model = MODEL_DEFINITION.copy()
+        model['permissions'] = {'Everyone': ['ALL']}
+        self.app.put_json('/models/test', model,
+                          headers=self.headers)
+
+        permissions = self.db.get_model_permissions("test")
+        self.assertEquals(invert_permissions_matrix(permissions),
+                          {self.credentials['id']: MODEL_PERMISSIONS,
+                           u'system.Everyone': MODEL_PERMISSIONS})
 
     def test_put_model_definition_new(self):
         model = MODEL_DEFINITION.copy()
