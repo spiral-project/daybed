@@ -1,11 +1,8 @@
-from six import iteritems
-from collections import defaultdict
 from cornice import Service
 from pyramid.security import Everyone
 
 from daybed.permissions import (
-    default_model_permissions, invert_permissions_matrix,
-    dict_list2set, dict_set2list, PERMISSIONS_SET
+    invert_permissions_matrix, merge_permissions, default_model_permissions
 )
 from daybed.backends.exceptions import ModelNotFound
 from daybed.views.errors import forbidden_view
@@ -65,27 +62,11 @@ def patch_permissions(request):
     """Update a model permissions."""
     model_id = request.matchdict['model_id']
     definition = request.db.get_model_definition(model_id)
-    permissions = dict_list2set(request.db.get_model_permissions(model_id))
 
-    for credentials_id, perms in iteritems(request.data_clean):
-        # Handle remove all
-        if '-all' in [perm.lower() for perm in perms]:
-            for perm in PERMISSIONS_SET:
-                permissions[perm].discard(credentials_id)
-        # Handle add all
-        elif 'all' in [perm.lstrip('+').lower() for perm in perms]:
-            for perm in PERMISSIONS_SET:
-                permissions[perm].add(credentials_id)
-        # Handle add/remove perms list
-        else:
-            for perm in perms:
-                perm = perm.lower()
-                if perm.startswith('-'):
-                    permissions[perm.lstrip('-')].discard(credentials_id)
-                else:
-                    permissions[perm.lstrip('+')].add(credentials_id)
+    current_permissions = request.db.get_model_permissions(model_id)
+    permissions = merge_permissions(current_permissions, request.data_clean)
 
-    request.db.put_model(definition, dict_set2list(permissions), model_id)
+    request.db.put_model(definition, permissions, model_id)
     return invert_permissions_matrix(permissions)
 
 
@@ -95,15 +76,9 @@ def put_permissions(request):
     """Update a model permissions."""
     model_id = request.matchdict['model_id']
     definition = request.db.get_model_definition(model_id)
-    permissions = defaultdict(set)
-    for credentials_id, perms in iteritems(request.data_clean):
-        perms = [p.lstrip('+').lower() for p in perms]
-        if 'all' in perms:
-            perms = PERMISSIONS_SET
-        for perm in perms:
-            if not perm.startswith('-'):
-                permissions[perm].add(credentials_id)
-    permissions = dict_set2list(permissions)
+
+    permissions = merge_permissions({}, request.data_clean)
+
     request.db.put_model(definition, permissions, model_id)
     return invert_permissions_matrix(permissions)
 
@@ -122,9 +97,13 @@ def post_models(request):
     else:
         credentials_id = Everyone
 
+    specified_perms = request.data_clean['permissions']
+    default_perms = default_model_permissions(credentials_id)
+    permissions = merge_permissions(default_perms, specified_perms)
+
     model_id = request.db.put_model(
         definition=request.data_clean['definition'],
-        permissions=default_model_permissions(credentials_id))
+        permissions=permissions)
 
     request.notify('ModelCreated', model_id)
 
@@ -206,8 +185,12 @@ def handle_put_model(request, create=False):
     else:
         credentials_id = Everyone
 
+    specified_perms = request.data_clean['permissions']
+    default_perms = default_model_permissions(credentials_id)
+    permissions = merge_permissions(default_perms, specified_perms)
+
     request.db.put_model(request.data_clean['definition'],
-                         default_model_permissions(credentials_id),
+                         permissions,
                          model_id)
 
     event = 'ModelCreated' if create else 'ModelUpdated'

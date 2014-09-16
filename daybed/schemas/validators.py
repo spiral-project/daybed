@@ -39,9 +39,10 @@ class ModelSchema(SchemaNode):
     def __init__(self):
         super(ModelSchema, self).__init__(Mapping())
         self.add(DefinitionSchema(name='definition'))
+        self.add(PermissionsSchema(name='permissions', missing={}))
 
     def deserialize(self, cstruct=null):
-        self.children = self.children[:1]
+        self.children = self.children[:2]
         value = super(ModelSchema, self).deserialize(cstruct)
 
         definition = value['definition']
