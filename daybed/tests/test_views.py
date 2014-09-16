@@ -203,18 +203,6 @@ class ModelsViewsTest(BaseWebTest):
         self.assertDictEqual(resp.json['permissions'],
                              {self.credentials['id']: MODEL_PERMISSIONS})
 
-    def test_post_model_definition_without_definition(self):
-        self.app.post_json('/models', {}, headers=self.headers, status=400)
-
-    def test_post_model_definition_without_records(self):
-        resp = self.app.post_json('/models',
-                                  MODEL_DEFINITION,
-                                  headers=self.headers)
-        model_id = resp.json['id']
-
-        definition = self.db.get_model_definition(model_id)
-        self.assertEquals(definition, MODEL_DEFINITION['definition'])
-
     def test_permissions_unknown_retrieval(self):
         resp = self.app.get('/models/test/permissions',
                             headers=self.headers, status=404)
@@ -306,24 +294,6 @@ class ModelsViewsTest(BaseWebTest):
         permissions[Everyone] = ["read_definition"]
         self.assertDictEqual(resp.json, permissions)
 
-    def test_patch_permissions_add_shortcuts_principals(self):
-        self.app.put_json('/models/test',
-                          MODEL_DEFINITION,
-                          headers=self.headers)
-
-        resp = self.app.patch_json(
-            '/models/test/permissions',
-            {"Everyone": ["read_definition"],
-             "Authenticated": ["read_definition", "read_permissions"]},
-            headers=self.headers
-        )
-        permissions = force_unicode(
-            {self.credentials['id']: MODEL_PERMISSIONS}
-        )
-        permissions[Authenticated] = ["read_definition", "read_permissions"]
-        permissions[Everyone] = ["read_definition"]
-        self.assertDictEqual(resp.json, permissions)
-
     def test_patch_permissions_remove_all(self):
         self.app.put_json('/models/test',
                           MODEL_DEFINITION,
@@ -333,23 +303,6 @@ class ModelsViewsTest(BaseWebTest):
                                    {self.credentials['id']: ["-all"]},
                                    headers=self.headers)
         self.assertDictEqual(resp.json, {})
-
-    def test_patch_permissions_add_unknown(self):
-        self.app.put_json('/models/test',
-                          MODEL_DEFINITION,
-                          headers=self.headers)
-
-        resp = self.app.patch_json('/models/test/permissions',
-                                   {"alexis": ["read_permissions"]},
-                                   headers=self.headers,
-                                   status=400)
-        self.assertDictEqual(resp.json, force_unicode({
-            "status": "error",
-            "errors": [
-                {"location": "body", "name": "alexis",
-                 "description": "Credentials id couldn't be found."}
-            ]
-        }))
 
     def test_put_permissions(self):
         self.app.put_json('/models/test',
@@ -367,42 +320,6 @@ class ModelsViewsTest(BaseWebTest):
         permissions["remy"] = ["update_permissions"]
         self.assertDictEqual(resp.json, force_unicode(permissions))
 
-    def test_put_permissions_wrong_identifier(self):
-        self.app.put_json('/models/test',
-                          MODEL_DEFINITION,
-                          headers=self.headers)
-
-        resp = self.app.put_json('/models/test/permissions',
-                                 {"alexis": ["read_permissions"]},
-                                 headers=self.headers,
-                                 status=400)
-
-        self.assertDictEqual(resp.json, force_unicode({
-            "status": "error",
-            "errors": [
-                {"location": "body", "name": "alexis",
-                 "description": "Credentials id couldn't be found."}
-            ]
-        }))
-
-    def test_put_permissions_wrong_perm(self):
-        self.app.put_json('/models/test',
-                          MODEL_DEFINITION,
-                          headers=self.headers)
-
-        resp = self.app.put_json('/models/test/permissions',
-                                 {"Everyone": ["foo", "read_permissions"]},
-                                 headers=self.headers,
-                                 status=400)
-
-        self.assertDictEqual(resp.json, force_unicode({
-            "status": "error",
-            "errors": [
-                {"location": "body", "name": "Everyone",
-                 "description": "Invalid permissions: foo"}
-            ]
-        }))
-
     def test_definition_retrieval(self):
         self.app.put_json('/models/test',
                           MODEL_DEFINITION,
@@ -410,8 +327,11 @@ class ModelsViewsTest(BaseWebTest):
 
         resp = self.app.get('/models/test/definition',
                             headers=self.headers)
-        definition = force_unicode(MODEL_DEFINITION['definition'])
-        self.assertDictEqual(resp.json, definition)
+        definition = MODEL_DEFINITION['definition'].copy()
+        definition['fields'][0].update(hint='An integer',
+                                       label='',
+                                       required=False)
+        self.assertDictEqual(resp.json, force_unicode(definition))
 
     def test_post_model_definition_with_records(self):
         model = MODEL_DEFINITION.copy()
@@ -420,19 +340,6 @@ class ModelsViewsTest(BaseWebTest):
                                   headers=self.headers)
         model_id = resp.json['id']
         self.assertEquals(len(self.db.get_records(model_id)), 2)
-
-    def test_put_model_definition_without_records(self):
-        model = MODEL_DEFINITION.copy()
-        model['records'] = [MODEL_RECORD, MODEL_RECORD]
-        resp = self.app.post_json('/models', model,
-                                  headers=self.headers)
-        model_id = resp.json['id']
-
-        model.pop('records')
-        resp = self.app.put_json('/models/%s' % model_id, model,
-                                 headers=self.headers)
-
-        self.assertEquals(len(self.db.get_records(model_id)), 0)
 
     def test_put_model_definition_with_records(self):
         model = MODEL_DEFINITION.copy()
@@ -460,15 +367,6 @@ class ModelsViewsTest(BaseWebTest):
         self.assertEqual("toto", resp.json["id"])
 
         resp = self.app.put_json('/models/toto', model, status=401)
-
-    def test_malformed_definition_creation(self):
-        definition_without_title = MODEL_DEFINITION['definition'].copy()
-        definition_without_title.pop('title')
-        resp = self.app.put_json('/models/test',
-                                 {'definition': definition_without_title},
-                                 headers=self.headers,
-                                 status=400)
-        self.assertIn('"name": "title"', resp.body.decode('utf-8'))
 
     def test_definition_creation_rejects_malformed_json(self):
         malformed_definition = '{"test":"toto", "titi": "tutu'
