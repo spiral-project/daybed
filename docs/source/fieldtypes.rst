@@ -67,33 +67,160 @@ Advanced types
     **Specific parameters:**
        * *choices*: An array of string items
 
+.. code-block:: json
+
+    {
+        "label": "Hobbies",
+        "name": "hobbies",
+        "type": "choices",
+        "choices": [
+            "Litterature",
+            "Cinema",
+			"Mountain Bike",
+			"Motor Bike",
+			"Sailing"
+        ]
+    }
+
+
 * **range**: A number within limits
     **Specific parameters:**
        * *min*: An integer which is the minimum value of the field
        * *max*: An integer which is the maximum value of the field
 
+
+.. code-block:: json
+
+    {
+        "label": "Mountain bike Wheel Size (in mm)",
+        "name": "wheel-size",
+        "type": "range",
+		"min": 239,
+		"max": 622
+    }
+
+
 * **regex**: A string matching a pattern
     **Specific parameters:**
        * *regexp*: The pattern the value should match to be valid.
+
+.. code-block:: json
+
+    {
+        "label": "French Mobile Phone Number",
+        "name": "phone-number",
+        "type": "regex",
+		"regex": "^0[6-7][0-9]{8}$"
+    }
+
 
 * **date**: A date in *yyyy-mm-dd* format
     **Specific parameters:**
        * *autonow*: Boolean, if true add the current date automatically. (default: false)
 
+.. code-block:: json
+
+    {
+        "label": "Date of Birth",
+        "name": "date",
+        "type": "date",
+		"autonow": true
+    }
+
+
 * **datetime**: A datetime in *yyyy-mm-ddTHH:MM:SS* format
     **Specific parameters:**
        * *autonow*: Boolean, if true add the current date automatically. (default: false)
+
+.. code-block:: json
+
+    {
+        "label": "Time of Birth",
+        "name": "date",
+        "type": "datetime"
+    }
+
 
 * **group**: A group of fields, can define fieldsets or multi-pages forms.
     **Specific parameters:**
        * *description*: A string to describe the group.
        * *fields*: A list of fields of the group.
 
+.. code-block:: json
+
+    {
+        "label": "Fieldset",
+        "type": "group",
+		"fields": [
+            {
+                "label": "Gender",
+                "name": "gender",
+                "type": "enum",
+                "choices": [
+                    "Mr",
+                    "Miss",
+                    "Ms"
+                ]
+            },
+            {
+                "label": "Firstname",
+                "name": "firstname",
+                "type": "string"
+            },
+            {
+                "label": "Lastname",
+                "name": "lastname",
+                "type": "string"
+            }
+        ]
+    }
+
+Then you just post you object like:
+
+.. code-block:: json
+
+    {"gender": "Mr", "firstname": "Remy", "lastname": "Hubscher"}
+
+
 * **metadata**: A model description field not used for validation
     No specific parameters.
 
+.. code-block:: json
+
+    {
+        "label": "Title 1",
+        "type": "metadata",
+    }
+
+
+   This can be use to add description between fields' groups for instance.
+
 * **json**: A JSON value
     No specific parameters.
+
+    This can be used to store non validated JSON
+
+.. code-block:: json
+
+    {
+        "label": "JSON object",
+        "name": "movie",
+        "type": "json"
+    }
+
+Then you can use it like so:
+
+.. code-block:: json
+
+    {
+      "movie": {
+        "title": "The Island",
+        "director": "Michael Bay",
+        "actors": ["Scarlett Johnsson", "Erwan McGregor"],
+        "year": 2005
+      }
+    }
+
 
 
 Nested
@@ -104,9 +231,58 @@ Nested
        * *model*: The name of the object
        * *fields*: A list of the object's fields.
 
+Instead of the json type, you can choose to describe an object and validate it:
+
+.. code-block:: json
+
+    {
+        "label": "Movie",
+        "name": "movie",
+        "type": "object",
+        "fields": [
+          {
+            "label": "Title",
+            "name": "title",
+            "type": "string"
+          },
+          {
+            "label": "Director",
+            "name": "director",
+            "type": "string"
+          },
+          {
+            "label": "Actors",
+            "name": "actors",
+            "type": "json"
+          }
+        ]
+    }
+
+
 * **list**: A list of objects inside another model
     **Specific parameters:**
        * *fields*: A list of the object's fields.
+
+
+.. code-block:: json
+
+    {
+        "label": "Movie",
+        "name": "movie",
+        "type": "list",
+        "fields": [
+          {
+            "label": "Title",
+            "name": "title",
+            "type": "string"
+          },
+          {
+            "label": "Director",
+            "name": "director",
+            "type": "string"
+          }
+        ]
+    }
 
 
 Relations
