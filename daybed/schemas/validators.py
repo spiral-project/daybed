@@ -32,7 +32,8 @@ class RecordSchema(SchemaNode):
         for field in definition['fields']:
             field['root'] = self
             fieldtype = field.pop('type')
-            self.add(registry.validation(fieldtype, **field))
+            if fieldtype is not 'metadata':
+                self.add(registry.validation(fieldtype, **field))
 
 
 class ModelSchema(SchemaNode):

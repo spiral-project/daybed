@@ -28,7 +28,8 @@ from .json import JSONList
 __all__ = ['IntField', 'StringField', 'RangeField',
            'RegexField', 'EmailField', 'URLField',
            'EnumField', 'ChoicesField', 'DecimalField',
-           'DateField', 'DateTimeField', 'GroupField']
+           'DateField', 'DateTimeField', 'GroupField',
+           'MetadataField']
 
 
 @registry.add('int')
@@ -47,6 +48,18 @@ class StringField(TypeField):
 class TextField(TypeField):
     node = String
     hint = _('A text')
+
+
+@registry.add('metadata')
+class MetadataField(TypeField):
+
+    @classmethod
+    def definition(cls, **kwargs):
+        schema = super(MetadataField, cls).definition(**kwargs)
+        # Keep the ``type`` node only
+        schema.children = [c for c in schema.children
+                           if c.name not in ('hint', 'name', 'required')]
+        return schema
 
 
 @registry.add('decimal')
@@ -217,7 +230,7 @@ class GroupField(TypeField):
     @classmethod
     def definition(cls, **kwargs):
         schema = super(GroupField, cls).definition(**kwargs)
-        # Keep ``required`` and ``type`` nodes only
+        # Keep the ``type`` node only
         schema.children = [c for c in schema.children
                            if c.name not in ('hint', 'name', 'required')]
         schema.add(SchemaNode(String(), name='description', missing=drop))

@@ -266,3 +266,25 @@ class MushroomsModelTest(FunctionalTest, BaseWebTest):
         # after update
         self.assertCountEqual(feature['geometry']['coordinates'],
                               [[[0, 0], [0, 1], [1, 1], [0, 0]]])
+
+
+class MetadataModelTest(BaseWebTest):
+
+    def test_metadata_attribute_can_be_provided(self):
+        resp = self.app.put_json('/models/metadata', {
+            'definition': {
+                "title": "metadata",
+                "description": "A list of my stuff to do",
+                "fields": [
+                {
+                    "type": "metadata",
+                    "label": "The metadata item",
+                },]
+            }
+        }, headers=self.headers)
+
+        resp = self.app.get('/models/metadata', headers=self.headers)
+        self.assertEquals(
+            resp.json['definition']['fields'][0],
+            {u'label': u'The metadata item', u'type': u'metadata'})
+
