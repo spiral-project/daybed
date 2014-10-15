@@ -194,8 +194,11 @@ Groups are ignored during validation, and records are posted like this:
     }
 
 
-   This can be use to add a description between fields' groups for instance.
+   The metadata type is not really a field because the record has no trace of it.
+   It can be use to add a description between fields.
 
+   Has for the group type, it has no incidence on the definition, it
+   can save information to display in between fields.
 
 
 * **json**: A JSON value
