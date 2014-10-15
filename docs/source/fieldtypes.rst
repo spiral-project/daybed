@@ -28,7 +28,7 @@ Basic types don't have specific properties.
 * **decimal**: A decimal number
 * **boolean**: A boolean
 
-The transcription of a basic types field can look like:
+For example, when combining global properties and one of those basic field, it becomes:
 
 .. code-block:: json
 
@@ -40,7 +40,7 @@ The transcription of a basic types field can look like:
         "type": "string"
     }
 
-You just have to select the right basic type.
+You just have to choose the right basic type.
 
 
 Advanced types
@@ -48,7 +48,7 @@ Advanced types
 
 * **enum**: A choice among values
     **Specific parameters:**
-       * *choices*: An array of string items
+       * *choices*: An array of strings
 
 .. code-block:: json
 
@@ -88,6 +88,7 @@ Advanced types
        * *min*: An integer which is the minimum value of the field
        * *max*: An integer which is the maximum value of the field
 
+It will accept a value that is greater or equal to min and less than equal to max.
 
 .. code-block:: json
 
@@ -136,7 +137,7 @@ Advanced types
 
     {
         "label": "Time of Birth",
-        "name": "date",
+        "name": "date_of_birth",
         "type": "datetime"
     }
 
@@ -175,7 +176,7 @@ Advanced types
         ]
     }
 
-Then you just post you object like:
+Groups are ignored during validation, and records are posted like this:
 
 .. code-block:: json
 
@@ -193,12 +194,14 @@ Then you just post you object like:
     }
 
 
-   This can be use to add description between fields' groups for instance.
+   This can be use to add a description between fields' groups for instance.
+
+
 
 * **json**: A JSON value
     No specific parameters.
 
-    This can be used to store non validated JSON
+    This can be used to store valid JSON, fields type are not validated.
 
 .. code-block:: json
 
@@ -294,7 +297,7 @@ Instead of the json type, you can choose to describe an object and validate it:
 Relations
 ---------
 
-* **anyof**: Some choices among records of a given models
+* **anyof**: Some choices among records of a given model
     **Specific parameters:**
        * *model*: The model id from which records can be selected
 
@@ -306,17 +309,17 @@ Relations
 Geometries
 ----------
 
-* **geojson**: A GeoJSON value
+* **geojson**: A GeoJSON geometry (not feature collection)
     No specific parameters.
 
 * **point**: A point
     **Specific parameters:**
-       * *gps*: A boolean that tells if the point coordinates are GPS coordinates (Default: *true*)
+       * *gps*: A boolean that tells if the point coordinates are GPS coordinates and it will validate that coordinates are between -180,-90 and +180,+90 (Default: *true*)
 
 * **line**: A line made of points
     **Specific parameters**
-       * *gps*: A boolean that tells if the point coordinates are GPS coordinates (Default: *true*)
+       * *gps*: A boolean that tells if the point coordinates are GPS coordinates and it will validate that coordinates are between -180,-90 and +180,+90  (Default: *true*)
 
 * **polygon**: A polygon made of a closed line
     **Specific parameters**
-       * *gps*: A boolean that tells if the point coordinates are GPS coordinates (Default: *true*)
+       * *gps*: A boolean that tells if the point coordinates are GPS coordinates and it will validate that coordinates are between -180,-90 and +180,+90  (Default: *true*)
