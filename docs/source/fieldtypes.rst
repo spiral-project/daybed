@@ -76,9 +76,9 @@ Advanced types
         "choices": [
             "Litterature",
             "Cinema",
-			"Mountain Bike",
-			"Motor Bike",
-			"Sailing"
+            "Mountain Bike",
+            "Motor Bike",
+            "Sailing"
         ]
     }
 
@@ -95,8 +95,8 @@ Advanced types
         "label": "Mountain bike Wheel Size (in mm)",
         "name": "wheel-size",
         "type": "range",
-		"min": 239,
-		"max": 622
+        "min": 239,
+        "max": 622
     }
 
 
@@ -110,7 +110,7 @@ Advanced types
         "label": "French Mobile Phone Number",
         "name": "phone-number",
         "type": "regex",
-		"regex": "^0[6-7][0-9]{8}$"
+        "regex": "^0[6-7][0-9]{8}$"
     }
 
 
@@ -124,7 +124,7 @@ Advanced types
         "label": "Date of Birth",
         "name": "date",
         "type": "date",
-		"autonow": true
+        "autonow": true
     }
 
 
@@ -151,7 +151,7 @@ Advanced types
     {
         "label": "Fieldset",
         "type": "group",
-		"fields": [
+        "fields": [
             {
                 "label": "Gender",
                 "name": "gender",
@@ -253,7 +253,8 @@ Instead of the json type, you can choose to describe an object and validate it:
           {
             "label": "Actors",
             "name": "actors",
-            "type": "json"
+            "type": "list",
+            "item": {"type": "string"}
           }
         ]
     }
@@ -261,15 +262,19 @@ Instead of the json type, you can choose to describe an object and validate it:
 
 * **list**: A list of objects inside another model
     **Specific parameters:**
-       * *fields*: A list of the object's fields.
-
+       * *item*: An object that defines the type of the list item
+           * *type*: The type of the item
+           * *hint*: The description of the item
 
 .. code-block:: json
 
     {
-        "label": "Movie",
-        "name": "movie",
-        "type": "list",
+      "label": "Movie",
+      "name": "movie",
+      "type": "list",
+      "item": {
+        "type": "object",
+        "hint": "Description of a movie",
         "fields": [
           {
             "label": "Title",
@@ -282,6 +287,7 @@ Instead of the json type, you can choose to describe an object and validate it:
             "type": "string"
           }
         ]
+      }
     }
 
 
