@@ -115,6 +115,15 @@ class DefinitionSchemaTest(unittest.TestCase):
         self.assertEquals(0, validator.deserialize(''))
         schemas.TypeField.default_value = before
 
+    def test_metadata_does_not_need_name(self):
+        definition = self.schema.deserialize(
+            {'type': 'metadata',
+              'label': 'this is some content'})
+
+        validator = schemas.TypeField.validation(**definition)
+        self.assertEquals(colander.null, validator.deserialize(''))
+
+
 
 class ModelSchemaTest(unittest.TestCase):
 
