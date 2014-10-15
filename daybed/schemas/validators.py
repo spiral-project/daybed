@@ -32,7 +32,9 @@ class RecordSchema(SchemaNode):
         for field in definition['fields']:
             field['root'] = self
             fieldtype = field.pop('type')
-            self.add(registry.validation(fieldtype, **field))
+            schema = registry.validation(fieldtype, **field)
+            if schema:
+                self.add(schema)
 
 
 class ModelSchema(SchemaNode):

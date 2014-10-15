@@ -276,10 +276,11 @@ class MetadataModelTest(BaseWebTest):
                 "title": "metadata",
                 "description": "A list of my stuff to do",
                 "fields": [
-                {
-                    "type": "metadata",
-                    "label": "The metadata item",
-                },]
+                    {
+                        "type": "metadata",
+                        "label": "The metadata item",
+                    }
+                ]
             }
         }, headers=self.headers)
 
@@ -287,4 +288,3 @@ class MetadataModelTest(BaseWebTest):
         self.assertEquals(
             resp.json['definition']['fields'][0],
             {u'label': u'The metadata item', u'type': u'metadata'})
-

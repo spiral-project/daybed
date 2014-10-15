@@ -52,6 +52,8 @@ class TextField(TypeField):
 
 @registry.add('metadata')
 class MetadataField(TypeField):
+    named = False
+    required = False
 
     @classmethod
     def definition(cls, **kwargs):
