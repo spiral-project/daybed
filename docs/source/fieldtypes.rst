@@ -200,6 +200,48 @@ Groups are ignored during validation, and records are posted like this:
    Has for the group type, it has no incidence on the definition, it
    can save information to display in between fields.
 
+For instance:
+
+.. code-block:: json
+
+    {"definition":
+      {
+        "title": "Movies",
+        "description": "List of movies I like.",
+        "fields": [
+          {
+              "label": "Movie",
+              "name": "movie",
+              "type": "object",
+              "fields": [
+                {
+                  "label": "Title",
+                  "name": "title",
+                  "type": "string"
+                },
+                {
+                  "label": "Director",
+                  "name": "director",
+                  "hint": "The Movie's director",
+                  "type": "string"
+                },
+                {
+                  "label": "<strong>In a movie, you can find actors, please enter their names below.</strong>",
+                  "type": "metadata"
+                },
+                {
+                  "label": "Actors",
+                  "name": "actors",
+                  "type": "list",
+                  "item": {"type": "string", "hint": "Full name of the actors."}
+                }
+              ]
+          }
+        ]
+      }
+    }
+
+
 
 * **json**: A JSON value
     No specific parameters.
