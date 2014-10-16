@@ -177,7 +177,8 @@ class TodoModelTest(FunctionalTest, BaseWebTest):
                         "todo"
                     ],
                     "required": True,
-                    "label": "is it done or not"
+                    "label": "is it done or not",
+                    "display": "dropdown"
                 }
             ]
         }
@@ -192,6 +193,11 @@ class TodoModelTest(FunctionalTest, BaseWebTest):
 
     def update_record(self, entry):
         entry['status'] = 'done'
+
+    def test_definition_creation_does_keep_metadata_fields(self):
+        resp = self.app.get('/models/%s/definition' % self.model_id,
+                            headers=self.headers)
+        self.assertEquals(resp.json["fields"][1]["display"], "dropdown")
 
 
 class MushroomsModelTest(FunctionalTest, BaseWebTest):
@@ -279,6 +285,7 @@ class AnnotationModelTest(BaseWebTest):
                     {
                         "type": "annotation",
                         "label": "The annotation item",
+                        "anotherField": "haha"
                     }
                 ]
             }
@@ -287,4 +294,9 @@ class AnnotationModelTest(BaseWebTest):
         resp = self.app.get('/models/annotation', headers=self.headers)
         self.assertEquals(
             resp.json['definition']['fields'][0],
-            {u'label': u'The annotation item', u'type': u'annotation'})
+            {
+                u'label': u'The annotation item',
+                u'type': u'annotation',
+                u'anotherField': u'haha'
+            }
+        )

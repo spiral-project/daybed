@@ -80,9 +80,9 @@ class TypeField(object):
 
     @classmethod
     def definition(cls, **kwargs):
-        schema = SchemaNode(Mapping())
+        schema = SchemaNode(Mapping(unknown="preserve"))
 
-        if kwargs.get('named', True) and getattr(cls, "named", True):
+        if kwargs.get('named', True):
             schema.add(SchemaNode(String(), name='name',
                        validator=Regex(r'^[a-zA-Z][a-zA-Z0-9_\-]*$')))
 

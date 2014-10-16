@@ -18,7 +18,8 @@ from colander import (
     Email,
     Date,
     DateTime,
-    drop
+    Mapping,
+    drop,
 )
 
 from . import registry, TypeField, TypeFieldNode
@@ -52,15 +53,15 @@ class TextField(TypeField):
 
 @registry.add('annotation')
 class AnnotationField(TypeField):
-    named = False
     required = False
 
     @classmethod
     def definition(cls, **kwargs):
-        schema = super(AnnotationField, cls).definition(**kwargs)
-        # Keep the ``type`` node only
-        schema.children = [c for c in schema.children
-                           if c.name not in ('hint', 'name', 'required')]
+        schema = SchemaNode(Mapping(unknown="preserve"))
+
+        schema.add(SchemaNode(String(), name='label', missing=u''))
+        schema.add(SchemaNode(String(), name='type',
+                              validator=OneOf(["annotation"])))
         return schema
 
 
