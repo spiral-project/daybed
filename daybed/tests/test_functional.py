@@ -279,6 +279,7 @@ class AnnotationModelTest(BaseWebTest):
                     {
                         "type": "annotation",
                         "label": "The annotation item",
+                        "anotherField": "haha"
                     }
                 ]
             }
@@ -287,4 +288,7 @@ class AnnotationModelTest(BaseWebTest):
         resp = self.app.get('/models/annotation', headers=self.headers)
         self.assertEquals(
             resp.json['definition']['fields'][0],
-            {u'label': u'The annotation item', u'type': u'annotation'})
+            {u'label': u'The annotation item',
+             u'type': u'annotation',
+             u'anotherField': u'haha'
+            })
