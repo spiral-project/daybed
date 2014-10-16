@@ -268,23 +268,23 @@ class MushroomsModelTest(FunctionalTest, BaseWebTest):
                               [[[0, 0], [0, 1], [1, 1], [0, 0]]])
 
 
-class MetadataModelTest(BaseWebTest):
+class AnnotationModelTest(BaseWebTest):
 
-    def test_metadata_attribute_can_be_provided(self):
-        resp = self.app.put_json('/models/metadata', {
+    def test_annotation_attribute_can_be_provided(self):
+        resp = self.app.put_json('/models/annotation', {
             'definition': {
-                "title": "metadata",
+                "title": "annotation",
                 "description": "A list of my stuff to do",
                 "fields": [
                     {
-                        "type": "metadata",
-                        "label": "The metadata item",
+                        "type": "annotation",
+                        "label": "The annotation item",
                     }
                 ]
             }
         }, headers=self.headers)
 
-        resp = self.app.get('/models/metadata', headers=self.headers)
+        resp = self.app.get('/models/annotation', headers=self.headers)
         self.assertEquals(
             resp.json['definition']['fields'][0],
-            {u'label': u'The metadata item', u'type': u'metadata'})
+            {u'label': u'The annotation item', u'type': u'annotation'})

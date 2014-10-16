@@ -29,7 +29,7 @@ __all__ = ['IntField', 'StringField', 'RangeField',
            'RegexField', 'EmailField', 'URLField',
            'EnumField', 'ChoicesField', 'DecimalField',
            'DateField', 'DateTimeField', 'GroupField',
-           'MetadataField']
+           'AnnotationField']
 
 
 @registry.add('int')
@@ -50,14 +50,14 @@ class TextField(TypeField):
     hint = _('A text')
 
 
-@registry.add('metadata')
-class MetadataField(TypeField):
+@registry.add('annotation')
+class AnnotationField(TypeField):
     named = False
     required = False
 
     @classmethod
     def definition(cls, **kwargs):
-        schema = super(MetadataField, cls).definition(**kwargs)
+        schema = super(AnnotationField, cls).definition(**kwargs)
         # Keep the ``type`` node only
         schema.children = [c for c in schema.children
                            if c.name not in ('hint', 'name', 'required')]
