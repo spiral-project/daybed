@@ -80,7 +80,7 @@ class TypeField(object):
 
     @classmethod
     def definition(cls, **kwargs):
-        schema = SchemaNode(Mapping())
+        schema = SchemaNode(Mapping(unknown="preserve"))
 
         if kwargs.get('named', True):
             schema.add(SchemaNode(String(), name='name',
