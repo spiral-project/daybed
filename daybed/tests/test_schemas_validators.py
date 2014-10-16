@@ -115,6 +115,15 @@ class DefinitionSchemaTest(unittest.TestCase):
         self.assertEquals(0, validator.deserialize(''))
         schemas.TypeField.default_value = before
 
+    def test_annotation_does_not_need_name(self):
+        schema = schemas.AnnotationField.definition()
+        definition = schema.deserialize(
+            {'type': 'annotation',
+             'label': 'this is some content'})
+
+        validator = schemas.AnnotationField.validation(**definition)
+        self.assertEquals(colander.null, validator.deserialize(''))
+
 
 class ModelSchemaTest(unittest.TestCase):
 

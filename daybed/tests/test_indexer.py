@@ -271,7 +271,8 @@ class DefinitionMappingTest(BaseWebTest):
     def test_all_field_types_are_used_in_definition(self):
         all_fields = registry.names
         used_fields = [f['type'] for f in self.model['definition']['fields']]
-        self.assertEqual(set(all_fields), set(used_fields))
+        self.assertEqual(set(all_fields) - set(['annotation']),
+                         set(used_fields))
 
     def test_default_mapping_is_string(self):
         strings = ['d', 'e', 'f', 'j', 'm', 'n', 'o', 'p', 'v', 'w']

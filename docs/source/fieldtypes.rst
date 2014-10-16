@@ -183,22 +183,22 @@ Groups are ignored during validation, and records are posted like this:
     {"gender": "Mr", "firstname": "Remy", "lastname": "Hubscher"}
 
 
-* **metadata**: A model description field not used for validation
+* **annotation**: A model description field not used for validation
     No specific parameters.
 
 .. code-block:: json
 
     {
         "label": "Title 1",
-        "type": "metadata",
+        "type": "annotation",
     }
 
 
-   The metadata type is not really a field because the record has no trace of it.
+   The annotation type is not really a field because the record has no trace of it.
    It can be use to add a description between fields.
 
    As for the group type, it has no incidence on the definition, it
-   can save information to display in between fields.
+   can save information to be displayed in between fields when adding a record.
 
 For instance:
 
@@ -227,7 +227,7 @@ For instance:
                 },
                 {
                   "label": "In a movie, you can find actors, please enter their names below.",
-                  "type": "metadata",
+                  "type": "annotation",
                   "css": "font-weigth: bold"
                 },
                 {
@@ -243,8 +243,8 @@ For instance:
     }
 
 
-    The `css` property is just an example of how we could handle the styling of the metadata here,
-    but it could be anything else.
+    The `css` property is just an example of how we could handle the
+    styling of the annotation here, but it could be anything else.
 
     The important thing is to separate content from style.
     The label property should always contains text only.
