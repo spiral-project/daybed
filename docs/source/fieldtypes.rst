@@ -197,7 +197,7 @@ Groups are ignored during validation, and records are posted like this:
    The metadata type is not really a field because the record has no trace of it.
    It can be use to add a description between fields.
 
-   Has for the group type, it has no incidence on the definition, it
+   As for the group type, it has no incidence on the definition, it
    can save information to display in between fields.
 
 For instance:
@@ -226,8 +226,9 @@ For instance:
                   "type": "string"
                 },
                 {
-                  "label": "<strong>In a movie, you can find actors, please enter their names below.</strong>",
-                  "type": "metadata"
+                  "label": "In a movie, you can find actors, please enter their names below.",
+                  "type": "metadata",
+                  "css": "font-weigth: bold"
                 },
                 {
                   "label": "Actors",
@@ -241,6 +242,12 @@ For instance:
       }
     }
 
+
+    The `css` property is just an example of how we could handle the styling of the metadata here,
+    but it could be anything else.
+
+    The important thing is to separate content from style.
+    The label property should always contains text only.
 
 
 * **json**: A JSON value
