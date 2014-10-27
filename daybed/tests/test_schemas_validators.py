@@ -124,6 +124,33 @@ class DefinitionSchemaTest(unittest.TestCase):
         validator = schemas.AnnotationField.validation(**definition)
         self.assertEquals(colander.null, validator.deserialize(''))
 
+    def test_extra_may_be_present(self):
+        schema = validators.DefinitionSchema()
+        definition = schema.deserialize({
+            "title": "Foobar",
+            "description": "foo bar",
+            "extra": {
+                "submitButtonLabel": "Let's go!",
+            },
+            "fields": [
+                {'type': 'annotation',
+                 'label': 'this is some content'}
+            ]
+        })
+        self.assertIn("extra", definition)
+
+    def test_extra_may_not_be_present(self):
+        schema = validators.DefinitionSchema()
+        definition = schema.deserialize({
+            "title": "Foobar",
+            "description": "foo bar",
+            "fields": [
+                {'type': 'annotation',
+                 'label': 'this is some content'}
+            ]
+        })
+        self.assertNotIn("extra", definition)
+
 
 class ModelSchemaTest(unittest.TestCase):
 

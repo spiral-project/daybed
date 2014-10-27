@@ -6,7 +6,7 @@ import datetime
 
 import six
 from colander import (
-    SchemaNode, Mapping, Sequence, Length, String, null, Invalid, OneOf
+    SchemaNode, Mapping, Sequence, Length, String, null, Invalid, OneOf, drop
 )
 from pyramid.security import Authenticated, Everyone
 
@@ -21,6 +21,8 @@ class DefinitionSchema(SchemaNode):
         super(DefinitionSchema, self).__init__(Mapping(), *args, **kwargs)
         self.add(SchemaNode(String(), name='title'))
         self.add(SchemaNode(String(), name='description'))
+        self.add(SchemaNode(Mapping(unknown="preserve"),
+                            name="extra", missing=drop))
         self.add(SchemaNode(Sequence(), SchemaNode(TypeFieldNode()),
                             name='fields', validator=Length(min=1)))
 
