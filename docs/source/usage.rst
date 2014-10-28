@@ -137,6 +137,14 @@ Of course, the model permissions can be changed later.
     by a **POST**. A random name will be generated.
 
 
+The definition properties are:
+
+* **title**: The model title
+* **description**: The model description
+* **fields**: The model fields' list. See :ref:`fields documentation <fieldtypes-section>`
+* **extra**: An optional property to store custom data to your model.
+
+
 **GET /models**
 
 Returns the list of models where you have the permission to read the definition::
