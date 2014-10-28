@@ -142,7 +142,7 @@ The definition properties are:
 * **title**: The model title
 * **description**: The model description
 * **fields**: The model fields' list. See :ref:`fields documentation <fieldtypes-section>`
-* **extra**: An optional mapping to link some more information to your model.
+* **extra**: An optional property to store custom data to your model.
 
 
 **GET /models**

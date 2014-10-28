@@ -138,6 +138,8 @@ class DefinitionSchemaTest(unittest.TestCase):
             ]
         })
         self.assertIn("extra", definition)
+        self.assertIn("submitButtonLabel", definition["extra"])
+        self.assertEqual("Let's go!", definition["extra"]["submitButtonLabel"])
 
     def test_extra_may_not_be_present(self):
         schema = validators.DefinitionSchema()
