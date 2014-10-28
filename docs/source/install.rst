@@ -4,7 +4,7 @@ Installing Daybed
 Daybed has the following requirements:
 
 - A Python_ 2.6, 2.7, 3.x or PyPy_ installation
-- A CouchDB_ or Redis_ server instance running
+- A CouchDB_ or Redis_, and an ElasticSearch_ server instance running
 
 Daybed comes with a Makefile to simplify your life when developing. To install
 daybed in your current virtualenv and get started, just run::
