@@ -2,8 +2,9 @@ import copy
 import base64
 
 import mock
+from webtest.app import TestRequest
 
-from daybed import __version__ as VERSION
+from daybed import __version__ as VERSION, API_VERSION
 from daybed.permissions import invert_permissions_matrix
 from daybed.backends.exceptions import (
     RecordNotFound, ModelNotFound
@@ -96,6 +97,27 @@ class HelloViewTest(BaseWebTest):
         headers = self.headers.copy()
         headers['Authorization'] = 'Basic boom'
         self.app.get('/', headers=self.headers)
+
+    def test_redirect_to_version(self):
+        # We don't want the prefix to be automatically added for this test.
+        original_request_class = self.app.RequestClass
+
+        try:
+            self.app.RequestClass = TestRequest  # Standard RequestClass.
+
+            # GET on the hello view.
+            response = self.app.get('/')
+            self.assertEqual(response.status_int, 307)
+            self.assertEqual(response.location,
+                             'http://localhost/%s/' % API_VERSION)
+
+            # GET on the fields view.
+            response = self.app.get('/fields')
+            self.assertEqual(response.status_int, 307)
+            self.assertEqual(response.location,
+                             'http://localhost/%s/fields' % API_VERSION)
+        finally:
+            self.app.RequestClass = original_request_class
 
 
 class BasicAuthRegistrationTest(BaseWebTest):
