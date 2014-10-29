@@ -40,7 +40,7 @@ to get authenticated, the first thing to do is to get some :term:`credentials` f
 
 In order to get yours, you need to send a ``POST`` request::
 
-    http POST http://0.0.0.0:8000/tokens
+    http POST http://localhost:8000/tokens
 
     HTTP/1.1 201 Created
     Content-Length: 273
@@ -107,7 +107,8 @@ library.
                 "label": "is it done or not"
             }
          ]
-      }}' > definition
+      }
+    }' > definition
 
     http PUT http://localhost:8000/models/todo @definition \
          --verbose \
@@ -130,7 +131,7 @@ Since the token was used, the new model was associated to your *id*,
 and you are the only one to get read *and* write permissions.
 Of course, the model permissions can be changed later.
 
-:notes:
+.. note::
 
     In case you don't want to define a name yourself for your model,
     you can do the exact same request, replacing the **PUT** http method
@@ -247,7 +248,7 @@ You can now get your models back::
     }
 
 
-:notes:
+.. note::
 
     You will get a ``401 - Unauthorized`` response if you don't have the
     permission to read the model definition.
@@ -257,9 +258,10 @@ Pushing records
 ---------------
 
 **POST /models/{modelname}/records**
+
 **PUT /models/{modelname}/records/{id}**
 
-Now that you've defined the schema, you may want to push some real record there!::
+Now that you've defined the schema, you may want to push some real record there::
 
     http POST http://localhost:8000/models/todo/records item="work on daybed" status="done" \
         --verbose \
@@ -556,7 +558,7 @@ Using the ``ALL`` shortcut, you can grant all available permissions.
     }
 
 
-:notes:
+.. note::
 
     It can be useful if you need to remove permissions associated to an unknown
     *id* for example.

@@ -63,9 +63,9 @@ Advanced types
     }
 
 
-* **choices**: Some choices among values
+* **choices**: Multiple choices among values
     **Specific parameters:**
-       * *choices*: An array of string items
+       * *choices*: An array of strings
 
 .. code-block:: json
 
@@ -88,7 +88,8 @@ Advanced types
        * *min*: An integer which is the minimum value of the field
        * *max*: An integer which is the maximum value of the field
 
-It will accept a value that is greater or equal to min and less than equal to max.
+It will accept a value that is greater than or equal to min and less than or
+equal to max.
 
 .. code-block:: json
 
@@ -117,7 +118,7 @@ It will accept a value that is greater or equal to min and less than equal to ma
 
 * **date**: A date in *yyyy-mm-dd* format
     **Specific parameters:**
-       * *autonow*: Boolean, if true add the current date automatically. (default: false)
+       * *autonow*: Boolean, add the current date automatically if true. (default: false)
 
 .. code-block:: json
 
@@ -131,7 +132,7 @@ It will accept a value that is greater or equal to min and less than equal to ma
 
 * **datetime**: A datetime in *yyyy-mm-ddTHH:MM:SS* format
     **Specific parameters:**
-       * *autonow*: Boolean, if true add the current date automatically. (default: false)
+       * *autonow*: Boolean, add the current datetime automatically if true. (default: false)
 
 .. code-block:: json
 
@@ -194,11 +195,11 @@ Groups are ignored during validation, and records are posted like this:
     }
 
 
-   The annotation type is not really a field because the record has no trace of it.
-   It can be use to add a description between fields.
+The annotation type is not really a field because the record has no trace of it.
+It can be use to add a description between fields.
 
-   As for the group type, it has no incidence on the definition, it
-   can save information to be displayed in between fields when adding a record.
+As for the group type, it has no incidence on the definition, it
+can save information to be displayed in between fields when adding a record.
 
 For instance:
 
@@ -243,17 +244,17 @@ For instance:
     }
 
 
-    The `css` property is just an example of how we could handle the
-    styling of the annotation here, but it could be anything else.
+The `css` property is just an example of how we could handle the
+styling of the annotation here, but it could be anything else.
 
-    The important thing is to separate content from style.
-    The label property should always contains text only.
+The important thing is to separate content from style.
+The label property should always contains text only.
 
 
 * **json**: A JSON value
     No specific parameters.
 
-    This can be used to store valid JSON, fields type are not validated.
+    This can be used to store valid JSON: fields type are not validated.
 
 .. code-block:: json
 
@@ -283,7 +284,7 @@ Nested
 
 * **object**: An object inside another model
     **Specific parameters:**
-       * *model*: The name of the object
+       * *model*: The name of the object.
        * *fields*: A list of the object's fields.
 
 Instead of the json type, you can choose to describe an object and validate it:
@@ -293,6 +294,7 @@ Instead of the json type, you can choose to describe an object and validate it:
     {
         "label": "Movie",
         "name": "movie",
+        "model": "movie",
         "type": "object",
         "fields": [
           {
@@ -317,7 +319,7 @@ Instead of the json type, you can choose to describe an object and validate it:
 
 * **list**: A list of objects inside another model
     **Specific parameters:**
-       * *item*: An object that defines the type of the list item
+       * *item*: Defines the type of the list item
            * *type*: The type of the item
            * *hint*: The description of the item
 
@@ -349,14 +351,31 @@ Instead of the json type, you can choose to describe an object and validate it:
 Relations
 ---------
 
-* **anyof**: Some choices among records of a given model
+* **anyof**: Any number of choices among records of a given model
     **Specific parameters:**
        * *model*: The model id from which records can be selected
 
-* **oneof**:
+.. code-block:: json
+
+    {
+      "label": "Movie",
+      "name": "movie",
+      "type": "anyof",
+      "model": "actor"
+    }
+
+* **oneof**: One choice among records of a given model
     **Specific parameters:**
        * *model*: The model id from which the record can be selected
 
+.. code-block:: json
+
+    {
+      "label": "Movie",
+      "name": "movie",
+      "type": "oneof",
+      "model": "actor"
+    }
 
 Geometries
 ----------
