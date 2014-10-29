@@ -53,15 +53,11 @@ ENTRY_POINTS = {
         'main = daybed:main',
     ]}
 
-if PY2:
-    REQUIREMENTS.append('CouchDB')
-else:
-    # Python3 version for couchdb
-    REQUIREMENTS.append('CouchDB==0.10dev')
-    DEPENDENCY_LINKS.append(
-        'https://couchdb-python.googlecode.com/archive/default.zip'
-        '#egg=CouchDB-0.10dev',
-    )
+REQUIREMENTS.append('CouchDB==0.10.1dev')
+DEPENDENCY_LINKS.append(
+    'https://github.com/Natim/couchdb-python/tarball/'
+    'authorization_header_py26#egg=CouchDB-0.10.1dev',
+)
 
 if PY26:
     REQUIREMENTS.append('ordereddict')
