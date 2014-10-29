@@ -93,7 +93,7 @@ When you create a model, you gain the full set of available permissions.
 
 This means that the identifier you used in the request will be associated to all permissions::
 
-    http GET http://localhost:8000/models/todo/permissions --verbose \
+    http GET http://localhost:8000/v1/models/todo/permissions --verbose \
     --auth-type=hawk \
     --auth='ad37fc395b7ba83eb496849f6db022fbb316fa11081491b5f00dfae5b0b1cd22:'
 

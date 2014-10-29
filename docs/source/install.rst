@@ -106,7 +106,7 @@ Test it!
 
 ::
 
-    $ curl http://localhost:8000
+    $ curl http://localhost:8000/v1/
 
 Runtime parameters
 ~~~~~~~~~~~~~~~~~~
