@@ -196,10 +196,9 @@ Groups are ignored during validation, and records are posted like this:
 
 
 The annotation type is not really a field because the record has no trace of it.
-It can be use to add a description between fields.
+It can be used to add a description between fields.
 
-As for the group type, it has no incidence on the definition, it
-can save information to be displayed in between fields when adding a record.
+Like the ``group`` field type, it can help to build the form layout.
 
 For instance:
 
@@ -247,14 +246,11 @@ For instance:
 The `css` property is just an example of how we could handle the
 styling of the annotation here, but it could be anything else.
 
-The important thing is to separate content from style.
-The label property should always contains text only.
-
 
 * **json**: A JSON value
     No specific parameters.
 
-    This can be used to store valid JSON: fields type are not validated.
+    Beyond formatting, the content is not validated
 
 .. code-block:: json
 
@@ -283,37 +279,37 @@ Nested
 ------
 
 * **object**: An object inside another model
-    **Specific parameters:**
-       * *model*: The name of the object.
-       * *fields*: A list of the object's fields.
+    **Specific parameters**, used to validate the content. Only one of them should be specified.
+         * *fields*: A list of fields like in a model definition.
+         * *model*: The id of an existing model.
 
-Instead of the json type, you can choose to describe an object and validate it:
+Unlike the ``json`` type, the content will be validated, using either the list
+of fields or the definition of the specified model
 
 .. code-block:: json
 
     {
-        "label": "Movie",
-        "name": "movie",
-        "model": "movie",
-        "type": "object",
-        "fields": [
-          {
-            "label": "Title",
-            "name": "title",
-            "type": "string"
-          },
-          {
-            "label": "Director",
-            "name": "director",
-            "type": "string"
-          },
-          {
-            "label": "Actors",
-            "name": "actors",
-            "type": "list",
-            "item": {"type": "string"}
-          }
-        ]
+      "label": "Movie",
+      "name": "movie",
+      "type": "object",
+      "fields": [
+        {
+          "label": "Title",
+          "name": "title",
+          "type": "string"
+        },
+        {
+          "label": "Director",
+          "name": "director",
+          "type": "string"
+        },
+        {
+          "label": "Actors",
+          "name": "actors",
+          "type": "list",
+          "item": {"type": "string"}
+        }
+      ]
     }
 
 
@@ -358,10 +354,10 @@ Relations
 .. code-block:: json
 
     {
-      "label": "Movie",
-      "name": "movie",
+      "name": "actors",
       "type": "anyof",
-      "model": "actor"
+      "model": "generic:people:moviestars",
+      "label": "Movie actors"
     }
 
 * **oneof**: One choice among records of a given model
@@ -371,26 +367,170 @@ Relations
 .. code-block:: json
 
     {
-      "label": "Movie",
-      "name": "movie",
+      "name": "maincharacter",
       "type": "oneof",
-      "model": "actor"
+      "model": "generic:people:moviestars",
+      "label": "Main character"
     }
 
 Geometries
 ----------
 
-* **geojson**: A GeoJSON geometry (not feature collection)
+* **geojson**: A `GeoJSON`_ geometry (not a FeatureCollection)
     No specific parameters.
+
+.. _GeoJSON: http://geojson.org/
+
+.. code-block:: json
+
+    {
+      "label": "where is it?",
+      "name": "place",
+      "type": "geojson"
+    }
+
+Then you can use it like so:
+
+.. code-block:: json
+
+    http POST http://localhost:8000/v1/models/todo/records \
+    item="work on daybed" status="done" \
+    place='{"type": "Point", "coordinates": [0.4, 45.0]}' \
+    --verbose --auth-type=hawk \
+    --auth='ad37fc395b7ba83eb496849f6db022fbb316fa11081491b5f00dfae5b0b1cd22:'
+
+    {
+      "item": "work on daybed",
+      "place": {
+        "coordinates": [
+          0.4,
+          45.0
+        ],
+        "type": "Point"
+      },
+      "status": "done"
+    }
+
+
 
 * **point**: A point
     **Specific parameters:**
-       * *gps*: A boolean that tells if the point coordinates are GPS coordinates and it will validate that coordinates are between -180,-90 and +180,+90 (Default: *true*)
+       * *gps*: A boolean that tells if the point coordinates are GPS
+         coordinates and it will validate that coordinates are between
+         ``-180,-90`` and ``+180,+90`` (Default: *true*)
+
+.. code-block:: json
+
+    {
+      "label": "where is it?",
+      "name": "place",
+      "type": "point"
+    }
+
+Then you can use it like so:
+
+.. code-block:: json
+
+    http POST http://localhost:8000/v1/models/todo/records \
+    item="work on daybed" status="done" \
+    place="[0.4, 45.0]" \
+    --verbose --auth-type=hawk \
+    --auth='ad37fc395b7ba83eb496849f6db022fbb316fa11081491b5f00dfae5b0b1cd22:'
+
+    {
+      "item": "work on daybed",
+      "place": [
+        0.4,
+        45.0
+      ],
+      "status": "done"
+    }
+
 
 * **line**: A line made of points
     **Specific parameters**
-       * *gps*: A boolean that tells if the point coordinates are GPS coordinates and it will validate that coordinates are between -180,-90 and +180,+90  (Default: *true*)
+       * *gps*: A boolean that tells if the point coordinates are GPS
+         coordinates and it will validate that coordinates are between
+         ``-180,-90`` and ``+180,+90`` (Default: *true*)
+
+.. code-block:: json
+
+    {
+      "label": "where is it?",
+      "name": "place",
+      "type": "line"
+    }
+
+Then you can use it like so:
+
+.. code-block:: json
+
+    http POST http://localhost:8000/v1/models/todo/records \
+    item="work on daybed" status="done" \
+    place="[[0.4, 45.0], [0.6, 65.0]]" \
+    --verbose --auth-type=hawk \
+    --auth='ad37fc395b7ba83eb496849f6db022fbb316fa11081491b5f00dfae5b0b1cd22:'
+
+    {
+      "item": "work on daybed",
+      "place": [
+        [
+          0.4,
+          45.0
+        ],
+        [
+          0.6,
+          65.0
+        ]
+      ],
+      "status": "done"
+    }
 
 * **polygon**: A polygon made of a closed line
     **Specific parameters**
-       * *gps*: A boolean that tells if the point coordinates are GPS coordinates and it will validate that coordinates are between -180,-90 and +180,+90  (Default: *true*)
+       * *gps*: A boolean that tells if the point coordinates are GPS
+         coordinates and it will validate that coordinates are between
+         ``-180,-90`` and ``+180,+90`` (Default: *true*)
+
+.. code-block:: json
+
+    {
+      "label": "where is it?",
+      "name": "place",
+      "type": "polygon"
+    }
+
+Then you can use it like so:
+
+.. code-block:: json
+
+    http POST http://localhost:8000/v1/models/todo/records \
+    item="work on daybed" status="done" \
+    place="[[[0.4, 45.0], [0.6, 65.0], [0.8, 85.0], [0.4, 45.0]]]" \
+    --verbose --auth-type=hawk \
+    --auth='ad37fc395b7ba83eb496849f6db022fbb316fa11081491b5f00dfae5b0b1cd22:'
+
+    {
+      "item": "work on daybed",
+      "place": [
+        [
+          [
+            0.4,
+            45.0
+          ],
+          [
+            0.6,
+            65.0
+          ],
+          [
+            0.8,
+            85.0
+          ],
+          [
+            0.4,
+            45.0
+          ]
+        ]
+      ],
+      "status": "done"
+    }
