@@ -1,4 +1,5 @@
 import copy
+import datetime
 
 import mock
 import colander
@@ -94,22 +95,24 @@ class FieldsObjectTest(BaseWebTest):
         self.assertDictEqual(self.definition, field)
 
     def test_validation_succeeds_if_fields_are_valid(self):
-        value = self.validator.deserialize('{"done": false, '
-                                           ' "updated": "2012-03-13"}')
-        self.assertDictEqual(value, {'done': False, 'updated': '2012-03-13'})
+        value = self.validator.deserialize({"done": False,
+                                            "updated": "2012-03-13"})
+        updated = datetime.datetime(2012, 03, 13, 0, 0, 0, 0,
+                                    colander.iso8601.UTC)
+        self.assertDictEqual(value, {'done': False, 'updated': updated})
 
     def test_validation_fails_if_fields_is_invalid(self):
         self.assertRaises(colander.Invalid,
                           self.validator.deserialize,
-                          '{"done": false, "updated": "2012-23-13"}')
+                          {"done": False, "updated": "2012-23-13"})
 
     def test_validation_returns_deserialized_data(self):
         self.definition['fields'] = [{
             'type': u'date',
             'name': u'updated',
             'autonow': True}]
-        self.validator = schemas.ObjectField.validation(**self.definition)
-        value = self.validator.deserialize('{}')
+        validator = schemas.ObjectField.validation(**self.definition)
+        value = validator.deserialize({})
         self.assertIsNotNone(value.get('updated'))
 
 
@@ -137,13 +140,13 @@ class ModelFieldTest(BaseWebTest):
         self.assertDictEqual(self.definition, field)
 
     def test_validation_succeeds_if_fields_are_valid(self):
-        value = self.validator.deserialize('{"age": 12}')
+        value = self.validator.deserialize({"age": "12"})
         self.assertDictEqual(value, {'age': 12})
 
     def test_validation_fails_if_fields_is_invalid(self):
         self.assertRaises(colander.Invalid,
                           self.validator.deserialize,
-                          '{"age": "a"}')
+                          {"age": "a"})
 
     def test_validator_instantiation_fails_if_model_was_delete(self):
         self.app.delete('/models/simple',
