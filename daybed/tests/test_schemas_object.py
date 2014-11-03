@@ -97,7 +97,7 @@ class FieldsObjectTest(BaseWebTest):
     def test_validation_succeeds_if_fields_are_valid(self):
         value = self.validator.deserialize({"done": False,
                                             "updated": "2012-03-13"})
-        updated = datetime.datetime(2012, 03, 13, 0, 0, 0, 0,
+        updated = datetime.datetime(2012, 3, 13, 0, 0, 0, 0,
                                     colander.iso8601.UTC)
         self.assertDictEqual(value, {'done': False, 'updated': updated})
 
