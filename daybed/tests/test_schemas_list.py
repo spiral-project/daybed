@@ -1,4 +1,5 @@
 import copy
+import datetime
 
 import colander
 
@@ -77,11 +78,8 @@ class ItemTypeListTest(unittest.TestCase):
 
     def test_validation_succeeds_if_items_are_valid(self):
         value = self.validator.deserialize('["2012-04-01", "2014-06-01"]')
-        self.assertEquals(value, ["2012-04-01", "2014-06-01"])
-
-    def test_validation_succeeds_if_items_are_comma_separated(self):
-        value = self.validator.deserialize('2012-04-01, 2014-06-01')
-        self.assertEquals(value, ["2012-04-01", "2014-06-01"])
+        expected = [datetime.date(2012, 4, 1), datetime.date(2014, 6, 1)]
+        self.assertEquals(value, expected)
 
     def test_validation_fails_if_items_are_invalid(self):
         self.assertRaises(colander.Invalid,
