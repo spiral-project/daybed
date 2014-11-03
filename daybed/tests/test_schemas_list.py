@@ -120,3 +120,12 @@ class ObjectListTest(BaseWebTest):
         self.assertRaises(colander.Invalid,
                           self.validator.deserialize,
                           '[{"status": "todo"}, {"status": "3.14"}]')
+
+    def test_validation_sets_default_values(self):
+        self.definition['item']['fields'].append({
+            'type': 'date',
+            'name': 'created',
+            'autonow': True})
+        self.validator = schemas.ListField.validation(**self.definition)
+        values = self.validator.deserialize('[{"status": "todo"}]')
+        self.assertIsNotNone(values[0].get('created'))

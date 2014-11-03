@@ -103,6 +103,15 @@ class FieldsObjectTest(BaseWebTest):
                           self.validator.deserialize,
                           '{"done": false, "updated": "2012-23-13"}')
 
+    def test_validation_returns_deserialized_data(self):
+        self.definition['fields'] = [{
+            'type': u'date',
+            'name': u'updated',
+            'autonow': True}]
+        self.validator = schemas.ObjectField.validation(**self.definition)
+        value = self.validator.deserialize('{}')
+        self.assertIsNotNone(value.get('updated'))
+
 
 class ModelFieldTest(BaseWebTest):
     def setUp(self):

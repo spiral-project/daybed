@@ -445,6 +445,19 @@ class ModelsViewsTest(BaseWebTest):
 
 class RecordsViewsTest(BaseWebTest):
 
+    def test_deserialized_value_is_stored(self):
+        definition = copy.deepcopy(MODEL_DEFINITION)
+        definition['definition']['fields'] = [{
+            'name': 'updated',
+            'type': 'date',
+            'autonow': True}]
+        self.app.put_json('/models/test', definition,
+                          headers=self.headers)
+        resp = self.app.post_json('/models/test/records', {},
+                                  headers=self.headers)
+        stored = self.db.get_record('test', resp.json['id'])
+        self.assertIsNotNone(stored.get('updated'))
+
     def test_delete_model_records(self):
         self.app.put_json('/models/test', MODEL_DEFINITION,
                           headers=self.headers)
