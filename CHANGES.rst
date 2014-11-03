@@ -4,6 +4,10 @@ Changelog
 1.1 (unreleased)
 ----------------
 
+**Bug fixes**
+
+- Fix storage of deserialized values for object and list field types.
+
 **New features**
 
 - Add new PUT end-point at ``/model/<id>/definition`` to create/update model definitions
