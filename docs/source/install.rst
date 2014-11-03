@@ -102,9 +102,11 @@ Run a *Daybed* container linked to the previous ones::
                     --link=elasticsearch:elasticsearch \
                     --publish=8000:8000 makinacorpus/daybed
 
-Test it !::
+Test it!
 
-    $ curl http://localhost:8000
+::
+
+    $ curl http://localhost:8000/v1/
 
 Runtime parameters
 ~~~~~~~~~~~~~~~~~~
@@ -116,6 +118,8 @@ connection for instance::
 
 See the ``Dockerfile`` file for a complete list of variables, and their default
 value.
+
+.. _custom-configuration:
 
 Custom configuration
 ~~~~~~~~~~~~~~~~~~~~

@@ -26,30 +26,30 @@ software.
         It may have mandatory or optional parameters, when used in a definition
         (e.g. ``choices``, ``regex``, ...).
 
-    Records
     Record
+    Records
         An item to be stored in a :term:`model`. It should provide a value for each required
         :term:`field` of the :term:`definition`.
 
-    Permissions
     Permission
+    Permissions
         An operation name used to allow or deny requests on :term:`models`,
         :term:`records` or :term:`tokens`.
         Permissions are given to :term:`identifiers` as an associative array on
         models.
 
         For example, when trying to delete a record, if the request's
-        *identifier* don't have ``delete_records`` among its permission on
+        *identifier* doesn't have ``delete_records`` among its permission on
         this model, the permission will be denied.
 
         See :ref:`permissions section <permissions-section>`.
 
     Credentials
-        Credentials are a way to authenticate yourself, and have composed of
+        Credentials are a way to authenticate yourself, and are composed of
         two parts:
 
-        1. an **id** -- :term:`identifier` that you can publicly share;
-        2. a **key** -- similar to a password (you may prefer to not share it).
+        1. an **id** -- :term:`identifier` that you can publicly share
+        2. a **key** -- similar to a password (you may prefer to not share it)
 
     Identifier
     Identifiers

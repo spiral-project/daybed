@@ -29,7 +29,7 @@ are given in the :ref:`dedicated documentation <fieldtypes-section>` section.
 You can also get a list of these fields and their parameters programmatically,
 on the `/fields` endpoint::
 
-  http GET http://localhost:8000/fields --verbose --json
+  http GET http://localhost:8000/v1/fields --verbose --json
 
 
 Authentication
@@ -40,7 +40,7 @@ to get authenticated, the first thing to do is to get some :term:`credentials` f
 
 In order to get yours, you need to send a ``POST`` request::
 
-    http POST http://0.0.0.0:8000/tokens
+    http POST http://localhost:8000/v1/tokens
 
     HTTP/1.1 201 Created
     Content-Length: 273
@@ -68,7 +68,7 @@ In your next requests, you can either :
 Model management
 ----------------
 
-**PUT and POST /models**
+**PUT and POST /v1/models**
 
 You can create models without being authenticated, since model creation is
 allowed to everyone by default.
@@ -80,7 +80,7 @@ your credentials *id*.
 First, you put a definition under the name "todo" using a PUT request
 on **/models**::
 
-  http PUT http://localhost:8000/models/todo
+  http PUT http://localhost:8000/v1/models/todo
 
 Use the ``token`` as the ``auth`` value, as expected by the ``requests-hawk``
 library.
@@ -107,9 +107,10 @@ library.
                 "label": "is it done or not"
             }
          ]
-      }}' > definition
+      }
+    }' > definition
 
-    http PUT http://localhost:8000/models/todo @definition \
+    http PUT http://localhost:8000/v1/models/todo @definition \
          --verbose \
          --auth-type=hawk \
          --auth='ad37fc395b7ba83eb496849f6db022fbb316fa11081491b5f00dfae5b0b1cd22:'
@@ -130,7 +131,7 @@ Since the token was used, the new model was associated to your *id*,
 and you are the only one to get read *and* write permissions.
 Of course, the model permissions can be changed later.
 
-:notes:
+.. note::
 
     In case you don't want to define a name yourself for your model,
     you can do the exact same request, replacing the **PUT** http method
@@ -149,11 +150,11 @@ The definition properties are:
 
 Returns the list of models where you have the permission to read the definition::
 
-    http GET http://localhost:8000/models --verbose \
+    http GET http://localhost:8000/v1/models --verbose \
         --auth-type=hawk \
         --auth='ad37fc395b7ba83eb496849f6db022fbb316fa11081491b5f00dfae5b0b1cd22:'
 
-    GET /models HTTP/1.1
+    GET /v1/models HTTP/1.1
     Accept: */*
     Accept-Encoding: gzip, deflate
     Authorization: Hawk mac="3NXv...=", hash="B0we...=", id="36...0", ts="1407166852", nonce="tQlJHv"
@@ -179,16 +180,16 @@ Returns the list of models where you have the permission to read the definition:
 
 
 
-**GET /models/{modelname}**
+**GET /v1/models/{modelname}**
 
 You can now get your models back::
 
-    http GET http://localhost:8000/models/todo \
+    http GET http://localhost:8000/v1/models/todo \
       --verbose \
       --auth-type=hawk \
       --auth='ad37fc395b7ba83eb496849f6db022fbb316fa11081491b5f00dfae5b0b1cd22:'
 
-    GET /models/todo HTTP/1.1
+    GET /v1/models/todo HTTP/1.1
     Accept: */*
     Accept-Encoding: gzip, deflate
     Authorization: Hawk mac="CEhSQuh8tqGY8RbdrnMvGyIRJBDmdxJeu2/HIRB0pbQ=", hash="B0weSUXsMcb5UhL41FZbrUJCAotzSI3HawE1NPLRUz8=", id="e03945
@@ -247,7 +248,7 @@ You can now get your models back::
     }
 
 
-:notes:
+.. note::
 
     You will get a ``401 - Unauthorized`` response if you don't have the
     permission to read the model definition.
@@ -256,17 +257,18 @@ You can now get your models back::
 Pushing records
 ---------------
 
-**POST /models/{modelname}/records**
-**PUT /models/{modelname}/records/{id}**
+**POST /v1/models/{modelname}/records**
 
-Now that you've defined the schema, you may want to push some real record there!::
+**PUT /v1/models/{modelname}/records/{id}**
 
-    http POST http://localhost:8000/models/todo/records item="work on daybed" status="done" \
+Now that you've defined the schema, you may want to push some real record there::
+
+    http POST http://localhost:8000/v1/models/todo/records item="work on daybed" status="done" \
         --verbose \
         --auth-type=hawk \
         --auth='ad37fc395b7ba83eb496849f6db022fbb316fa11081491b5f00dfae5b0b1cd22:'
 
-    POST /models/todo/records HTTP/1.1
+    POST /v1/models/todo/records HTTP/1.1
     Accept: application/json
     Accept-Encoding: gzip, deflate
     Authorization: Hawk mac="4Sly1HVkkKsRk43dHOLw/e/AmWeoDEe9ZbVu9cugzg0=", hash="KE3ivKqZxHPTg1yzUAJHOu/PYiYWvEoh3SZxzYshikw=", id="e03945
@@ -285,7 +287,7 @@ Now that you've defined the schema, you may want to push some real record there!
     Content-Length: 42
     Content-Type: application/json; charset=UTF-8
     Date: Thu, 24 Jul 2014 18:59:35 GMT
-    Location: http://localhost:8000/models/todo/records/ebc9f07c8faa4969a76f46b8c514fac6
+    Location: http://localhost:8000/v1/models/todo/records/ebc9f07c8faa4969a76f46b8c514fac6
     Server: waitress
 
     {
@@ -299,17 +301,17 @@ The server sends us back the **id** of the newly created record.
     ``Validate-Only`` header, which will prevent storing it as a record.
 
 
-**GET /models/{modelname}/records**
+**GET /v1/models/{modelname}/records**
 
 Using the GET method, you can get back all the records you have created::
 
-    http GET http://localhost:8000/models/todo/records \
+    http GET http://localhost:8000/v1/models/todo/records \
         --json \
         --verbose \
         --auth-type=hawk \
         --auth='ad37fc395b7ba83eb496849f6db022fbb316fa11081491b5f00dfae5b0b1cd22:'
 
-    GET /models/todo/records HTTP/1.1                                                                                              [5/4051]
+    GET /v1/models/todo/records HTTP/1.1                                                                                              [5/4051]
     Accept: application/json
     Accept-Encoding: gzip, deflate
     Authorization: Hawk mac="OQ9PYGfLhE7L0TPHFpYteHI0j3PBnKgEjyYjMQXMsaM=", hash="NVuBm+XMyya3Tq4EhpZ0cQWjVUyIA8sKnySkKDOIM4M=", id="e0394574578356252e2033b829b90291e2ff1f33ccbcbcec777485f3a5a10bca", ts="1406232484", nonce="_m0VvY"
@@ -338,16 +340,16 @@ Using the GET method, you can get back all the records you have created::
 Get back a definition
 ---------------------
 
-**GET /models/{modelname}/definition**
+**GET /v1/models/{modelname}/definition**
 
 ::
 
-    http GET http://localhost:8000/models/todo/definition \
+    http GET http://localhost:8000/v1/models/todo/definition \
         --verbose \
         --auth-type=hawk \
         --auth='504fd8148d7cdca10baa3c5208b63dc9e13cad1387222550950810a7bdd72d2c:'
 
-    GET /models/todo/definition HTTP/1.1
+    GET /v1/models/todo/definition HTTP/1.1
     Accept: */*
     Accept-Encoding: gzip, deflate
     Authorization: Hawk mac="k9edIqpoz7cSUJQTroXgM4vgDoZb2Z2KO2u40QCbtYk=", hash="B0weSUXsMcb5UhL41FZbrUJCAotzSI3HawE1NPLRUz8=", id="220a1c4212d8f005f0f56191c5a91f8fe266282d38b042e6b35cad8034f22871", ts="1406645426", nonce="meNBWv"
@@ -386,16 +388,16 @@ Get back a definition
 Get back the model permissions
 ------------------------------
 
-**GET /models/{modelname}/permissions**
+**GET /v1/models/{modelname}/permissions**
 
 ::
 
-    http GET http://localhost:8000/models/todo/permissions \
+    http GET http://localhost:8000/v1/models/todo/permissions \
         --verbose \
         --auth-type=hawk \
         --auth='504fd8148d7cdca10baa3c5208b63dc9e13cad1387222550950810a7bdd72d2c:'
 
-    GET /models/todo/permissions HTTP/1.1
+    GET /v1/models/todo/permissions HTTP/1.1
     Accept: */*
     Accept-Encoding: gzip, deflate
     Authorization: Hawk mac="G8PntYqGA0DiP4EC0qvvr70tmCZrsVBdTTTBq9ZeKYg=", hash="B0weSUXsMcb5UhL41FZbrUJCAotzSI3HawE1NPLRUz8=", id="220a1c4212d8f005f0f56191c5a91f8fe266282d38b042e6b35cad8034f22871", ts="1406645480", nonce="4D0z9n"
@@ -438,17 +440,17 @@ to anonymous users (i.e. *Everyone*).
 Using a ``PATCH`` request, existing permissions configuration is not overwritten
 completely :
 
-**PATCH /models/{modelname}/permissions**
+**PATCH /v1/models/{modelname}/permissions**
 
 ::
 
-   echo '{"Everyone": ["+read_all_records"]}' | http PATCH http://localhost:8000/models/todo/permissions  \
+   echo '{"Everyone": ["+read_all_records"]}' | http PATCH http://localhost:8000/v1/models/todo/permissions  \
        --json \
        --verbose \
        --auth-type=hawk \
        --auth='504fd8148d7cdca10baa3c5208b63dc9e13cad1387222550950810a7bdd72d2c:'
 
-    PATCH /models/todo/permissions HTTP/1.1
+    PATCH /v1/models/todo/permissions HTTP/1.1
     Accept: application/json
     Accept-Encoding: gzip, deflate
     Authorization: Hawk mac="CWT9du2YxOoTb2i5d15bBTA4XiSYY/99ybh6g7welLM=", hash="Nt8m2h1nc5lVUItOobOliVj6hul0FYXmwpEmkjyp+WU=", id="220a1c4212d8f005f0f56191c5a91f8fe266282d38b042e6b35cad8034f22871", ts="1406645940", nonce="2il3kl"
@@ -501,17 +503,17 @@ replaced by the new ones.
 
 Using the ``ALL`` shortcut, you can grant all available permissions.
 
-**PUT /models/{modelname}/permissions**
+**PUT /v1/models/{modelname}/permissions**
 
 ::
 
-   echo '{"Everyone": ["read_definition"], "Authenticated": ["ALL"]}' | http PUT http://localhost:8000/models/todo/permissions \
+   echo '{"Everyone": ["read_definition"], "Authenticated": ["ALL"]}' | http PUT http://localhost:8000/v1/models/todo/permissions \
        --json \
        --verbose \
        --auth-type=hawk \
        --auth='504fd8148d7cdca10baa3c5208b63dc9e13cad1387222550950810a7bdd72d2c:'
 
-    PATCH /models/todo/permissions HTTP/1.1
+    PATCH /v1/models/todo/permissions HTTP/1.1
     Accept: application/json
     Accept-Encoding: gzip, deflate
     Authorization: Hawk mac="CWT9du2YxOoTb2i5d15bBTA4XiSYY/99ybh6g7welLM=", hash="Nt8m2h1nc5lVUItOobOliVj6hul0FYXmwpEmkjyp+WU=", id="220a1c4212d8f005f0f56191c5a91f8fe266282d38b042e6b35cad8034f22871", ts="1406645940", nonce="2il3kl"
@@ -556,7 +558,7 @@ Using the ``ALL`` shortcut, you can grant all available permissions.
     }
 
 
-:notes:
+.. note::
 
     It can be useful if you need to remove permissions associated to an unknown
     *id* for example.

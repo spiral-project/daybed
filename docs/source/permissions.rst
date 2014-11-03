@@ -7,7 +7,7 @@ Permissions
 In *Daybed*, permissions will let you define access rules on models, records
 and even permissions.
 
-They allow to express rules like :
+They allow to express rules like:
 
 - "Everyone can create new records on this model"
 - "Alexis is able to delete records created by others"
@@ -25,8 +25,8 @@ Here's a list of permissions you can define on a model:
 - **read_definition**: read the model definition
 - **read_permissions**: read the model permissions (who can do what)
 - **update_definition**: update the model definition
-- **update_permissions**: change the permissions on the models
-- **delete_model**: delete a model
+- **update_permissions**: change the permissions for the model
+- **delete_model**: delete the model
 - **create_record**: add an entry to the model
 - **read_all_records**: read all model's records
 - **update_all_records**: update all model's records
@@ -39,11 +39,12 @@ Here's a list of permissions you can define on a model:
 Views permissions
 =================
 
-At the API level, you will often need more than one permissions to get
+At the API level, you will often need more than one permission to get
 access to an API resource.
 
 For example, if you want to get a complete model (definition and records),
 you will need the following permissions:
+
 - **read_definition** and **read_permissions**
 - **read_all_records** or **read_own_records**
 
@@ -57,6 +58,19 @@ There are three extra permissions that are configured at the server level:
 - **create_token**: List of identifiers allowed to create tokens
 - **manage_tokens**: List of identifiers allowed to delete tokens
 
+Those are configured via :ref:`a configuration file <custom-configuration>`,
+with the following options:
+
+- **create_model**: ``daybed.can_create_model`` (default: ``Everyone``)
+- **create_token**: ``daybed.can_create_token`` (default: ``Everyone``)
+- **manage_tokens**: ``daybed.can_manage_token`` (default: None)
+
+Example::
+
+    [app:main]
+    daybed.can_create_model = Authenticated
+    daybed.can_create_token = Everyone
+
 
 Usage
 =====
@@ -67,7 +81,7 @@ and lists of :term:`permissions`.
 In order to refer to anyone in the world, use the special *id* ``Everyone``
 and to authenticated users with ``Authenticated``.
 
-:notes:
+.. note::
 
     As explained in the :ref:`API usage section <usage-section>`, the
     *key ids* look like :term:`tokens`, but they are different : the *id*
@@ -77,10 +91,14 @@ and to authenticated users with ``Authenticated``.
 
 When you create a model, you gain the full set of available permissions.
 
-This means that the identifier you used in the request will be associated to all permissions ::
+This means that the identifier you used in the request will be associated to all permissions::
+
+    http GET http://localhost:8000/v1/models/todo/permissions --verbose \
+    --auth-type=hawk \
+    --auth='ad37fc395b7ba83eb496849f6db022fbb316fa11081491b5f00dfae5b0b1cd22:'
 
     {
-        "220a1c..871": [
+        "e0394574578356252e2033b829b90291e2ff1f33ccbcbcec777485f3a5a10bca": [
             "create_record",
             "delete_all_records",
             "delete_model",
@@ -91,8 +109,8 @@ This means that the identifier you used in the request will be associated to all
             "read_permissions",
             "update_all_records",
             "update_definition",
-            "update_own_records"
-            "update_permissions",
+            "update_own_records",
+            "update_permissions"
         ]
     }
 
@@ -100,9 +118,7 @@ This means that the identifier you used in the request will be associated to all
 Let's say you want to allow authenticated users to create records and manage
 their own records on this model.
 
-Permissions become :
-
-::
+Permissions become::
 
     {
         "Authenticated": [
@@ -111,7 +127,7 @@ Permissions become :
             "update_own_records",
             "delete_own_records"
         ],
-        "220a1c..871": [
+        "e0394574578356252e2033b829b90291e2ff1f33ccbcbcec777485f3a5a10bca": [
             "create_record",
             "delete_all_records",
             "delete_model",
@@ -122,8 +138,8 @@ Permissions become :
             "read_permissions",
             "update_all_records",
             "update_definition",
-            "update_own_records"
-            "update_permissions",
+            "update_own_records",
+            "update_permissions"
         ]
     }
 
@@ -133,9 +149,9 @@ Modification
 You can use ``-`` and ``+`` to modify the existing set of permissions for an
 identifier.
 
-To grant `create_record` to anonymous users, ``read_permissions`` to
-authenticated users and remove `update_permissions` from *id* ``220a1c..871``
-you would have to send the following request ::
+To grant ``create_record`` to anonymous users, ``read_permissions`` to
+authenticated users and remove ``update_permissions`` from *id* ``220a1c..871``
+you would have to send the following request::
 
     {
         "Everyone": ["+create_record"],
@@ -150,9 +166,9 @@ In order to add/remove all permissions to/from somebody, use the ``ALL`` shortcu
         "220a1c..871": ["+ALL"]
     }
 
-:notes:
+.. note::
 
-    `+` is implicit, the permission is added if not specified
+    ``+`` is implicit, the permission is added if not specified
     (i.e. ``ALL`` is equivalent to ``+ALL``).
 
 
@@ -177,15 +193,15 @@ adjust permissions.
             "delete_all_records"
         ],
         "220a1c..871": [
-            "ALL",
+            "ALL"
         ]
     }
 
 
-If the *administrator* wants to share her privileges with other, she can either:
+If the *administrator* wants to share her privileges with others, she can either:
 
-* share her :term:`token` ;
-* create a new token, assign permissions to its *key id*, and share the new token.
+* share her :term:`token`
+* create a new token, assign permissions to its *key id*, and share the new token
 
 ::
 
@@ -200,10 +216,10 @@ If the *administrator* wants to share her privileges with other, she can either:
         "6780dd..df1": [
             "update_definition",
             "read_permissions",
-            "update_permissions",
+            "update_permissions"
         ],
         "220a1c..871": [
-            "ALL",
+            "ALL"
         ]
     }
 
@@ -215,17 +231,15 @@ Everybody can answer the poll, but are not allowed to correct their answers,
 nor to see the poll results.
 
 ``read_definition`` is given to everyone, as it might be used to build the
-form on the client-side:
-
-::
+form on the client-side::
 
     {
         "Everyone": [
             "read_definition",
-            "create_record",
+            "create_record"
         ],
         "220a1c..871": [
-            "ALL",
+            "ALL"
         ]
     }
 
@@ -248,20 +262,20 @@ Everybody can manage their own records, but they are private.
             "delete_own_records"
         ],
         "220a1c..871": [
-            "ALL",
+            "ALL"
         ]
     }
 
-:note:
+.. note::
 
     Using *Everyone* instead of *Authenticated* will allow anonymous
     to manage a set of records that are shared among all anonymous users.
 
-:note:
+.. note::
 
     Users can share their todo list if they share their :term:`token`.
     But they cannot share it as read-only.
 
     In order to accomplish this, instead of having a unique model with
-    everyone records, each user will have to create her own model, on which
-    she will gain the control of permissions.
+    everyone's records, each user will have to create their own model, on which
+    they will gain the control of permissions.

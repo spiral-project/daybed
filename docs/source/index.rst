@@ -38,7 +38,7 @@ How ?
 Since *Daybed* talks REST and JSON, you can basically use it as a remote storage with
 any of your favorite technologies (*Python, Android, iOS, AngularJS, Ember.js, Backbone.js, etc.*).
 
-:notes:
+.. note::
 
     Currently, the authentication relies on Basic authentication and `Hawk
     <https://github.com/hueniverse/hawk>`_
