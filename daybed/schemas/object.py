@@ -30,6 +30,7 @@ class ExclusiveKeys(object):
 
 @registry.add('object')
 class ObjectField(TypeField):
+    schemanode = RecordSchema
     hint = _('An object')
 
     @classmethod
@@ -53,7 +54,7 @@ class ObjectField(TypeField):
     @classmethod
     def validation(cls, **kwargs):
         definition = cls._fetch_definition(kwargs)
-        return RecordSchema(definition)
+        return super(ObjectField, cls).validation(definition, **kwargs)
 
     @classmethod
     def _fetch_definition(cls, field_definition):

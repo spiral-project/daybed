@@ -73,6 +73,7 @@ registry = TypeRegistry()
 
 
 class TypeField(object):
+    schemanode = SchemaNode
     node = String
     required = True
     default_value = null
@@ -102,10 +103,10 @@ class TypeField(object):
         # If field is not required, use missing
         if not kwargs.get('required', cls.required):
             options.setdefault('missing', cls.default_value)
-        # If node is not specified, use the one defined on field type class.
+        # If node is not specified in args, use the one defined on field type class.
         if len(args) == 0:
             args = (cls.node(),)
-        return SchemaNode(*args, **options)
+        return cls.schemanode(*args, **options)
 
 
 class TypeFieldNode(SchemaType):
