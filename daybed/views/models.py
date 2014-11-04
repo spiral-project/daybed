@@ -51,17 +51,19 @@ def put_definition(request):
     """Create or update a model definition."""
     model_id = request.matchdict['model_id']
     try:
-        model = request.db.get_model(model_id)
+        permissions = request.db.get_model_permissions(model_id)
+        permissions = invert_permissions_matrix(permissions)
     except ModelNotFound:
-        model = {}
+        permissions = {}
 
-    permissions = invert_permissions_matrix(model.get('permissions', {}))
-    model['permissions'] = permissions
-    model['records'] = []
-    model['definition'] = request.data_clean
+    model = {
+        'permissions': permissions,
+        'definition': request.data_clean,
+        'records': []  # Won't erase existing records
+    }
     request.data_clean = model
+    handle_put_model(request, create=(not permissions))
 
-    handle_put_model(request, create=('id' not in model))
     return model['definition']
 
 
