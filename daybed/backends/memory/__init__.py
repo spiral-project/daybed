@@ -45,6 +45,9 @@ class MemoryBackend(object):
         except KeyError:
             raise backend_exceptions.ModelNotFound(model_id)
 
+    def get_model(self, model_id):
+        return self.__get_raw_model(model_id)
+
     def get_model_definition(self, model_id):
         return self.__get_raw_model(model_id)['definition']
 

@@ -25,7 +25,7 @@ def get_records(request):
     """Retrieves all model records."""
     model_id = request.matchdict['model_id']
     try:
-        request.db.get_model_definition(model_id)
+        request.db.get_model(model_id)
     except ModelNotFound:
         request.errors.add('path', model_id, "model not found")
         request.errors.status = "404 Not Found"

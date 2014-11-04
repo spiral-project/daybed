@@ -47,6 +47,9 @@ class RedisBackend(object):
             return json.loads(model.decode("utf-8"))
         raise backend_exceptions.ModelNotFound(model_id)
 
+    def get_model(self, model_id):
+        return self.__get_raw_model(model_id)
+
     def get_model_definition(self, model_id):
         model = self.__get_raw_model(model_id)
         return model['definition']

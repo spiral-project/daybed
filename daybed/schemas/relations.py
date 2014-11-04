@@ -14,7 +14,7 @@ class ModelExist(object):
 
     def __call__(self, node, value):
         try:
-            self.db.get_model_definition(value)
+            self.db.get_model(value)
         except ModelNotFound:
             msg = u"Model '%s' not found." % value
             raise Invalid(node, msg)
