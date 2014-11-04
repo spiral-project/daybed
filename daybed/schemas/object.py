@@ -54,6 +54,7 @@ class ObjectField(TypeField):
     @classmethod
     def validation(cls, **kwargs):
         definition = cls._fetch_definition(kwargs)
+        # Instantiate a ``RecordSchema`` with ``definition`` as first arg
         return super(ObjectField, cls).validation(definition, **kwargs)
 
     @classmethod
