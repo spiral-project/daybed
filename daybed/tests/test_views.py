@@ -18,6 +18,8 @@ MODEL_DEFINITION = {
         "title": "simple",
         "description": "One optional field",
         "fields": [{"name": "age",
+                    "hint": "An integer",
+                    "label": "Age",
                     "type": "int",
                     "required": False}]
     }
