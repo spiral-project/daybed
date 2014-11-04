@@ -18,6 +18,8 @@ MODEL_DEFINITION = {
         "title": "simple",
         "description": "One optional field",
         "fields": [{"name": "age",
+                    "hint": "An integer",
+                    "label": "Age",
                     "type": "int",
                     "required": False}]
     }
@@ -175,6 +177,64 @@ class SporeTest(BaseWebTest):
         self.assertEqual(resp.json['name'], 'daybed')
 
 
+class DefinitionViewsTest(BaseWebTest):
+
+    def setUp(self):
+        super(DefinitionViewsTest, self).setUp()
+        model = copy.deepcopy(MODEL_DEFINITION)
+        model['definition']['fields'].append({
+            "name": "name",
+            "type": "string"
+        })
+        model['permissions'] = {"system.Everyone": ["ALL"]}
+        model['records'] = [{'name': 'Snowden', 'age': 31}]
+        self.app.put_json('/models/test',
+                          model,
+                          headers=self.headers)
+
+    def test_definition_retrieval(self):
+        resp = self.app.get('/models/test/definition',
+                            headers=self.headers)
+        self.assertEqual(len(resp.json['fields']), 2)
+
+    def test_definition_update_returns_new_definition(self):
+        resp = self.app.put_json('/models/test/definition',
+                                 MODEL_DEFINITION['definition'],
+                                 headers=self.headers)
+        self.assertEqual(len(resp.json['fields']), 1)
+
+    def test_definition_update_must_be_valid(self):
+        definition = MODEL_DEFINITION['definition'].copy()
+        definition.pop('fields')
+        self.app.put_json('/models/test/definition',
+                          definition,
+                          headers=self.headers, status=400)
+
+    def test_definition_update_preserves_records(self):
+        self.app.put_json('/models/test/definition',
+                          MODEL_DEFINITION['definition'],
+                          headers=self.headers)
+        resp = self.app.get('/models/test/records',
+                            headers=self.headers)
+        self.assertEqual(len(resp.json['records']), 1)
+
+    def test_definition_update_preserves_permissions(self):
+        self.app.put_json('/models/test/definition',
+                          MODEL_DEFINITION['definition'],
+                          headers=self.headers)
+        resp = self.app.get('/models/test/permissions',
+                            headers=self.headers)
+        self.assertIn('system.Everyone', resp.json)
+
+    def test_model_creation_via_definition(self):
+        self.app.put_json('/models/new/definition',
+                          MODEL_DEFINITION['definition'],
+                          headers=self.headers)
+        resp = self.app.get('/models/new/records',
+                            headers=self.headers)
+        self.assertEqual(len(resp.json['records']), 0)
+
+
 class ModelsViewsTest(BaseWebTest):
 
     def __init__(self, *args, **kwargs):
@@ -280,19 +340,6 @@ class ModelsViewsTest(BaseWebTest):
         permissions["alexis"] = ["read_permissions"]
         permissions["remy"] = ["update_permissions"]
         self.assertDictEqual(resp.json, force_unicode(permissions))
-
-    def test_definition_retrieval(self):
-        self.app.put_json('/models/test',
-                          MODEL_DEFINITION,
-                          headers=self.headers)
-
-        resp = self.app.get('/models/test/definition',
-                            headers=self.headers)
-        definition = MODEL_DEFINITION['definition'].copy()
-        definition['fields'][0].update(hint='An integer',
-                                       label='',
-                                       required=False)
-        self.assertDictEqual(resp.json, force_unicode(definition))
 
     def test_post_model_definition_with_records(self):
         model = MODEL_DEFINITION.copy()

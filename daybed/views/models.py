@@ -6,7 +6,9 @@ from daybed.permissions import (
 )
 from daybed.backends.exceptions import ModelNotFound
 from daybed.views.errors import forbidden_view
-from daybed.schemas.validators import model_validator, permissions_validator
+from daybed.schemas.validators import (
+    model_validator, permissions_validator, definition_validator
+)
 
 
 models = Service(name='models', path='/models', description='Models')
@@ -42,6 +44,27 @@ def get_definition(request):
     except ModelNotFound:
         request.errors.add('path', model_id, "model not found")
         request.errors.status = "404 Not Found"
+
+
+@definition.put(validators=(definition_validator,), permission='put_model')
+def put_definition(request):
+    """Create or update a model definition."""
+    model_id = request.matchdict['model_id']
+    try:
+        permissions = request.db.get_model_permissions(model_id)
+        permissions = invert_permissions_matrix(permissions)
+    except ModelNotFound:
+        permissions = {}
+
+    model = {
+        'permissions': permissions,
+        'definition': request.data_clean,
+        'records': []  # Won't erase existing records
+    }
+    request.data_clean = model
+    handle_put_model(request, create=(not permissions))
+
+    return model['definition']
 
 
 @permissions.get(permission='get_permissions')

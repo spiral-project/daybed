@@ -4,7 +4,9 @@ Changelog
 1.1 (unreleased)
 ----------------
 
-- No changes yet.
+**New features**
+
+- Add new PUT end-point at ``/model/<id>/definition`` to create/update model definitions
 
 
 1.0.1 (2014-09-12)
