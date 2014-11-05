@@ -15,7 +15,7 @@ class KoremutakeGeneratorTest(TestCase):
         self.generator = KoremutakeGenerator()
 
     def test_it_defaults_the_max_bytes_to_4(self):
-        self.assertEquals(generator.max_bytes, 4)
+        self.assertEquals(self.generator.max_bytes, 4)
 
     @patch('koremutake.encode')
     def test_it_doesnt_reuse_a_name_twice(self, encode):

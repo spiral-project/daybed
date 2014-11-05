@@ -116,7 +116,8 @@ class RedisBackend(object):
         return model_id
 
     def _record_exists(self, model_id, record_id):
-        return self._db.get("modelrecord.%s.%s" % (model_id, record_id)) is not None
+        record = self._db.get("modelrecord.%s.%s" % (model_id, record_id))
+        return record is not None
 
     def put_record(self, model_id, record, authors, record_id=None):
         doc = {

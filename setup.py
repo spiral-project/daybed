@@ -36,12 +36,12 @@ KEYWORDS = ['web',
             'storage']
 PACKAGES = [NAME.replace('-', '_')]
 REQUIREMENTS = [
-    'CouchDB==0.10.1dev',
+    'CouchDB',
     'colander',
     'cornice',
     'elasticsearch',
     'hiredis',
-    'koremutake==1.1.0',
+    'koremutake',
     'pyramid',
     'pyramid_hawkauth',
     'pyramid_multiauth',

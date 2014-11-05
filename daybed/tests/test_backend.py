@@ -270,5 +270,5 @@ class TestRedisBackend(BackendTestBase, TestCase):
 class TestMemoryBackend(BackendTestBase, TestCase):
 
     def setUp(self):
-        self.db = MemoryBackend(lambda: six.text_type(uuid4()))
+        self.db = MemoryBackend(self.id_generator)
         super(TestMemoryBackend, self).setUp()
