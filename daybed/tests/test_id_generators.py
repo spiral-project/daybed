@@ -11,10 +11,11 @@ from daybed.backends.id_generators import KoremutakeGenerator
 
 class KoremutakeGeneratorTest(TestCase):
 
-    def test_it_defaults_the_max_bytes_to_4(self):
-        generator = KoremutakeGenerator()
-        self.assertEquals(generator.max_bytes, 4)
+    def setUp(self):
+        self.generator = KoremutakeGenerator()
 
+    def test_it_defaults_the_max_bytes_to_4(self):
+        self.assertEquals(generator.max_bytes, 4)
 
     @patch('koremutake.encode')
     def test_it_doesnt_reuse_a_name_twice(self, encode):
@@ -23,11 +24,9 @@ class KoremutakeGeneratorTest(TestCase):
         def _exists(key):
             return key in created
 
-        generator = KoremutakeGenerator()
-        self.assertEquals(generator(key_exist=_exists), 'new-value')
+        self.assertEquals(self.generator(key_exist=_exists), 'new-value')
 
     def test_it_returns_a_string_with_a_max_size(self):
-        generator = KoremutakeGenerator()
-        uid = generator()
+        uid = self.generator()
         self.assertTrue(len(uid) <= 24)
         self.assertIsInstance(uid, six.text_type)
