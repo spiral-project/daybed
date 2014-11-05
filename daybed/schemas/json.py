@@ -27,7 +27,8 @@ def parse_json(node, cstruct):
 class JSONType(Mapping):
     """A simple node type for JSON content."""
     def deserialize(self, node, cstruct=null):
-        return parse_json(node, cstruct)
+        appstruct = parse_json(node, cstruct)
+        return super(JSONType, self).deserialize(node, appstruct)
 
 
 @registry.add('json')

@@ -7,6 +7,7 @@ from daybed.backends.exceptions import ModelNotFound
 
 from . import registry, TypeField, TypeFieldNode, get_db
 from .validators import RecordSchema
+from .json import JSONType
 from .relations import ModelExist
 
 
@@ -28,9 +29,15 @@ class ExclusiveKeys(object):
             raise Invalid(node, msg)
 
 
+class JSONRecordSchema(RecordSchema):
+    def __init__(self, *args, **kwargs):
+        kwargs['typ'] = JSONType()
+        super(JSONRecordSchema, self).__init__(*args, **kwargs)
+
+
 @registry.add('object')
 class ObjectField(TypeField):
-    schemanode = RecordSchema
+    schemanode = JSONRecordSchema
     hint = _('An object')
 
     @classmethod

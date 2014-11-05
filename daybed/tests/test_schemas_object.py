@@ -101,7 +101,14 @@ class FieldsObjectTest(BaseWebTest):
                                     colander.iso8601.UTC)
         self.assertDictEqual(value, {'done': False, 'updated': updated})
 
-    def test_validation_fails_if_fields_is_invalid(self):
+    def test_validation_succeeds_if_value_is_provided_as_json(self):
+        value = self.validator.deserialize('{"done": false, '
+                                           ' "updated": "2012-03-13"}')
+        updated = datetime.datetime(2012, 3, 13, 0, 0, 0, 0,
+                                    colander.iso8601.UTC)
+        self.assertDictEqual(value, {'done': False, 'updated': updated})
+
+    def test_validation_fails_if_field_value_is_invalid(self):
         self.assertRaises(colander.Invalid,
                           self.validator.deserialize,
                           {"done": False, "updated": "2012-23-13"})
@@ -143,12 +150,16 @@ class ModelFieldTest(BaseWebTest):
         value = self.validator.deserialize({"age": "12"})
         self.assertDictEqual(value, {'age': 12})
 
+    def test_validation_succeeds_if_value_is_provided_as_json(self):
+        value = self.validator.deserialize('{"age": "12"}')
+        self.assertDictEqual(value, {'age': 12})
+
     def test_validation_fails_if_fields_is_invalid(self):
         self.assertRaises(colander.Invalid,
                           self.validator.deserialize,
-                          {"age": "a"})
+                          '{"age": "a"}')
 
-    def test_validator_instantiation_fails_if_model_was_delete(self):
+    def test_validator_instantiation_fails_if_model_was_deleted(self):
         self.app.delete('/models/simple',
                         headers=self.headers)
         self.assertRaises(colander.Invalid,

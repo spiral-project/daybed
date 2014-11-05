@@ -29,7 +29,8 @@ class DefinitionSchema(SchemaNode):
 
 class RecordSchema(SchemaNode):
     def __init__(self, definition, *args, **kwargs):
-        super(RecordSchema, self).__init__(Mapping(), *args, **kwargs)
+        kwargs.setdefault('typ', Mapping())
+        super(RecordSchema, self).__init__(*args, **kwargs)
         definition = deepcopy(definition)
         for field in definition['fields']:
             field['root'] = self
