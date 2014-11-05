@@ -26,8 +26,15 @@ def parse_json(node, cstruct):
 
 class JSONType(Mapping):
     """A simple node type for JSON content."""
+    def __init__(self, *args, **kwargs):
+        kwargs['unknown'] = 'preserve'
+        super(JSONType, self).__init__(*args, **kwargs)
+
     def deserialize(self, node, cstruct=null):
         appstruct = parse_json(node, cstruct)
+        if not isinstance(appstruct, dict):
+            # If JSON is not a dict, bypass ``Mapping``
+            return appstruct
         return super(JSONType, self).deserialize(node, appstruct)
 
 
