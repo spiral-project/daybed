@@ -1,4 +1,5 @@
 import json
+import functools
 import redis
 
 from daybed.backends import exceptions as backend_exceptions
@@ -97,9 +98,12 @@ class RedisBackend(object):
         doc = self.__get_raw_record(model_id, record_id)
         return doc['authors']
 
+    def _model_exists(self, model_id):
+        return self._db.get("model.%s" % model_id) is not None
+
     def put_model(self, definition, permissions, model_id=None):
         if model_id is None:
-            model_id = self._generate_id()
+            model_id = self._generate_id(key_exist=self._model_exists)
 
         self._db.set(
             "model.%s" % model_id,
@@ -110,6 +114,9 @@ class RedisBackend(object):
             })
         )
         return model_id
+
+    def _record_exists(self, model_id, record_id):
+        return self._db.get("modelrecord.%s.%s" % (model_id, record_id)) is not None
 
     def put_record(self, model_id, record, authors, record_id=None):
         doc = {
@@ -128,7 +135,8 @@ class RedisBackend(object):
                 old_doc.update(doc)
                 doc = old_doc
         else:
-            record_id = self._generate_id()
+            key_exist = functools.partial(self._record_exists, model_id)
+            record_id = self._generate_id(key_exist=key_exist)
 
         doc['record']['id'] = record_id
         self._db.set(

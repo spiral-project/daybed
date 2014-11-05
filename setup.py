@@ -36,28 +36,30 @@ KEYWORDS = ['web',
             'storage']
 PACKAGES = [NAME.replace('-', '_')]
 REQUIREMENTS = [
+    'CouchDB==0.10.1dev',
+    'colander',
+    'cornice',
+    'elasticsearch',
+    'hiredis',
+    'koremutake==1.1.0',
+    'pyramid',
+    'pyramid_hawkauth',
+    'pyramid_multiauth',
+    'redis',
     'setuptools',
     'six',
-    'redis',
-    'hiredis',
-    'pyramid',
-    'cornice',
-    'colander',
-    'pyramid_multiauth',
-    'pyramid_hawkauth',
-    'elasticsearch',
 ]
-DEPENDENCY_LINKS = []
+DEPENDENCY_LINKS = [
+    'https://github.com/Natim/couchdb-python/tarball/'
+    'authorization_header_py26#egg=CouchDB-0.10.1dev',
+    'https://github.com/ametaireau/koremutake/tarball/'
+    'py3k#egg=koremutake-1.1.0',
+]
 ENTRY_POINTS = {
     'paste.app_factory': [
         'main = daybed:main',
     ]}
 
-REQUIREMENTS.append('CouchDB==0.10.1dev')
-DEPENDENCY_LINKS.append(
-    'https://github.com/Natim/couchdb-python/tarball/'
-    'authorization_header_py26#egg=CouchDB-0.10.1dev',
-)
 
 if PY26:
     REQUIREMENTS.append('ordereddict')
