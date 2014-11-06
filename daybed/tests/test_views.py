@@ -73,6 +73,14 @@ class FieldsViewTest(BaseWebTest):
                                     type="boolean",
                                     label="Gps")])
 
+    def test_fields_hints_are_translated(self):
+        response = self.app.get('/fields', headers={
+            'Accept-Language': 'fr-FR'
+        })
+        fields = response.json
+        textfield = [f for f in fields if f.get('name') == 'text'][0]
+        self.assertEqual(textfield['default_hint'], u'Un texte')
+
 
 class HelloViewTest(BaseWebTest):
 
@@ -81,6 +89,12 @@ class HelloViewTest(BaseWebTest):
         self.assertEqual(response.json['version'], VERSION)
         self.assertEqual(response.json['url'], 'http://localhost')
         self.assertEqual(response.json['daybed'], 'hello')
+
+    def test_says_hello_in_french(self):
+        response = self.app.get('/', headers={
+            'Accept-Language': 'fr-FR'
+        })
+        self.assertEqual(response.json['daybed'], u'bonjour')
 
     def test_hello_uses_the_defined_http_scheme_if_defined(self):
         original_scheme = (self.app.app.registry.settings

@@ -1,0 +1,108 @@
+# 
+# SOME DESCRIPTIVE TITLE
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2014.
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE 1.0\n"
+"POT-Creation-Date: 2014-11-06 00:13+0100\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: \n"
+
+#: ./daybed/views/hello.py:12
+msgid "hello"
+msgstr ""
+
+#: ./daybed/schemas/geom.py:126
+msgid "A point"
+msgstr ""
+
+#: ./daybed/schemas/geom.py:141
+msgid "A line made of points"
+msgstr ""
+
+#: ./daybed/schemas/geom.py:163
+msgid "A polygon made of a closed line"
+msgstr ""
+
+#: ./daybed/schemas/geom.py:217
+msgid "A GeoJSON geometry"
+msgstr ""
+
+#: ./daybed/schemas/object.py:34
+msgid "An object"
+msgstr ""
+
+#: ./daybed/schemas/json.py:36
+msgid "A JSON value"
+msgstr ""
+
+#: ./daybed/schemas/list.py:21
+msgid "A list of objects"
+msgstr ""
+
+#: ./daybed/schemas/relations.py:43
+msgid "A choice among records"
+msgstr ""
+
+#: ./daybed/schemas/relations.py:63
+msgid "Some choices among records"
+msgstr ""
+
+#: ./daybed/schemas/base.py:39
+msgid "An integer"
+msgstr ""
+
+#: ./daybed/schemas/base.py:45
+msgid "A set of characters"
+msgstr ""
+
+#: ./daybed/schemas/base.py:51
+msgid "A text"
+msgstr ""
+
+#: ./daybed/schemas/base.py:71
+msgid "A decimal number"
+msgstr ""
+
+#: ./daybed/schemas/base.py:77
+msgid "True or false"
+msgstr ""
+
+#: ./daybed/schemas/base.py:83
+msgid "A choice among values"
+msgstr ""
+
+#: ./daybed/schemas/base.py:101
+msgid "Some choices among values"
+msgstr ""
+
+#: ./daybed/schemas/base.py:119
+msgid "A number with limits"
+msgstr ""
+
+#: ./daybed/schemas/base.py:139
+msgid "A string matching a pattern"
+msgstr ""
+
+#: ./daybed/schemas/base.py:157
+msgid "A valid email"
+msgstr ""
+
+#: ./daybed/schemas/base.py:169
+msgid "A valid URL"
+msgstr ""
+
+#: ./daybed/schemas/base.py:213
+msgid "A date (yyyy-mm-dd)"
+msgstr ""
+
+#: ./daybed/schemas/base.py:224
+msgid "A date with time (yyyy-mm-ddTHH:MM)"
+msgstr ""

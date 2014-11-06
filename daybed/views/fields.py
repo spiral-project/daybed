@@ -16,7 +16,7 @@ def list_fields(request):
     # Iterate registered field types
     for name in registry.names:
         typefield = registry.type(name)
-        field = dict(name=name, default_hint=typefield.hint)
+        field = dict(name=name, default_hint=request.tr(typefield.hint))
         # Describe field parameters using Colander children
         for parameter in registry.definition(name).children:
             if parameter.name not in common_params:

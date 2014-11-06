@@ -1,6 +1,6 @@
 import six
 
-from pyramid.i18n import TranslationString as _
+from daybed import TranslationString as _
 from colander import (Sequence, SchemaNode, Length, String, drop, Invalid)
 
 from daybed.backends.exceptions import ModelNotFound

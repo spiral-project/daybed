@@ -1,0 +1,108 @@
+#
+# French translations for PACKAGE package
+# This file is distributed under the same license as the PACKAGE package.
+# Mathieu Leplatre <contact@mathieu-leplatre.info>, 2014.
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE 1.0\n"
+"POT-Creation-Date: 2014-11-06 00:13+0100\n"
+"PO-Revision-Date: 2014-11-06 00:13+0100\n"
+"Last-Translator: Mathieu Leplatre <contact@mathieu-leplatre.info>\n"
+"Language-Team: French\n"
+"Language: fr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+#: daybed/views/hello.py:12
+msgid "hello"
+msgstr "bonjour"
+
+#: daybed/schemas/geom.py:126
+msgid "A point"
+msgstr "Un point"
+
+#: daybed/schemas/geom.py:141
+msgid "A line made of points"
+msgstr "Une ligne faite de points"
+
+#: daybed/schemas/geom.py:163
+msgid "A polygon made of a closed line"
+msgstr "Un polygone fait d'une ligne fermée"
+
+#: daybed/schemas/geom.py:217
+msgid "A GeoJSON geometry"
+msgstr "Une géométrie GeoJSON"
+
+#: daybed/schemas/object.py:34
+msgid "An object"
+msgstr "Un objet"
+
+#: daybed/schemas/json.py:36
+msgid "A JSON value"
+msgstr "Une valeur JSON"
+
+#: daybed/schemas/list.py:21
+msgid "A list of objects"
+msgstr "Une liste d'objets"
+
+#: daybed/schemas/relations.py:43
+msgid "A choice among records"
+msgstr "Un choix parmi des enregistrements"
+
+#: daybed/schemas/relations.py:63
+msgid "Some choices among records"
+msgstr "Des choix parmi des enregistrements"
+
+#: daybed/schemas/base.py:39
+msgid "An integer"
+msgstr "Un entier"
+
+#: daybed/schemas/base.py:45
+msgid "A set of characters"
+msgstr "Une chaîne de caractères"
+
+#: daybed/schemas/base.py:51
+msgid "A text"
+msgstr "Un texte"
+
+#: daybed/schemas/base.py:71
+msgid "A decimal number"
+msgstr "Un nombre décimal"
+
+#: daybed/schemas/base.py:77
+msgid "True or false"
+msgstr "Vrai ou Faux"
+
+#: daybed/schemas/base.py:83
+msgid "A choice among values"
+msgstr "Un choix parmi des valeurs"
+
+#: daybed/schemas/base.py:101
+msgid "Some choices among values"
+msgstr "Des choix parmi des valeurs"
+
+#: daybed/schemas/base.py:119
+msgid "A number with limits"
+msgstr "Un nombre borné"
+
+#: daybed/schemas/base.py:139
+msgid "A string matching a pattern"
+msgstr "Une chaîne respectant un masque"
+
+#: daybed/schemas/base.py:157
+msgid "A valid email"
+msgstr "Un email valide"
+
+#: daybed/schemas/base.py:169
+msgid "A valid URL"
+msgstr "Une URL valide"
+
+#: daybed/schemas/base.py:213
+msgid "A date (yyyy-mm-dd)"
+msgstr "Une date (aaaa-mm-jj)"
+
+#: daybed/schemas/base.py:224
+msgid "A date with time (yyyy-mm-ddTHH:MM)"
+msgstr "Une date avec heure (aaaa-mm-jjTHH:MM)"

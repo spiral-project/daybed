@@ -9,7 +9,6 @@ from colander import (
     SchemaNode, Mapping, Sequence, Length, String, null, Invalid, OneOf, drop
 )
 from pyramid.security import Authenticated, Everyone
-from pyramid.i18n import get_localizer
 
 from daybed.backends.exceptions import ModelNotFound
 from daybed.permissions import PERMISSIONS_SET
@@ -152,8 +151,7 @@ def validate_against_schema(request, schema, data):
     except Invalid as e:
         # here we transform the errors we got from colander into cornice
         # errors
-        localizer = get_localizer(request)
-        for field, error in e.asdict(translate=localizer.translate).items():
+        for field, error in e.asdict(translate=request.tr).items():
             request.errors.add('body', field, error)
 
 

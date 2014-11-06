@@ -17,9 +17,14 @@ from pyramid.config import Configurator
 from pyramid.events import NewRequest
 from pyramid.renderers import JSONP
 from pyramid.authentication import BasicAuthAuthenticationPolicy
+from pyramid.i18n import TranslationStringFactory
 
 from pyramid_hawkauth import HawkAuthenticationPolicy
 from pyramid_multiauth import MultiAuthenticationPolicy
+
+# Common TranslationString
+TranslationString = TranslationStringFactory(__name__)
+
 
 from daybed.permissions import (
     RootFactory, DaybedAuthorizationPolicy, get_credentials, check_credentials
@@ -172,7 +177,19 @@ def main(global_config, **settings):
 
     # i18n
 
+    def set_default_locale(event):
+        request = event.request
+        if not request.accept_language:
+            return
+        available = ('en', 'fr')
+        accepted = request.accept_language
+        default = request.registry.settings.get('pyramid.default_locale_name')
+        request._LOCALE_ = accepted.best_match(available, default)
+        request.tr = request.localizer.translate
+
+    config.add_subscriber(set_default_locale, NewRequest)
     config.add_translation_dirs(
+        'daybed:locale',
         'colander:locale'
     )
 

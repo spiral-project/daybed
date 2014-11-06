@@ -1,4 +1,4 @@
-from pyramid.i18n import TranslationString as _
+from daybed import TranslationString as _
 from colander import SchemaNode, Sequence, drop
 
 from . import TypeFieldNode

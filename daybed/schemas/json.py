@@ -2,7 +2,7 @@ from __future__ import absolute_import
 import re
 import json
 
-from pyramid.i18n import TranslationString as _
+from daybed import TranslationString as _
 import six
 from colander import Sequence, null, Invalid, List, Mapping
 
