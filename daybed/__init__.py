@@ -4,12 +4,6 @@ import os
 import logging
 import pkg_resources
 
-
-#: Module version, as defined in PEP-0396.
-__version__ = pkg_resources.get_distribution(__package__).version
-
-logger = logging.getLogger(__name__)
-
 import six
 from cornice import Service
 from pyramid import httpexceptions
@@ -22,6 +16,15 @@ from pyramid.i18n import TranslationStringFactory
 from pyramid_hawkauth import HawkAuthenticationPolicy
 from pyramid_multiauth import MultiAuthenticationPolicy
 
+#: Module version, as defined in PEP-0396.
+__version__ = pkg_resources.get_distribution(__package__).version
+
+# API main version
+API_VERSION = 'v%s' % __version__.split('.')[0]
+
+# Common logger
+logger = logging.getLogger(__name__)
+
 # Common TranslationString
 TranslationString = TranslationStringFactory(__name__)
 
@@ -32,9 +35,6 @@ from daybed.permissions import (
 from daybed.views.errors import forbidden_view
 from daybed.renderers import GeoJSON
 from daybed import indexer, events
-
-
-API_VERSION = 'v%s' % __version__.split('.')[0]
 
 
 def settings_expandvars(settings):
