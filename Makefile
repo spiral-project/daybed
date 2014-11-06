@@ -41,3 +41,11 @@ tests-failfast: install-dev
 
 serve: install install-dev
 	$(VENV)/bin/pserve conf/development.ini --reload
+
+
+makemessages: install install-dev
+	$(VENV)/bin/pot-create -o daybed/locale/daybed.pot daybed/
+	msgmerge --update daybed/locale/fr/LC_MESSAGES/daybed.po daybed/locale/daybed.pot
+
+compilemessages:
+	msgfmt daybed/locale/fr/LC_MESSAGES/daybed.po -o daybed/locale/fr/LC_MESSAGES/daybed.mo

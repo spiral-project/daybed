@@ -8,3 +8,5 @@ Mock
 tox
 flake8
 sphinx_rtd_theme
+Babel
+lingua
