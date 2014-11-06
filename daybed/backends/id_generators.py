@@ -26,7 +26,13 @@ class KoremutakeGenerator(object):
         self.max_bytes = int(settings.get('id_generator.max_bytes', 4))
 
     def __call__(self, key_exist=None, tries=5):
-        random_int = int(os.urandom(self.max_bytes).encode('hex'), 16)
+        rbytes = os.urandom(self.max_bytes)
+        try:
+            rbytes = rbytes.encode('hex')
+            random_int = int(rbytes, 16)
+        except AttributeError:
+            random_int = int.from_bytes(rbytes, byteorder='big')
+
         key = six.text_type(koremutake.encode(random_int))
 
         if key_exist is not None:
