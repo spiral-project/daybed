@@ -54,6 +54,8 @@ DEPENDENCY_LINKS = [
     'authorization_header_py26#egg=CouchDB-0.10.1dev',
     'https://github.com/ametaireau/koremutake/tarball/'
     'py3k#egg=koremutake-1.1.0',
+    'https://github.com/Pylons/colander/tarball/'
+    'b354a5b327f95f6ac24fd70d63b7c8d04590510b#egg=colander-1.1dev'
 ]
 ENTRY_POINTS = {
     'paste.app_factory': [

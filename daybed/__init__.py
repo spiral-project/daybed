@@ -170,6 +170,12 @@ def main(global_config, **settings):
 
     config.add_subscriber(attach_objects_to_request, NewRequest)
 
+    # i18n
+
+    config.add_translation_dirs(
+        'colander:locale'
+    )
+
     # Plugins
 
     try:
