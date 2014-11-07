@@ -11,7 +11,7 @@ A field is defined with these global properties:
 * **name**: storage attribute name
 * **type**: kind of value to be stored
 
-* **required**: mandatory attribute (*default: true*)
+* **required**: mandatory attribute (*optional, default: true*)
 * **hint**: help text (*optional*)
 
 You then have different types of fields, all detailed in this section.
@@ -40,7 +40,7 @@ For example, when combining global properties and one of those basic field, it b
         "type": "string"
     }
 
-You just have to choose the a type among those available.
+You just have to choose a type among those available.
 
 
 Advanced types
@@ -206,16 +206,16 @@ For instance:
 
     {"definition":
       {
-        "title": "Wishlist",
-        "description": "List of gifts you desire",
+        "title": "Club members",
+        "description": "Name and pictures of all members",
         "fields": [
           {
-            "label": "Title",
-            "name": "title",
+            "label": "First and last name",
+            "name": "fullname",
             "type": "string"
           },
           {
-            "label": "Help your friends find the gift with a picture (optional)",
+            "label": "Providing a picture is optional",
             "type": "annotation",
             "css": "font-weigth: bold"
           },
@@ -373,7 +373,8 @@ Or a list of advanced field types (*dates, objects, ...*):
     }
 
 
-If ``item`` is not specified, the list items can be anything:
+If ``item`` is not specified, the list items can be anything
+(e.g. no validation will be done on them):
 
 .. code-block:: json
 
@@ -422,8 +423,8 @@ Relation types
     }
 
 
-Geometry types
---------------
+Geometric types
+---------------
 
 * **geojson**: A `GeoJSON`_ geometry (not a FeatureCollection)
     No specific parameters.
