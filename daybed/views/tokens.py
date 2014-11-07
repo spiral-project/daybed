@@ -1,4 +1,5 @@
 import hashlib
+import hmac
 
 from cornice import Service
 
@@ -17,8 +18,13 @@ def post_tokens(request):
     # If we have an authorization header with the Basic or Token realm
     # Use it as the base HKDF for building the same token
     session_token = None
-    if request.authorization and request.authorization[0] in ["Basic", "Token"]:
-        session_token = hashlib.sha256("%s %s" % request.authorization[:2]).hexdigest()
+    if request.authorization and \
+       request.authorization[0] in ["Basic", "Token"]:
+        session_token = hmac.new(
+            request.registry.tokenHmacKey.encode("ascii"),
+            ("%s %s" % request.authorization[:2]).encode("utf-8"),
+            hashlib.sha256
+        ).hexdigest()
 
     token, credentials = get_hawk_credentials(session_token)
 
