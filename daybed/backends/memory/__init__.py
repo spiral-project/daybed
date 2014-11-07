@@ -1,4 +1,5 @@
 from copy import deepcopy
+import functools
 
 from daybed.backends import exceptions as backend_exceptions
 
@@ -88,7 +89,7 @@ class MemoryBackend(object):
 
     def put_model(self, definition, permissions, model_id=None):
         if model_id is None:
-            model_id = self._generate_id()
+            model_id = self._generate_id(key_exist=self._model_exists)
 
         self._db['models'][model_id] = {
             'definition': deepcopy(definition),
@@ -97,6 +98,12 @@ class MemoryBackend(object):
         if model_id not in self._db['records']:
             self._db['records'][model_id] = {}
         return model_id
+
+    def _record_exists(self, model_id, record_id):
+        return record_id in self._db['records'][model_id]
+
+    def _model_exists(self, model_id):
+        return model_id in self._db['records']
 
     def put_record(self, model_id, record, authors, record_id=None):
         doc = {
@@ -114,7 +121,8 @@ class MemoryBackend(object):
                 doc = old_doc
                 doc['authors'] = list(set(authors) | set(old_doc['authors']))
         else:
-            record_id = self._generate_id()
+            key_exist = functools.partial(self._record_exists, model_id)
+            record_id = self._generate_id(key_exist=key_exist)
             doc['_id'] = record_id
 
         self._db['records'][model_id][record_id] = doc

@@ -19,6 +19,7 @@ from daybed.backends.redis import RedisBackend
 from redis.exceptions import ConnectionError
 
 from daybed.backends.couchdb.views import docs as couchdb_views
+from daybed.backends.id_generators import KoremutakeGenerator
 from daybed.tokens import get_hawk_credentials
 
 
@@ -29,6 +30,10 @@ class BackendTestBase(object):
     you want to test.  Since all the backend implementations share the same
     interface, all the tests should pass in the same way.
     """
+    def __init__(self, *args, **kwargs):
+        self.id_generator = KoremutakeGenerator()
+        super(BackendTestBase, self).__init__(*args, **kwargs)
+
     def setUp(self):
         self.permissions = {
             'read_definition': ['Remy', 'Alexis']
@@ -209,7 +214,7 @@ class TestCouchDBBackend(BackendTestBase, TestCase):
         self.db = CouchDBBackend(
             host='http://localhost:5984',
             db_name='test_%s' % uuid4(),
-            id_generator=lambda: six.text_type(uuid4())
+            id_generator=self.id_generator
         )
         super(TestCouchDBBackend, self).setUp()
 
@@ -220,7 +225,7 @@ class TestCouchDBBackend(BackendTestBase, TestCase):
         with self.assertRaises(CouchDBBackendConnectionError):
             CouchDBBackend(
                 host='http://unreachable', db_name='daybed',
-                id_generator=lambda: True
+                id_generator=self.id_generator
             )
 
     @mock.patch('daybed.backends.couchdb.CouchDBBackend.__init__')
@@ -240,7 +245,7 @@ class TestRedisBackend(BackendTestBase, TestCase):
             host='localhost',
             port=6379,
             db=5,
-            id_generator=lambda: six.text_type(uuid4())
+            id_generator=self.id_generator
         )
         super(TestRedisBackend, self).setUp()
 
@@ -251,7 +256,7 @@ class TestRedisBackend(BackendTestBase, TestCase):
         with self.assertRaises(ConnectionError):
             RedisBackend(
                 host='unreachable', port=6379, db=5,
-                id_generator=lambda: True
+                id_generator=self.id_generator
             )
 
     @mock.patch('daybed.backends.redis.RedisBackend.__init__')
@@ -265,5 +270,5 @@ class TestRedisBackend(BackendTestBase, TestCase):
 class TestMemoryBackend(BackendTestBase, TestCase):
 
     def setUp(self):
-        self.db = MemoryBackend(lambda: six.text_type(uuid4()))
+        self.db = MemoryBackend(self.id_generator)
         super(TestMemoryBackend, self).setUp()

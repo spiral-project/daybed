@@ -1,6 +1,8 @@
 import os
 import socket
 
+import functools
+
 from couchdb.client import Server
 from couchdb.http import PreconditionFailed, Unauthorized
 from couchdb.design import ViewDefinition
@@ -107,6 +109,20 @@ class CouchDBBackend(object):
                 u'(%s, %s)' % (model_id, record_id)
             )
 
+    def _model_exists(self, model_id):
+        try:
+            self.__get_raw_model(model_id)
+            return True
+        except backend_exceptions.ModelNotFound:
+            return False
+
+    def _record_exists(self, model_id, record_id):
+        try:
+            self.__get_raw_record(model_id, record_id)
+            return True
+        except backend_exceptions.RecordNotFound:
+            return False
+
     def get_record(self, model_id, record_id):
         doc = self.__get_raw_record(model_id, record_id)
         record = doc['record']
@@ -119,7 +135,7 @@ class CouchDBBackend(object):
 
     def put_model(self, definition, permissions, model_id=None):
         if model_id is None:
-            model_id = self._generate_id()
+            model_id = self._generate_id(key_exist=self._model_exists)
 
         try:
             doc = self.__get_raw_model(model_id)
@@ -150,7 +166,8 @@ class CouchDBBackend(object):
                 old_doc.update(doc)
                 doc = old_doc
         else:
-            record_id = self._generate_id()
+            key_exist = functools.partial(self._record_exists, model_id)
+            record_id = self._generate_id(key_exist=key_exist)
             doc['_id'] = '-'.join((model_id, record_id))
 
         self._db.save(doc)
