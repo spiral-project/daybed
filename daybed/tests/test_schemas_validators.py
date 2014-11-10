@@ -37,6 +37,13 @@ class ValidatorTests(unittest.TestCase):
         self.assertIn('1.wish', self.request.errors[0]['name'])
         self.assertIn('3.14', self.request.errors[0]['description'])
 
+    def test_posted_data_is_postprocessed_recursively(self):
+        data =  {"records": [{"name": colander.null}]}
+        schema_mock = mock.Mock()
+        schema_mock.deserialize.return_value = data
+        validators.validator(self.request, schema_mock)
+        self.assertIsNone(self.request.data_clean['records'][0].get('name'))
+
 
 class DefinitionSchemaTest(unittest.TestCase):
     def setUp(self):
