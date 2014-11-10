@@ -580,6 +580,11 @@ class RecordsViewsTest(BaseWebTest):
 
 class CreateTokenViewTest(BaseWebTest):
 
+    def setUp(self):
+        super(CreateTokenViewTest, self).setUp()
+        userpass = u'foolish:bar'.encode('ascii')
+        self.auth = base64.b64encode(userpass).strip().decode('ascii')
+
     def test_post_token(self):
         response = self.app.post('/tokens', status=201)
         self.assertIn("token", response.json)
@@ -590,6 +595,36 @@ class CreateTokenViewTest(BaseWebTest):
         self.assertIn("key", response.json["credentials"])
         self.assertTrue(len(response.json["credentials"]["key"]) == 64)
         self.assertEqual("sha256", response.json["credentials"]["algorithm"])
+
+    def test_post_token_with_basic_auth(self):
+        response = self.app.post('/tokens', status=201, headers={
+            'Authorization': 'Basic {0}'.format(self.auth)
+        })
+        credentials = response.json
+        response = self.app.post('/tokens', status=200, headers={
+            'Authorization': 'Basic {0}'.format(self.auth)
+        })
+        self.assertEqual(credentials, response.json)
+
+    def test_post_token_with_token_authorization(self):
+        response = self.app.post('/tokens', status=201, headers={
+            'Authorization': 'Token {0}'.format(self.auth)
+        })
+        credentials = response.json
+        response = self.app.post('/tokens', status=200, headers={
+            'Authorization': 'Token {0}'.format(self.auth)
+        })
+        self.assertEqual(credentials, response.json)
+
+    def test_post_token_is_not_the_same_for_basic_or_token(self):
+        response = self.app.post('/tokens', status=201, headers={
+            'Authorization': 'Token {0}'.format(self.auth)
+        })
+        credentials = response.json
+        response = self.app.post('/tokens', status=201, headers={
+            'Authorization': 'Basic {0}'.format(self.auth)
+        })
+        self.assertNotEqual(credentials, response.json)
 
 
 class TokenViewTest(BaseWebTest):

@@ -8,6 +8,14 @@ from six import text_type
 from six.moves import xrange
 
 
+def hmac_digest(key, content):
+    return python_hmac.new(
+        key.encode("ascii"),
+        content.encode("utf-8"),
+        hashlib.sha256
+    ).hexdigest()
+
+
 def get_hawk_credentials(token=None):
     if token is None:
         token = os.urandom(32)

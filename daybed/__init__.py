@@ -119,6 +119,8 @@ def main(global_config, **settings):
 
     # Backend
 
+    config.registry.tokenHmacKey = settings['daybed.tokenHmacKey']
+
     # backend initialisation
     backend_class = config.maybe_dotted(settings['daybed.backend'])
     config.registry.backend = backend_class.load_from_config(config)

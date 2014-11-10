@@ -64,6 +64,39 @@ In your next requests, you can either :
 * use the ``credentials`` pair of *id* and *key*, and build the Hawk ``Authorization``
   header yourself (*or probably via ``hawk.js``*).
 
+If you want to get always the same token for a given user, you can
+access the endpoint using Basic Auth Authorization scheme::
+
+    http POST localhost:8000/v1/tokens --auth admin:password -v
+
+    POST /v1/tokens HTTP/1.1
+    Accept: */*
+    Accept-Encoding: gzip, deflate, compress
+    Authorization: Basic YWRtaW46cGFzc3dvcmQ=
+    Content-Length: 0
+    Host: localhost:8000
+    User-Agent: HTTPie/0.8.0
+
+
+    HTTP/1.1 201 Created
+    Content-Length: 266
+    Content-Type: application/json; charset=UTF-8
+    Date: Fri, 07 Nov 2014 15:09:01 GMT
+    Server: waitress
+
+    {
+        "credentials": {
+            "algorithm": "sha256", 
+            "id": "371ef18f8a054e5c9fb0961cc5b81006080e9ad22078d30b3727c7c32843579f", 
+            "key": "87e72a8e5dcaf8b4be00b8729462814da3d438ce2fd8b6efee335db722d8369d"
+        }, 
+        "token": "9f19de0237c9bd59f803de1785f7aea4e3499b6929df3428e1b415fed81f797a"
+    }
+
+
+In that case you will get a 201 Created on the creation time and then
+a 200 each time you ask for the same token.
+
 
 Model management
 ----------------
