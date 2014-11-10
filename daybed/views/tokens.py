@@ -1,10 +1,7 @@
-import hashlib
-import hmac
-
 from cornice import Service
 
 from daybed.backends.exceptions import CredentialsAlreadyExist
-from daybed.tokens import get_hawk_credentials
+from daybed.tokens import get_hawk_credentials, hmac_digest
 from daybed.views.errors import forbidden_view
 
 tokens = Service(name='tokens', path='/tokens', description='Tokens')
@@ -16,16 +13,12 @@ def post_tokens(request):
     """Creates a new token and store it"""
 
     # If we have an authorization header with the Basic or Token realm
-    # Use it as the base HKDF for building the same token
+    # Use it to derive the key
     session_token = None
     if request.authorization and \
        request.authorization[0] in ["Basic", "Token"]:
-        session_token = hmac.new(
-            request.registry.tokenHmacKey.encode("ascii"),
-            ("%s %s" % request.authorization[:2]).encode("utf-8"),
-            hashlib.sha256
-        ).hexdigest()
-
+        session_token = hmac_digest(request.registry.tokenHmacKey,
+                                    "%s %s" % request.authorization[:2])
     token, credentials = get_hawk_credentials(session_token)
 
     try:
