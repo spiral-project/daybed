@@ -692,6 +692,16 @@ class SearchViewTest(BaseWebTest):
                      headers=self.headers,
                      status=502)
 
+    @mock.patch('elasticsearch.client.Elasticsearch.search')
+    def test_search_returns_original_code_on_bad_request(self, search_mock):
+        import elasticsearch
+        badrequest = elasticsearch.RequestError('400', 'error', {'foo': 'bar'})
+        search_mock.side_effect = badrequest
+        resp = self.app.get('/models/test/search/', {},
+                            headers=self.headers,
+                            status=400)
+        self.assertEqual(resp.json['msg']['foo'], 'bar')
+
     def test_search_view_requires_permission(self):
         self.app.patch_json('/models/test/permissions',
                             {self.credentials['id']: ["-read_all_records"]},
