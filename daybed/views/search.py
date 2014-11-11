@@ -13,6 +13,7 @@ search = Service(name='search',
 
 
 @search.get(permission='get_all_records')
+@search.post(permission='get_all_records')
 def search_records(request):
     """Search model records."""
     model_id = request.matchdict['model_id']

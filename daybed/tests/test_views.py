@@ -656,6 +656,9 @@ class SearchViewTest(BaseWebTest):
                           headers=self.headers)
 
     def test_search_returns_200_if_query_is_correct(self):
+        self.app.post('/models/test/search/', {'match_all': {}},
+                      headers=self.headers,
+                      status=200)
         self.app.get('/models/test/search/', {'match_all': {}},
                      headers=self.headers,
                      status=200)
@@ -664,9 +667,9 @@ class SearchViewTest(BaseWebTest):
     def test_search_supports_query_string_parameters(self, search_mock):
         search_mock.return_value = {}
         query = {'match_all': {}}
-        self.app.get('/models/test/search/?size=100', query,
-                     headers=self.headers,
-                     status=200)
+        self.app.post('/models/test/search/?size=100', query,
+                      headers=self.headers,
+                      status=200)
         search_mock.called_with(index='test', doc_type='test',
                                 body=query, size=100)
 
