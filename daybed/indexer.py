@@ -13,7 +13,7 @@ class ElasticSearchIndexer(object):
         self.prefix = lambda x: u'%s_%s' % (prefix, x)
 
     def search(self, model_id, query, params):
-        supported_params = ['sort', 'from', 'source', 'fields']
+        supported_params = ['sort', 'from', 'source', 'fields', 'size']
         params = dict([p for p in params.items() if p[0] in supported_params])
         return self.client.search(index=self.prefix(model_id),
                                   doc_type=model_id,
