@@ -14,6 +14,7 @@ class ValidatorTests(unittest.TestCase):
         self.request.db = mock.MagicMock()
         self.request.matchdict = mock.MagicMock()
         self.request.errors = Errors()
+        self.request.body = b''
 
     def test_adds_body_error_if_json_invalid(self):
         self.request.body = b'{wrong,"format"}'
@@ -38,7 +39,7 @@ class ValidatorTests(unittest.TestCase):
         self.assertIn('3.14', self.request.errors[0]['description'])
 
     def test_posted_data_is_postprocessed_recursively(self):
-        data =  {"records": [{"name": colander.null}]}
+        data = {"records": [{"name": colander.null}]}
         schema_mock = mock.Mock()
         schema_mock.deserialize.return_value = data
         validators.validator(self.request, schema_mock)
