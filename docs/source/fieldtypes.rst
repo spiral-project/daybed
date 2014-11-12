@@ -5,15 +5,17 @@ Daybed field types
 
 .. module:: daybed.schemas
 
-Fields have these global properties:
+A field is defined with these global properties:
 
-* name
-* label
-* hint
-* required
-* type
+* **label**: human readable field label
+* **name**: storage attribute name
+* **type**: kind of value to be stored
 
-You then have different kind of fields grouped in the following categories:
+* **required**: mandatory attribute (*optional, default: true*)
+* **hint**: help text (*optional*)
+
+You then have different types of fields, all detailed in this section.
+
 
 Basic types
 -----------
@@ -33,14 +35,12 @@ For example, when combining global properties and one of those basic field, it b
 .. code-block:: json
 
     {
-        "label": "The item",
-        "name": "item",
-        "hint": "Enter an Todo item",
-        "required": true,
+        "label": "Task item",
+        "name": "task",
         "type": "string"
     }
 
-You just have to choose the right basic type.
+You just have to choose a type among those available.
 
 
 Advanced types
@@ -206,37 +206,24 @@ For instance:
 
     {"definition":
       {
-        "title": "Movies",
-        "description": "List of movies I like.",
+        "title": "Club members",
+        "description": "Name and pictures of all members",
         "fields": [
           {
-              "label": "Movie",
-              "name": "movie",
-              "type": "object",
-              "fields": [
-                {
-                  "label": "Title",
-                  "name": "title",
-                  "type": "string"
-                },
-                {
-                  "label": "Director",
-                  "name": "director",
-                  "hint": "The Movie's director",
-                  "type": "string"
-                },
-                {
-                  "label": "In a movie, you can find actors, please enter their names below.",
-                  "type": "annotation",
-                  "css": "font-weigth: bold"
-                },
-                {
-                  "label": "Actors",
-                  "name": "actors",
-                  "type": "list",
-                  "item": {"type": "string", "hint": "Full name of the actors."}
-                }
-              ]
+            "label": "First and last name",
+            "name": "fullname",
+            "type": "string"
+          },
+          {
+            "label": "Providing a picture is optional",
+            "type": "annotation",
+            "css": "font-weigth: bold"
+          },
+          {
+            "label": "Picture",
+            "name": "picture",
+            "type": "url",
+            "required": false
           }
         ]
       }
@@ -273,10 +260,17 @@ Then you can use it like so:
       }
     }
 
+It will also work with a string :
+
+.. code-block:: json
+
+    {
+      "movie": "{\"title\": \"The Island\"}"
+    }
 
 
-Nested
-------
+Nested types
+------------
 
 * **object**: An object inside another model
     **Specific parameters**, used to validate the content. Only one of them should be specified.
@@ -312,18 +306,53 @@ of fields or the definition of the specified model
       ]
     }
 
-
-* **list**: A list of objects inside another model
-    **Specific parameters:**
-       * *item*: Defines the type of the list item
-           * *type*: The type of the item
-           * *hint*: The description of the item
+For example, this record will be valid for the definition above:
 
 .. code-block:: json
 
     {
-      "label": "Movie",
-      "name": "movie",
+      "movie": {
+        "title": "Donnie Darko",
+        "director": "Richard Kelly",
+        "actors": ["Jake Gyllenhaal", "Patrick Swayze"],
+      }
+    }
+
+But this one will not:
+
+.. code-block:: json
+
+    {
+      "movie": {
+        "title": "Director and actors missing",
+      }
+    }
+
+
+* **list**: A list of values inside another model
+    **Specific parameters:**
+       * *item*: Defines the type of the list items. Specified like a field in a model definition.
+
+Can be used to define a simple list of basic types (*integer, string, ...*):
+
+.. code-block:: json
+
+    {
+      "label": "Movie titles",
+      "name": "movies",
+      "type": "list",
+      "item": {
+        "type": "string"
+      }
+    }
+
+Or a list of advanced field types (*dates, objects, ...*):
+
+.. code-block:: json
+
+    {
+      "label": "Movie list",
+      "name": "movies",
       "type": "list",
       "item": {
         "type": "object",
@@ -344,8 +373,28 @@ of fields or the definition of the specified model
     }
 
 
-Relations
----------
+If ``item`` is not specified, the list items can be anything
+(e.g. no validation will be done on them):
+
+.. code-block:: json
+
+    {
+      "label": "Last thoughts",
+      "name": "toughts",
+      "type": "list"
+    }
+
+The following records will be considered valid with the definition above:
+
+.. code-block:: json
+
+    { "toughts": [1, 2, 3] }
+
+    { "toughts": [{"miam": true}, 42, ["OSM", "Mapnik"], "World Company"] }
+
+
+Relation types
+--------------
 
 * **anyof**: Any number of choices among records of a given model
     **Specific parameters:**
@@ -373,8 +422,9 @@ Relations
       "label": "Main character"
     }
 
-Geometries
-----------
+
+Geometric types
+---------------
 
 * **geojson**: A `GeoJSON`_ geometry (not a FeatureCollection)
     No specific parameters.
