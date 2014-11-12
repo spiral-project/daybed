@@ -1,9 +1,16 @@
 import json
 
 import elasticsearch
-from elasticsearch.exceptions import ElasticsearchException
+from elasticsearch.exceptions import RequestError, ElasticsearchException
 
 from daybed import logger
+
+
+class SearchError(Exception):
+    """Exception raised on request error to indexer.
+    """
+    def __init__(self, *args):
+        self.status_code, self.error, self.info = args[:3]
 
 
 class ElasticSearchIndexer(object):
@@ -15,10 +22,16 @@ class ElasticSearchIndexer(object):
     def search(self, model_id, query, params):
         supported_params = ['sort', 'from', 'source', 'fields', 'size']
         params = dict([p for p in params.items() if p[0] in supported_params])
-        return self.client.search(index=self.prefix(model_id),
-                                  doc_type=model_id,
-                                  body=query,
-                                  **params)
+        try:
+            return self.client.search(index=self.prefix(model_id),
+                                      doc_type=model_id,
+                                      body=query,
+                                      **params)
+        except RequestError as e:
+            raise SearchError(*e.args)
+        except ElasticsearchException as e:
+            logger.error(e)  # big fail
+            raise
 
     def on_model_created(self, event):
         indexname = self.prefix(event.model_id)

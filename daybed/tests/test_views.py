@@ -3,6 +3,7 @@ import base64
 
 import mock
 from webtest.app import TestRequest
+import elasticsearch
 
 from daybed import __version__ as VERSION, API_VERSION
 from daybed.permissions import invert_permissions_matrix
@@ -697,7 +698,6 @@ class SearchViewTest(BaseWebTest):
 
     @mock.patch('elasticsearch.client.Elasticsearch.search')
     def test_search_returns_original_code_on_bad_request(self, search_mock):
-        import elasticsearch
         badrequest = elasticsearch.RequestError('400', 'error', {'foo': 'bar'})
         search_mock.side_effect = badrequest
         resp = self.app.get('/models/test/search/', {},

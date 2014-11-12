@@ -1,9 +1,8 @@
 import six
 from cornice import Service
-import elasticsearch
 
-from daybed import logger
 from daybed.backends.exceptions import ModelNotFound
+from daybed.indexer import SearchError
 
 
 search = Service(name='search',
@@ -35,10 +34,9 @@ def search_records(request):
     try:
         results = request.index.search(model_id, query, params=params)
         return results
-    except elasticsearch.TransportError as e:
+    except SearchError as e:
         request.response.status = e.status_code
         return {"msg": e.info}
     except Exception as e:
-        logger.error(e)
         request.response.status = "502 Bad Gateway"
         return {"msg": "Could not obtain response from indexing service"}
