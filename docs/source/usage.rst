@@ -86,10 +86,10 @@ access the endpoint using Basic Auth Authorization scheme::
 
     {
         "credentials": {
-            "algorithm": "sha256", 
-            "id": "371ef18f8a054e5c9fb0961cc5b81006080e9ad22078d30b3727c7c32843579f", 
+            "algorithm": "sha256",
+            "id": "371ef18f8a054e5c9fb0961cc5b81006080e9ad22078d30b3727c7c32843579f",
             "key": "87e72a8e5dcaf8b4be00b8729462814da3d438ce2fd8b6efee335db722d8369d"
-        }, 
+        },
         "token": "9f19de0237c9bd59f803de1785f7aea4e3499b6929df3428e1b415fed81f797a"
     }
 

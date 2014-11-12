@@ -4,6 +4,7 @@ import elasticsearch
 from elasticsearch.exceptions import RequestError, ElasticsearchException
 
 from daybed import logger
+from six.moves.urllib.parse import urlparse
 
 
 class SearchError(Exception):
@@ -16,7 +17,46 @@ class SearchError(Exception):
 class ElasticSearchIndexer(object):
 
     def __init__(self, hosts, prefix):
-        self.client = elasticsearch.Elasticsearch(hosts)
+        self.built_hosts = []
+
+        for host in hosts:
+            arguments = urlparse(host)
+
+            # If the argument is not an URL, let it go.
+            if not arguments.netloc:
+                self.built_hosts.append(host)
+                continue
+
+            http_auth = None
+            use_ssl = False
+            port = 80
+
+            netloc = arguments.netloc.split('@')
+
+            if len(netloc) == 2:
+                http_auth = netloc[0]
+                netloc = netloc[1]
+            else:
+                netloc = arguments.netloc
+
+            if ':' in netloc:
+                hostname, port = netloc.split(':')
+                if arguments.scheme == 'https':
+                    use_ssl = True
+            else:
+                hostname = netloc
+                if arguments.scheme == 'https':
+                    use_ssl = True
+                    port = 443
+
+            self.built_hosts.append({
+                'host': hostname,
+                'port': int(port),
+                'use_ssl': use_ssl,
+                'http_auth': http_auth
+            })
+
+        self.client = elasticsearch.Elasticsearch(self.built_hosts)
         self.prefix = lambda x: u'%s_%s' % (prefix, x)
 
     def search(self, model_id, query, params):
