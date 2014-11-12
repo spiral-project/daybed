@@ -3,6 +3,7 @@ from functools import partial
 from copy import deepcopy
 import json
 import datetime
+import collections
 
 import six
 from colander import (
@@ -159,15 +160,17 @@ def post_serialize(data):
     """Returns the most agnostic version of specified data.
     (remove colander notions, datetimes in ISO, ...)
     """
-    clean = dict()
-    for k, v in data.items():
-        if isinstance(v, (datetime.date, datetime.datetime)):
-            clean[k] = v.isoformat()
-        elif v is null:
-            pass
-        else:
-            clean[k] = v
-    return clean
+    if isinstance(data, six.string_types):
+        return six.text_type(data)
+    if isinstance(data, collections.Mapping):
+        return dict(map(post_serialize, six.iteritems(data)))
+    if isinstance(data, collections.Iterable):
+        return type(data)(map(post_serialize, data))
+    if isinstance(data, (datetime.date, datetime.datetime)):
+        return data.isoformat()
+    if data is null:
+        return None
+    return data
 
 
 def validator(request, schema):
