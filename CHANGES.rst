@@ -1,16 +1,25 @@
 Changelog
 =========
 
-1.1 (unreleased)
+1.1 (2014-11-12)
 ----------------
 
 **Bug fixes**
 
 - Fix storage of deserialized values for object and list field types.
+- Make sure errors are send in JSON
 
 **New features**
 
-- Add new PUT end-point at ``/model/<id>/definition`` to create/update model definitions
+- Add new PUT end-point on ``/model/<id>/definition`` to update model definitions.
+- Rewrite validators using schemas
+- Support permissions in model put/post
+- Improve documentation about fields
+- Add a annotation field
+- Accept extra property on models and records
+- Add Koremutake ids generator
+- Add Basic Auth on POST /tokens to always grab the same token
+- Allow POST on the search endpoint
 
 
 1.0.1 (2014-09-12)
