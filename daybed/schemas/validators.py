@@ -29,8 +29,9 @@ class DefinitionSchema(SchemaNode):
 
 
 class RecordSchema(SchemaNode):
-    def __init__(self, definition):
-        super(RecordSchema, self).__init__(Mapping())
+    def __init__(self, definition, *args, **kwargs):
+        kwargs.setdefault('typ', Mapping())
+        super(RecordSchema, self).__init__(*args, **kwargs)
         definition = deepcopy(definition)
         for field in definition['fields']:
             field['root'] = self
@@ -128,17 +129,6 @@ class PermissionsSchema(SchemaNode):
                                                 Everyone)
                 cstruct[identifier] = saved
         return cstruct
-
-
-class RecordValidator(object):
-    """A validator to check that a dictionnary matches the specified
-    definition.
-    """
-    def __init__(self, definition):
-        self.schema = RecordSchema(definition)
-
-    def __call__(self, node, value):
-        self.schema.deserialize(value)
 
 
 def validate_against_schema(request, schema, data):

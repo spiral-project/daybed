@@ -73,6 +73,7 @@ registry = TypeRegistry()
 
 
 class TypeField(object):
+    schemanode = SchemaNode
     node = String
     required = True
     default_value = null
@@ -95,14 +96,17 @@ class TypeField(object):
         return schema
 
     @classmethod
-    def validation(cls, **kwargs):
+    def validation(cls, *args, **kwargs):
         keys = ['name', 'label', 'hint', 'validator', 'missing']
         specified = [key for key in keys if key in kwargs.keys()]
         options = dict(zip(specified, [kwargs.get(k) for k in specified]))
         # If field is not required, use missing
         if not kwargs.get('required', cls.required):
             options.setdefault('missing', cls.default_value)
-        return SchemaNode(cls.node(), **options)
+        # If node is not specified in args, use the one defined on field type class.
+        if len(args) == 0:
+            args = (cls.node(),)
+        return cls.schemanode(*args, **options)
 
 
 class TypeFieldNode(SchemaType):

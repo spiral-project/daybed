@@ -1,4 +1,5 @@
 import copy
+import datetime
 
 import colander
 
@@ -39,6 +40,15 @@ class ListFieldTest(unittest.TestCase):
         value = self.validator.deserialize('[1,3,4]')
         self.assertEquals(value, [1, 3, 4])
 
+    def test_validation_succeeds_if_given_as_list(self):
+        value = self.validator.deserialize([1, 3, 4])
+        self.assertEquals(value, [1, 3, 4])
+
+    def test_validation_fails_with_comma_separated_values(self):
+        self.assertRaises(colander.Invalid,
+                          self.validator.deserialize,
+                          '1,3,4')
+
     def test_validation_succeeds_if_no_items(self):
         value = self.validator.deserialize('[]')
         self.assertEquals(value, [])
@@ -53,6 +63,11 @@ class ListFieldTest(unittest.TestCase):
                           self.validator.deserialize,
                           '[1, "a" ,4]')
 
+    def test_validation_fails_if_items_as_list_are_invalid(self):
+        self.assertRaises(colander.Invalid,
+                          self.validator.deserialize,
+                          [1, "a", 4])
+
 
 class NoItemTypeListTest(unittest.TestCase):
 
@@ -66,6 +81,10 @@ class NoItemTypeListTest(unittest.TestCase):
         value = self.validator.deserialize('[1,"a",{"status": false}]')
         self.assertEquals(value, [1, u'a', {u'status': False}])
 
+    def test_no_item_works_with_comma_separated_values(self):
+        value = self.validator.deserialize('8, 5 , 1982')
+        self.assertEquals(value, [u'8', u'5', u'1982'])
+
 
 class ItemTypeListTest(unittest.TestCase):
 
@@ -77,11 +96,8 @@ class ItemTypeListTest(unittest.TestCase):
 
     def test_validation_succeeds_if_items_are_valid(self):
         value = self.validator.deserialize('["2012-04-01", "2014-06-01"]')
-        self.assertEquals(value, ["2012-04-01", "2014-06-01"])
-
-    def test_validation_succeeds_if_items_are_comma_separated(self):
-        value = self.validator.deserialize('2012-04-01, 2014-06-01')
-        self.assertEquals(value, ["2012-04-01", "2014-06-01"])
+        expected = [datetime.date(2012, 4, 1), datetime.date(2014, 6, 1)]
+        self.assertEquals(value, expected)
 
     def test_validation_fails_if_items_are_invalid(self):
         self.assertRaises(colander.Invalid,
@@ -120,3 +136,12 @@ class ObjectListTest(BaseWebTest):
         self.assertRaises(colander.Invalid,
                           self.validator.deserialize,
                           '[{"status": "todo"}, {"status": "3.14"}]')
+
+    def test_validation_sets_default_values(self):
+        self.definition['item']['fields'].append({
+            'type': 'date',
+            'name': 'created',
+            'autonow': True})
+        self.validator = schemas.ListField.validation(**self.definition)
+        values = self.validator.deserialize('[{"status": "todo"}]')
+        self.assertIsNotNone(values[0].get('created'))

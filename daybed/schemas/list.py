@@ -1,24 +1,14 @@
 from pyramid.i18n import TranslationString as _
-from colander import SchemaNode, Sequence, drop
+from colander import SchemaNode, drop
 
 from . import TypeFieldNode
 from .base import registry, TypeField, JSONList
-
-
-class ItemsValid(object):
-    def __init__(self, field):
-        fieldtype = field['type']
-        nodetype = registry.validation(fieldtype, **field)
-        self.schema = SchemaNode(Sequence(), nodetype)
-
-    def __call__(self, node, value):
-        self.schema.deserialize(value)
+from .json import JSONSequence
 
 
 @registry.add('list')
 class ListField(TypeField):
-    node = JSONList
-    hint = _('A list of objects')
+    hint = _('A list of values')
 
     @classmethod
     def definition(cls, **kwargs):
@@ -30,6 +20,14 @@ class ListField(TypeField):
 
     @classmethod
     def validation(cls, **kwargs):
+        """If ``item`` is specified in definition, the list is validated
+        using a sequence of validation nodes.
+        Otherwise as a list of any kind of values.
+        """
         if 'item' in kwargs:
-            kwargs['validator'] = ItemsValid(kwargs['item'])
-        return super(ListField, cls).validation(**kwargs)
+            item = kwargs.pop('item')
+            nodetype = registry.validation(item['type'], **item)
+            args = (JSONSequence(), nodetype)
+        else:
+            args = (JSONList(),)
+        return super(ListField, cls).validation(*args, **kwargs)

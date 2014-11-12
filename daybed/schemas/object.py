@@ -6,9 +6,9 @@ from colander import (Sequence, SchemaNode, Length, String, drop, Invalid)
 from daybed.backends.exceptions import ModelNotFound
 
 from . import registry, TypeField, TypeFieldNode, get_db
-from .validators import RecordValidator
-from .relations import ModelExist
+from .validators import RecordSchema
 from .json import JSONType
+from .relations import ModelExist
 
 
 class ExclusiveKeys(object):
@@ -29,10 +29,16 @@ class ExclusiveKeys(object):
             raise Invalid(node, msg)
 
 
+class JSONRecordSchema(RecordSchema):
+    def __init__(self, *args, **kwargs):
+        kwargs['typ'] = JSONType()
+        super(JSONRecordSchema, self).__init__(*args, **kwargs)
+
+
 @registry.add('object')
 class ObjectField(TypeField):
+    schemanode = JSONRecordSchema
     hint = _('An object')
-    node = JSONType
 
     @classmethod
     def definition(cls, **kwargs):
@@ -55,8 +61,8 @@ class ObjectField(TypeField):
     @classmethod
     def validation(cls, **kwargs):
         definition = cls._fetch_definition(kwargs)
-        kwargs['validator'] = RecordValidator(definition)
-        return super(ObjectField, cls).validation(**kwargs)
+        # Instantiate a ``RecordSchema`` with ``definition`` as first arg
+        return super(ObjectField, cls).validation(definition, **kwargs)
 
     @classmethod
     def _fetch_definition(cls, field_definition):
