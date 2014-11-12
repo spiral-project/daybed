@@ -41,11 +41,3 @@ tests-failfast: install-dev
 
 serve: install install-dev
 	$(VENV)/bin/pserve conf/development.ini --reload
-
-.PHONY: spaceleft
-spaceleft:
-	@if which grin 2>&1 >/dev/null; \
-	then \
-      test "$$(grin " $$" daybed/ docs/ -l | wc -l)" -ne "0"  && \
-	  grin -l " $$" daybed/ docs/ | xargs sed -i 's/\s*$$//' || exit 0; \
-	fi

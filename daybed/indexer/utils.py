@@ -6,7 +6,8 @@ def build_elasticsearch_hosts(hosts):
     """Take a list of hosts and build an Elasticsearch parameter list.
 
     >>> build_elasticsearch_hosts(['https://admin:password@localhost'])
-    [{'use_ssl': True, 'host': 'localhost', 'http_auth': 'admin:password', 'port': 443}]
+    [{'use_ssl': True, 'host': 'localhost', 'http_auth': 'admin:password', \
+    'port': 443}]
 
     """
     built_hosts = []

@@ -5,7 +5,6 @@ import mock
 
 from daybed.schemas import registry
 from daybed import indexer
-from daybed.indexer.utils import build_elasticsearch_hosts
 
 from .support import BaseWebTest, unittest
 from .test_views import MODEL_DEFINITION, MODEL_RECORD
@@ -15,17 +14,17 @@ class ConfigurationTest(unittest.TestCase):
 
     @mock.patch('elasticsearch.Elasticsearch')
     def test_default_config(self, elasticsearch_mock):
-        new_indexer = indexer.ElasticSearchIndexer(['localhost:9200'], 'daybed_')
+        indexer.ElasticSearchIndexer(['localhost:9200'], 'daybed_')
         elasticsearch_mock.assert_called_with(['localhost:9200'])
 
     @mock.patch('elasticsearch.Elasticsearch')
     def test_default_port(self, elasticsearch_mock):
-        new_indexer = indexer.ElasticSearchIndexer(['localhost'], 'daybed_')
+        indexer.ElasticSearchIndexer(['localhost'], 'daybed_')
         elasticsearch_mock.assert_called_with(['localhost'])
 
     @mock.patch('elasticsearch.Elasticsearch')
     def test_http_url(self, elasticsearch_mock):
-        new_indexer = indexer.ElasticSearchIndexer(['http://localhost:9200'], 'daybed_')
+        indexer.ElasticSearchIndexer(['http://localhost:9200'], 'daybed_')
         elasticsearch_mock.assert_called_with([{
             'host': 'localhost',
             'port': 9200,
@@ -35,7 +34,7 @@ class ConfigurationTest(unittest.TestCase):
 
     @mock.patch('elasticsearch.Elasticsearch')
     def test_https_url(self, elasticsearch_mock):
-        new_indexer = indexer.ElasticSearchIndexer(['https://localhost'], 'daybed_')
+        indexer.ElasticSearchIndexer(['https://localhost'], 'daybed_')
         elasticsearch_mock.assert_called_with([{
             'host': 'localhost',
             'port': 443,
@@ -45,7 +44,8 @@ class ConfigurationTest(unittest.TestCase):
 
     @mock.patch('elasticsearch.Elasticsearch')
     def test_http_url_with_basic_auth(self, elasticsearch_mock):
-        new_indexer = indexer.ElasticSearchIndexer(['http://admin:password@localhost'], 'daybed_')
+        indexer.ElasticSearchIndexer(
+            ['http://admin:password@localhost'], 'daybed_')
         elasticsearch_mock.assert_called_with([{
             'host': 'localhost',
             'port': 80,
@@ -55,7 +55,8 @@ class ConfigurationTest(unittest.TestCase):
 
     @mock.patch('elasticsearch.Elasticsearch')
     def test_https_url_with_basic_auth(self, elasticsearch_mock):
-        new_indexer = indexer.ElasticSearchIndexer(['https://admin:password@localhost'], 'daybed_')
+        indexer.ElasticSearchIndexer(
+            ['https://admin:password@localhost'], 'daybed_')
         elasticsearch_mock.assert_called_with([{
             'host': 'localhost',
             'port': 443,
