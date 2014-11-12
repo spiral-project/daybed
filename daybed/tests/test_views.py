@@ -3,6 +3,7 @@ import base64
 
 import mock
 from webtest.app import TestRequest
+import elasticsearch
 
 from daybed import __version__ as VERSION, API_VERSION
 from daybed.permissions import invert_permissions_matrix
@@ -669,6 +670,9 @@ class SearchViewTest(BaseWebTest):
                           headers=self.headers)
 
     def test_search_returns_200_if_query_is_correct(self):
+        self.app.post('/models/test/search/', {'match_all': {}},
+                      headers=self.headers,
+                      status=200)
         self.app.get('/models/test/search/', {'match_all': {}},
                      headers=self.headers,
                      status=200)
@@ -677,9 +681,9 @@ class SearchViewTest(BaseWebTest):
     def test_search_supports_query_string_parameters(self, search_mock):
         search_mock.return_value = {}
         query = {'match_all': {}}
-        self.app.get('/models/test/search/?size=100', query,
-                     headers=self.headers,
-                     status=200)
+        self.app.post('/models/test/search/?size=100', query,
+                      headers=self.headers,
+                      status=200)
         search_mock.called_with(index='test', doc_type='test',
                                 body=query, size=100)
 
@@ -704,6 +708,15 @@ class SearchViewTest(BaseWebTest):
         self.app.get('/models/test/search/', {},
                      headers=self.headers,
                      status=502)
+
+    @mock.patch('elasticsearch.client.Elasticsearch.search')
+    def test_search_returns_original_code_on_bad_request(self, search_mock):
+        badrequest = elasticsearch.RequestError('400', 'error', {'foo': 'bar'})
+        search_mock.side_effect = badrequest
+        resp = self.app.get('/models/test/search/', {},
+                            headers=self.headers,
+                            status=400)
+        self.assertEqual(resp.json['msg']['foo'], 'bar')
 
     def test_search_view_requires_permission(self):
         self.app.patch_json('/models/test/permissions',
