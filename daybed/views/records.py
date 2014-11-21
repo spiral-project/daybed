@@ -107,18 +107,22 @@ def put(request):
     record_id = request.matchdict['record_id']
 
     try:
-        request.db.get_record(model_id, record_id)
+        record = request.db.get_record(model_id, record_id)
         create = True
     except RecordNotFound:
+        authors = set([])
         create = False
+    else:
+        authors = set(record.get('authors', []))
 
     if request.credentials_id:
         credentials_id = request.credentials_id
+        authors |= set([credentials_id])
     else:
         credentials_id = Everyone
 
     record_id = request.db.put_record(model_id, request.data_clean,
-                                      [credentials_id], record_id=record_id)
+                                      authors, record_id=record_id)
     event = 'RecordCreated' if create else 'RecordUpdated'
     request.notify(event, model_id, record_id)
     return {'id': record_id}

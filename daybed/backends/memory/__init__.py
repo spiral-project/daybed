@@ -107,7 +107,7 @@ class MemoryBackend(object):
 
     def put_record(self, model_id, record, authors, record_id=None):
         doc = {
-            'authors': authors,
+            'authors': list(authors),
             'record': record
         }
 
