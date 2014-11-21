@@ -113,6 +113,7 @@ VIEWS_PERMISSIONS_REQUIRED = {
                            Any(['delete_own_records', 'delete_all_records'])]),
     'patch_record':    Any(['update_own_records', 'update_all_records']),
     'delete_record':   Any(['delete_own_records', 'delete_all_records']),
+    'patch_record_authors': Any(['update_own_records', 'update_all_records']),
     'get_tokens':      All(['manage_tokens']),
     'post_token':      Any(['create_token', 'manage_tokens']),
     'delete_token':    All(['manage_tokens']),

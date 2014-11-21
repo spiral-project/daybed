@@ -591,6 +591,36 @@ class RecordsViewsTest(BaseWebTest):
         if not a.startswith(b):
             self.fail("'%s' doesn't startswith '%s'" % (a, b))
 
+    def test_update_authors_add_to_list(self):
+        response = self.app.post('/tokens', status=201)
+        token = response.json['credentials']['id']
+        self.app.put_json('/models/test', MODEL_DEFINITION,
+                          headers=self.headers)
+        resp = self.app.post_json('/models/test/records', MODEL_RECORD,
+                                  headers=self.headers)
+        record_id = resp.json['id']
+        self.app.patch_json('/models/test/records/%s/authors' % record_id,
+                            [token], headers=self.headers, status=200)
+        resp = self.app.delete('/models/test/records/%s' % record_id,
+                               headers=self.headers)
+        self.assertIn(token, resp.json['authors'])
+
+    def test_update_authors_remove_from_list(self):
+        response = self.app.post('/tokens', status=201)
+        token = response.json['credentials']['id']
+        self.app.put_json('/models/test', MODEL_DEFINITION,
+                          headers=self.headers)
+        resp = self.app.post_json('/models/test/records', MODEL_RECORD,
+                                  headers=self.headers)
+        record_id = resp.json['id']
+        self.app.patch_json('/models/test/records/%s/authors' % record_id,
+                            [token], headers=self.headers, status=200)
+        self.app.patch_json('/models/test/records/%s/authors' % record_id,
+                            ["-%s" % token], headers=self.headers, status=200)
+        resp = self.app.delete('/models/test/records/%s' % record_id,
+                               headers=self.headers)
+        self.assertNotIn(token, resp.json['authors'])
+
 
 class CreateTokenViewTest(BaseWebTest):
 

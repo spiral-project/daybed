@@ -280,3 +280,44 @@ class PermissionsSchemaTest(BaseWebTest):
         with_minus['doctor'].append('-read_all_records')
         value = self.schema.deserialize(with_minus)
         self.assertEqual(value['doctor'], ['ALL', '-read_all_records'])
+
+
+class AuthorsSchemaTest(BaseWebTest):
+
+    def setUp(self):
+        super(AuthorsSchemaTest, self).setUp()
+        self.db.store_credentials('abc', {'id': 'doctor', 'key': 'who'})
+        self.db.store_credentials('efg', {'id': 'admin', 'key': 'password'})
+        self.schema = validators.AuthorsSchema(name='authors')
+        self.authors = ['doctor']
+
+    def test_fails_if_identifier_is_unknown(self):
+        unknown = ['unknown']
+        self.assertRaises(colander.Invalid,
+                          self.schema.deserialize, unknown)
+
+    def test_unknown_identifier_is_given_in_error(self):
+        unknown = ['unknown']
+        try:
+            self.schema.deserialize(unknown)
+        except colander.Invalid as e:
+            self.assertIn(u"Credentials id 'unknown' could not be found.",
+                          repr(e))
+
+    def test_shortcut_identifiers_are_replaced_by_system_principals(self):
+        shortcuts = ['Authenticated', 'Everyone']
+        value = self.schema.deserialize(shortcuts)
+        self.assertNotIn('Everyone', value)
+        self.assertIn('system.Everyone', value)
+        self.assertNotIn('Authenticated', value)
+        self.assertIn('system.Authenticated', value)
+
+    def test_authors_can_be_specified_with_plus(self):
+        with_plus = ['+admin']
+        value = self.schema.deserialize(with_plus)
+        self.assertEqual(value, ['+admin'])
+
+    def test_permissions_can_be_specified_with_minus(self):
+        with_minus = ['-doctor']
+        value = self.schema.deserialize(with_minus)
+        self.assertEqual(['-doctor'], value)

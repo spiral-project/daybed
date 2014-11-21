@@ -131,10 +131,10 @@ class BackendTestBase(object):
         self._create_model()
         self.db.put_record('modelname', self.record, ['Alexis'])
 
-        # When we put a new version of a record, we should keep the list of
+        # When we put a new version of a record, we should update the list of
         # authors.
         item_id = self.db.put_record('modelname', self.record, ['Remy'])
-        self.db.put_record('modelname', self.record, ['Alexis'], item_id)
+        self.db.put_record('modelname', self.record, ['Alexis', 'Remy'], item_id)
 
         authors = self.db.get_record_authors('modelname', item_id)
         self.assertEquals(set(authors), set(['Alexis', 'Remy']))

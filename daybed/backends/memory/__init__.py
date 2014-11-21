@@ -107,7 +107,7 @@ class MemoryBackend(object):
 
     def put_record(self, model_id, record, authors, record_id=None):
         doc = {
-            'authors': list(authors),
+            'authors': list(set(authors)),
             'record': record
         }
 
@@ -117,9 +117,8 @@ class MemoryBackend(object):
             except backend_exceptions.RecordNotFound:
                 doc['_id'] = record_id
             else:
-                old_doc["record"].update(doc["record"])
+                old_doc.update(doc)
                 doc = old_doc
-                doc['authors'] = list(set(authors) | set(old_doc['authors']))
         else:
             key_exist = functools.partial(self._record_exists, model_id)
             record_id = self._generate_id(key_exist=key_exist)

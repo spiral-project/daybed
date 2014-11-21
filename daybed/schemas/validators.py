@@ -131,6 +131,44 @@ class PermissionsSchema(SchemaNode):
         return cstruct
 
 
+class AuthorValidator(IdentifierValidator):
+    def __init__(self, db):
+        super(AuthorValidator, self).__init__(get_db())
+
+    def __call__(self, node, value):
+        if value not in (Authenticated, Everyone):
+            strip_author = value.lstrip('-').lstrip('+').lower()
+            return super(AuthorValidator, self).__call__(node, strip_author)
+
+
+class AuthorsSchema(SchemaNode):
+    """Authors are a list of :term:`identifiers`.
+    We shall make sure that provided identifiers exist.
+    """
+    def __init__(self, *args, **kwargs):
+        super(AuthorsSchema, self).__init__(Sequence(), *args, **kwargs)
+
+    def deserialize(self, cstruct=null):
+        authors = self._substitute_by_system(cstruct)
+        validator = AuthorValidator(get_db())
+        for identifier in authors:
+            validator(self, identifier)
+            self.add(SchemaNode(String()))
+
+        return super(AuthorsSchema, self).deserialize(authors)
+
+    def _substitute_by_system(self, cstruct):
+        authors = []
+        for identifier in cstruct:
+            if identifier in ("Authenticated", "Everyone"):
+                identifier = identifier.replace("Authenticated",
+                                                Authenticated) \
+                                       .replace("Everyone",
+                                                Everyone)
+            authors.append(identifier)
+        return authors
+
+
 def validate_against_schema(request, schema, data):
     """Validates and deliver colander exceptions as Cornice errors.
     """
@@ -176,6 +214,7 @@ def validator(request, schema):
 definition_validator = partial(validator, schema=DefinitionSchema())
 model_validator = partial(validator, schema=ModelSchema())
 permissions_validator = partial(validator, schema=PermissionsSchema())
+authors_validator = partial(validator, schema=AuthorsSchema())
 
 
 def record_validator(request):

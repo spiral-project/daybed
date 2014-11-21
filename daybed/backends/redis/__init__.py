@@ -121,7 +121,7 @@ class RedisBackend(object):
 
     def put_record(self, model_id, record, authors, record_id=None):
         doc = {
-            'authors': list(authors),
+            'authors': list(set(authors)),
             'record': record
         }
 
@@ -131,8 +131,6 @@ class RedisBackend(object):
             except backend_exceptions.RecordNotFound:
                 pass
             else:
-                authors = list(set(authors) | set(old_doc['authors']))
-                doc['authors'] = authors
                 old_doc.update(doc)
                 doc = old_doc
         else:

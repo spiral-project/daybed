@@ -4,8 +4,10 @@ from cornice import Service
 from pyramid.security import Everyone
 
 from daybed.backends.exceptions import RecordNotFound, ModelNotFound
-from daybed.schemas.validators import (RecordSchema, record_validator,
-                                       validate_against_schema)
+from daybed.schemas.validators import (
+    RecordSchema, record_validator, validate_against_schema,
+    authors_validator
+)
 
 
 records = Service(name='records',
@@ -16,6 +18,10 @@ records = Service(name='records',
 record = Service(name='record',
                  path='/models/{model_id}/records/{record_id}',
                  description='Single record')
+
+record_authors = Service(name='record-authors',
+                         path='/models/{model_id}/records/{record_id}/authors',
+                         description="Record's authors management")
 
 
 @records.get(permission='get_records')
@@ -169,3 +175,32 @@ def delete(request):
         request.errors.status = "404 Not Found"
         return
     return deleted
+
+
+@record_authors.patch(permission='patch_record_authors',
+                      validators=(authors_validator,))
+def patch_records_authors(request):
+    """Update the list of authors."""
+    model_id = request.matchdict['model_id']
+    record_id = request.matchdict['record_id']
+
+    try:
+        record = request.db.get_record(model_id, record_id)
+    except RecordNotFound:
+        request.errors.add('path', record_id, "record not found")
+        request.errors.status = "404 Not Found"
+        return
+    else:
+        authors = set(record.get('authors', []))
+
+    for identifier in request.data_clean:
+        if identifier.startswith('-'):
+            identifier = identifier.lstrip('-')
+            if identifier in authors:
+                authors.remove(identifier)
+        else:
+            authors.add(identifier.lstrip('+'))
+
+    record_id = request.db.put_record(model_id, record,
+                                      authors, record_id=record_id)
+    return {'id': record_id}

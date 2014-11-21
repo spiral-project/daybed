@@ -161,8 +161,6 @@ class CouchDBBackend(object):
             except backend_exceptions.RecordNotFound:
                 doc['_id'] = '-'.join((model_id, record_id))
             else:
-                authors = list(set(authors) | set(old_doc['authors']))
-                doc['authors'] = authors
                 old_doc.update(doc)
                 doc = old_doc
         else:
