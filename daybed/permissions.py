@@ -185,7 +185,8 @@ class DaybedAuthorizationPolicy(object):
             try:
                 authors = context.db.get_record_authors(model_id, record_id)
             except backend_exceptions.RecordNotFound:
-                authors = []
+                # If the record doesn't exists yet, we are the author.
+                authors = principals
             finally:
                 if not principals.intersection(authors):
                     current_permissions -= AUTHORS_PERMISSIONS

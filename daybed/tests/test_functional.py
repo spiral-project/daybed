@@ -97,6 +97,32 @@ class FunctionalTest(object):
         records = self.db.get_records(self.model_id)
         self.assertEqual(len(records), 1)
 
+    def test_record_creation_with_put(self):
+        headers = self.headers.copy()
+        headers.update({
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+        })
+        # Change models permissions
+        self.app.patch_json('/models/%s/permissions' % self.model_id, {
+            'Everyone': ['create_record', 'read_own_records',
+                         'update_own_records',
+                         'delete_own_records']
+        }, headers=headers)
+        # Put data against this definition
+        entry = self.valid_record.copy()
+        record_id = "my-id"
+
+        # Update this data
+        self.update_record(entry)
+        resp = self.app.put_json('/models/%s/records/%s' % (self.model_id,
+                                                            record_id),
+                                 entry,
+                                 headers=headers)
+        self.assertIn('id', resp.body.decode('utf-8'))
+        records = self.db.get_records(self.model_id)
+        self.assertEqual(len(records), 1)
+
     def test_record_partial_update(self):
         # Put data against this definition
         entry = self.valid_record.copy()
