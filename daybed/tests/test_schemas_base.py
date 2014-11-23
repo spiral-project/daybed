@@ -243,3 +243,19 @@ class DateFieldTests(unittest.TestCase):
         validator = schemas.DateTimeField.validation(**definition)
         defaulted = validator.deserialize('')
         self.assertTrue((datetime.datetime.now() - defaulted).seconds < 1)
+
+
+class AnnotationFieldTests(unittest.TestCase):
+    def setUp(self):
+        self.schema = schemas.AnnotationField.definition()
+        self.definition = self.schema.deserialize(
+            {'type': 'annotation',
+             'label': 'this is some content',
+             'anotherField': 'haha'})
+        self.validator = schemas.AnnotationField.validation(**self.definition)
+
+    def test_annotation_does_not_need_name(self):
+        self.assertEquals(colander.null, self.validator.deserialize(''))
+
+    def test_annotation_field_preserves_attributes(self):
+        self.assertEquals('haha', self.definition['anotherField'])
