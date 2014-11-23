@@ -50,6 +50,19 @@ class RecordValidatorTest(unittest.TestCase):
     def setUp(self):
         self.schema = schemas.TypeField.definition()
 
+    def test_raises_invalid_if_falsy_value_is_provided(self):
+        definition = {
+            'name': 'name',
+            'type': 'object',
+            'fields': [{'name': 'first', 'type': 'string'}]}
+        validator = schemas.ObjectField.validation(**definition)
+        self.assertRaises(colander.Invalid, validator.deserialize,
+            {'first': None})
+        self.assertRaises(colander.Invalid, validator.deserialize,
+            {"first": ""})
+        self.assertRaises(colander.Invalid, validator.deserialize,
+            '{"first": null}')
+
     def test_null_is_deserialized_if_field_is_not_required(self):
         definition = self.schema.deserialize(
             {'name': 'address',
