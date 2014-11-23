@@ -46,6 +46,30 @@ class ValidatorTests(unittest.TestCase):
         self.assertIsNone(self.request.data_clean['records'][0].get('name'))
 
 
+class RecordValidatorTest(unittest.TestCase):
+    def setUp(self):
+        self.schema = schemas.TypeField.definition()
+
+    def test_null_is_deserialized_if_field_is_not_required(self):
+        definition = self.schema.deserialize(
+            {'name': 'address',
+             'type': 'int',
+             'required': False})
+        validator = schemas.TypeField.validation(**definition)
+        self.assertEquals(colander.null, validator.deserialize(''))
+
+    def test_deserialized_if_field_is_not_required_can_be_overridden(self):
+        definition = self.schema.deserialize(
+            {'name': 'address',
+             'type': 'int',
+             'required': False})
+        before = schemas.TypeField.default_value
+        schemas.TypeField.default_value = 0
+        validator = schemas.TypeField.validation(**definition)
+        self.assertEquals(0, validator.deserialize(''))
+        schemas.TypeField.default_value = before
+
+
 class DefinitionSchemaTest(unittest.TestCase):
     def setUp(self):
         self.schema = schemas.TypeField.definition()
@@ -103,34 +127,6 @@ class DefinitionSchemaTest(unittest.TestCase):
             {'name': 'firstname',
              'type': 'string'})
         self.assertEquals(definition['required'], True)
-
-    def test_null_is_deserialized_if_field_is_not_required(self):
-        definition = self.schema.deserialize(
-            {'name': 'address',
-             'type': 'int',
-             'required': False})
-        validator = schemas.TypeField.validation(**definition)
-        self.assertEquals(colander.null, validator.deserialize(''))
-
-    def test_deserialized_if_field_is_not_required_can_be_overridden(self):
-        definition = self.schema.deserialize(
-            {'name': 'address',
-             'type': 'int',
-             'required': False})
-        before = schemas.TypeField.default_value
-        schemas.TypeField.default_value = 0
-        validator = schemas.TypeField.validation(**definition)
-        self.assertEquals(0, validator.deserialize(''))
-        schemas.TypeField.default_value = before
-
-    def test_annotation_does_not_need_name(self):
-        schema = schemas.AnnotationField.definition()
-        definition = schema.deserialize(
-            {'type': 'annotation',
-             'label': 'this is some content'})
-
-        validator = schemas.AnnotationField.validation(**definition)
-        self.assertEquals(colander.null, validator.deserialize(''))
 
     def test_extra_may_be_present(self):
         schema = validators.DefinitionSchema()
