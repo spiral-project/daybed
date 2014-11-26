@@ -17,6 +17,7 @@ from pyramid.config import Configurator
 from pyramid.events import NewRequest
 from pyramid.renderers import JSONP
 from pyramid.authentication import BasicAuthAuthenticationPolicy
+from pyramid.settings import aslist
 
 from pyramid_hawkauth import HawkAuthenticationPolicy
 from pyramid_multiauth import MultiAuthenticationPolicy
@@ -173,10 +174,10 @@ def main(global_config, **settings):
     config.add_subscriber(attach_objects_to_request, NewRequest)
 
     # Plugins
+    plugins = aslist(settings['daybed.plugins'])
 
-    try:
-        config.include("daybed_browserid")
-    except ImportError:
-        pass
+    for plugin in plugins:
+        print(plugin)
+        config.include(plugin)
 
     return config.make_wsgi_app()
