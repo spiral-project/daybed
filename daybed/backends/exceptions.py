@@ -1,3 +1,7 @@
+class UserIdNotFound(Exception):
+    pass
+
+
 class CredentialsAlreadyExist(Exception):
     pass
 

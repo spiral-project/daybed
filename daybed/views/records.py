@@ -113,7 +113,7 @@ def put(request):
     record_id = request.matchdict['record_id']
 
     try:
-        record = request.db.get_record(model_id, record_id)
+        request.db.get_record(model_id, record_id)
         create = True
     except RecordNotFound:
         authors = set([])

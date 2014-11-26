@@ -58,6 +58,7 @@ def redirect_to_version(request):
 
 def main(global_config, **settings):
     Service.cors_origins = ('*',)
+    Service.cors_supported_headers = ('Session-Id',)
 
     settings = settings_expandvars(settings)
     config = Configurator(settings=settings, root_factory=RootFactory)
@@ -174,7 +175,7 @@ def main(global_config, **settings):
     config.add_subscriber(attach_objects_to_request, NewRequest)
 
     # Plugins
-    plugins = aslist(settings['daybed.plugins'])
+    plugins = aslist(settings.get('daybed.plugins', ''))
 
     for plugin in plugins:
         print(plugin)

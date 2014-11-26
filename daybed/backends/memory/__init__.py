@@ -27,7 +27,8 @@ class MemoryBackend(object):
             'records': {},
             'permissions': {},
             'tokens': {},
-            'credentials_keys': {}
+            'credentials_keys': {},
+            'user_ids': {},
         }
 
     def get_models(self, principals):
@@ -173,3 +174,14 @@ class MemoryBackend(object):
     def get_model_permissions(self, model_id):
         doc = self.__get_raw_model(model_id)
         return doc['permissions']
+
+    def get_user_id(self, hawk_id):
+        """Retrives the user_id for the given hawk_id."""
+        if hawk_id in self._db['user_ids']:
+            return self._db['user_ids'][hawk_id]
+        else:
+            raise backend_exceptions.UserIdNotFound(hawk_id)
+
+    def set_user_id(self, hawk_id, user_id):
+        """Set the session_id oauth_access_token."""
+        self._db['user_ids'][hawk_id] = user_id

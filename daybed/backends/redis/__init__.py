@@ -204,3 +204,14 @@ class RedisBackend(object):
         self._db.set("token.%s" % credentials['id'], token)
         self._db.set("credentials_key.%s" % credentials['id'],
                      credentials['key'])
+
+    def get_user_id(self, hawk_id):
+        """Retrives the user_id for the given hawk_id."""
+        user_id = self._db.get("user_id.%s" % hawk_id)
+        if user_id is None:
+            raise backend_exceptions.UserIdNotFound(hawk_id)
+        return user_id.decode("utf-8")
+
+    def set_user_id(self, hawk_id, user_id):
+        """Set the session_id oauth_access_token."""
+        self._db.set("user_id.%s" % hawk_id, user_id)

@@ -52,6 +52,12 @@ class BackendTestBase(object):
     def test_add_permissions_merges_redundant_permissions(self):
         pass
 
+    def test_set_user_id(self):
+        token, credentials = get_hawk_credentials()
+        self.db.set_user_id(credentials['id'], 'alexis@example.com')
+        user_id = self.db.get_user_id(credentials['id'])
+        self.assertEquals(user_id, 'alexis@example.com')
+
     def test_store_credentials_fails_if_already_exist(self):
         token, credentials = get_hawk_credentials()
         self.db.store_credentials(token, credentials)

@@ -48,6 +48,15 @@ function(doc){
 }
 """)
 
+"""The user_id from their hawk_ids"""
+user_ids = ViewDefinition('user_ids', 'by_hawk_id', """
+function(doc){
+  if(doc.type == 'user_id'){
+      emit(doc.hawk_id, doc);
+  }
+}
+""")
+
 
 l = locals().values()
 docs = [v for v in l if isinstance(v, ViewDefinition)]

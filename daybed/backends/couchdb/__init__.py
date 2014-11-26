@@ -231,3 +231,24 @@ class CouchDBBackend(object):
     def get_model_permissions(self, model_id):
         doc = self.__get_raw_model(model_id)
         return doc['permissions']
+
+    def __get_raw_user_id(self, hawk_id):
+        try:
+            return views.user_ids(self._db, key=hawk_id).rows[0].value
+        except IndexError:
+            raise backend_exceptions.UserIdNotFound(hawk_id)
+
+    def get_user_id(self, hawk_id):
+        """Retrives the user_id for the given hawk_id."""
+        id_doc = dict(**self.__get_raw_user_id(hawk_id))
+        return id_doc['user_id']
+
+    def set_user_id(self, hawk_id, user_id):
+        """Set the session_id oauth_access_token."""
+        try:
+            doc = self.__get_raw_user_id(hawk_id)
+        except backend_exceptions.UserIdNotFound:
+            doc = {"type": "user_id", "hawk_id": hawk_id}
+
+        doc['user_id'] = user_id
+        self._db.save(doc)
