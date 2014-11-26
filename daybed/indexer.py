@@ -4,6 +4,7 @@ import elasticsearch
 from elasticsearch.exceptions import RequestError, ElasticsearchException
 
 from daybed import logger
+from daybed.schemas import registry
 
 
 class SearchError(Exception):
@@ -178,9 +179,11 @@ class ElasticSearchIndexer(object):
             field_types[field_name] = field_type
 
         mapping = record.copy()
-        for key, value in mapping.items():
+        for key, value in record.items():
             field_type = field_types.get(key)
-            if field_type in ('line', 'polygon'):
+            if not registry.indexable(field_type):
+                del mapping[key]
+            elif field_type in ('line', 'polygon'):
                 geojson = {
                     'line': 'Linestring',
                     'polygon': 'Polygon'
@@ -189,8 +192,8 @@ class ElasticSearchIndexer(object):
                     'type': geojson[field_type],
                     'coordinates': value
                 }
-            if field_type == 'point':
+            elif field_type == 'point':
                 mapping[key] = {'lon': value[0], 'lat': value[1]}
-            if field_type == 'list':
+            elif field_type == 'list':
                 mapping[key] = json.dumps(value)
         return mapping

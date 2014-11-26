@@ -51,6 +51,13 @@ class TextField(TypeField):
     hint = _('A text')
 
 
+@registry.add('blob')
+class BlobField(TypeField):
+    node = String
+    hint = _('A binary blob that will be stored as-is')
+    indexable = False
+
+
 @registry.add('annotation')
 class AnnotationField(TypeField):
     required = False

@@ -236,6 +236,7 @@ ALL_FIELDS_DEFINITION = {
             {'name': 'u', 'type': 'polygon'},
             {'name': 'v', 'type': 'anyof', 'model': 'simple'},
             {'name': 'w', 'type': 'oneof', 'model': 'simple'},
+            {'name': 'x', 'type': 'blob'},
         ]
     }
 }
@@ -342,6 +343,7 @@ class RecordMappingTest(BaseWebTest):
             'u': [[[0.0, 0.0], [1.0, 1.0], [0.0, 1.0], [0.0, 0.0]]],
             'v': ["simple-rec"],
             'w': 'simple-rec',
+            'x': 'binary-blob',
         }
 
         self.mapping = None
@@ -378,6 +380,9 @@ class RecordMappingTest(BaseWebTest):
         self.assertEqual(self.mapping['u'],
                          {"type": "Polygon",
                           "coordinates": self.record['u']})
+
+    def test_blob_is_not_indexed(self):
+        self.assertNotIn('x', self.mapping)
 
 
 class SpatialSearchTest(BaseWebTest):
