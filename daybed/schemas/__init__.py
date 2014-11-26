@@ -55,6 +55,13 @@ class TypeRegistry(object):
             raise UnknownFieldTypeError('Type "%s" is unknown' % typename)
         return nodetype.definition(**options)
 
+    def indexable(self, typename):
+        try:
+            nodetype = self._registry[typename]
+        except KeyError:
+            return True
+        return nodetype.indexable
+
     @property
     def names(self):
         return self._registry.keys()
@@ -78,6 +85,7 @@ class TypeField(object):
     required = True
     default_value = null
     hint = u''
+    indexable = True
 
     @classmethod
     def definition(cls, **kwargs):
